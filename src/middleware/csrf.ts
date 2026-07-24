@@ -26,7 +26,9 @@ export const { generateToken, doubleCsrfProtection } = doubleCsrf({
     secure: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat',
     httpOnly: true,
     path: '/',
-    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
+    // __Host- prefix cookies MUST NOT have a Domain attribute (browser cookie prefix spec).
+    // Chrome/Firefox block the cookie entirely when Domain is set with __Host-.
+    // The prefix itself binds the cookie to the exact request host — no Domain needed.
   },
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
