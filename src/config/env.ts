@@ -27,7 +27,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['local', 'dev', 'uat', 'prod', 'test']).default('local'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
   PORT: z.coerce.number().default(3000),
-  FRONTEND_CUSTOMER_URL: z.string().url(),
+  FRONTEND_CUSTOMER_URL: z.url(),
   FRONTEND_ADMIN_URL: z.string().url(),
   DOCKER: z.coerce.boolean().default(false),
   npm_package_version: z.string().default('1.0.0'),
@@ -54,8 +54,8 @@ const envSchema = z.object({
 
   // Email — configured via EMAIL_PROVIDER
   EMAIL_PROVIDER: z.enum(['ses', 'resend', 'dummy']).default('dummy'),
-  FROM_EMAIL: z.string().email(),
-  NEXUSBID_SYSTEM_ADMIN_EMAIL: z.string().email(),
+  FROM_EMAIL: z.email(),
+  NEXUSBID_SYSTEM_ADMIN_EMAIL: z.email(),
   RESEND_API_KEY: z.string().optional(),
 
   // Features
@@ -65,7 +65,7 @@ const envSchema = z.object({
   NODE_APP_INSTANCE: z.string().optional(),
 
   // API Base URL
-  API_URL: z.string().url().default('http://localhost:3000'),
+  API_URL: z.url().default('http://localhost:3000'),
 
   // OAuth Credentials (optional to ensure compiling / dev sandboxing without config)
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -75,7 +75,6 @@ const envSchema = z.object({
   MICROSOFT_CLIENT_ID: z.string().optional(),
   MICROSOFT_CLIENT_SECRET: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
-  SYSTEM_OWNER_EMAIL: z.string().email().default('owner@example.com'),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

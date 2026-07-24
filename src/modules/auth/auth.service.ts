@@ -1055,9 +1055,9 @@ export async function verifyAdminEmail(
     const rawToken = await createEmailToken(user.id, EmailTokenType.SYSTEM_OWNER_APPROVAL);
     const bootstrapLink = `${env.FRONTEND_ADMIN_URL}/bootstrap?token=${rawToken}`;
 
-    // Send email to SYSTEM_OWNER_EMAIL
+    // Send email to NEXUSBID_SYSTEM_ADMIN_EMAIL
     await sendAdminBootstrapNotification({
-      to: env.SYSTEM_OWNER_EMAIL,
+      to: env.NEXUSBID_SYSTEM_ADMIN_EMAIL,
       adminName: user.name,
       adminEmail: user.email,
       bootstrapLink,
