@@ -40,7 +40,12 @@ COPY package*.json ./
 # host between builds. On an unchanged lockfile, packages are served from
 # the local cache — no network round-trips, no re-download of tarballs.
 # The mount is ephemeral — it never gets baked into a layer.
-RUN npm ci
+#
+# --legacy-peer-deps: eslint-plugin-import@2.x declares peer eslint@"^2-9"
+# but the project uses eslint@10. This flag skips the strict peer check —
+# safe here because ESLint tooling is only used during tsc compilation
+# and is never included in the final runner image.
+RUN npm ci --legacy-peer-deps
 
 
 # ── Stage 2: builder ──────────────────────────────────────────────────────────
@@ -126,7 +131,7 @@ WORKDIR /app
 # BuildKit cache mount: same npm cache as deps stage — no re-download.
 # `npm cache clean --force` after install removes residual cache from the layer.
 COPY package*.json ./
-RUN npm ci --omit=dev && \
+RUN npm ci --omit=dev --legacy-peer-deps && \
     npm cache clean --force
 
 # ── Copy compiled application from builder ────────────────────────────────────
