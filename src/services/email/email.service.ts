@@ -2,6 +2,7 @@ import { env } from '../../config/env';
 import { logger } from '../../config/logger';
 
 import { DummyEmailProvider } from './providers/dummy.provider';
+import { ResendProvider } from './providers/resend.provider';
 import { SesProvider } from './providers/ses.provider';
 import { getAdminApprovalStatusTemplate } from './templates/adminApprovalStatus';
 import { getAdminBootstrapNotificationTemplate } from './templates/adminBootstrapNotification';
@@ -25,6 +26,8 @@ const FRONTEND = env.FRONTEND_CUSTOMER_URL;
 let emailProvider: EmailProvider;
 if (env.EMAIL_PROVIDER === 'ses') {
   emailProvider = new SesProvider();
+} else if (env.EMAIL_PROVIDER === 'resend') {
+  emailProvider = new ResendProvider();
 } else {
   emailProvider = new DummyEmailProvider();
 }
@@ -49,7 +52,7 @@ export async function sendVerificationEmail(opts: {
   userId: string;
   token: string;
 }): Promise<void> {
-  const link = `${FRONTEND}/auth/verify-email?token=${opts.token}`;
+  const link = `${FRONTEND}/verify-email?token=${opts.token}`;
   const { html, text } = getVerificationTemplate({
     name: opts.name,
     link,
@@ -57,7 +60,7 @@ export async function sendVerificationEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'Verify your NexusBid email address',
+    subject: 'Verify your RFPNexa email address',
     html,
     text,
   });
@@ -77,7 +80,7 @@ export async function sendAdminVerificationEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'Verify your NexusBid Admin email address',
+    subject: 'Verify your RFPNexa Admin email address',
     html,
     text,
   });
@@ -97,7 +100,7 @@ export async function sendPasswordResetEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'Reset your NexusBid password',
+    subject: 'Reset your RFPNexa password',
     html,
     text,
   });
@@ -128,7 +131,7 @@ export async function sendSubscriptionReceiptEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: `NexusBid: Your ${opts.planName} subscription is active`,
+    subject: `RFPNexa: Your ${opts.planName} subscription is active`,
     html,
     text,
   });
@@ -142,7 +145,7 @@ export async function sendContactFormEmail(opts: {
   const { html, text } = getContactFormTemplate(opts);
   await send({
     to: env.FROM_EMAIL || '',
-    subject: `NexusBid Contact Form: ${opts.senderName}`,
+    subject: `RFPNexa Contact Form: ${opts.senderName}`,
     html,
     text,
   });
@@ -170,7 +173,7 @@ export async function sendSubscriptionCancelledEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'NexusBid: Subscription cancelled',
+    subject: 'RFPNexa: Subscription cancelled',
     html,
     text,
   });
@@ -182,7 +185,7 @@ export async function sendEmailChangeVerificationEmail(opts: {
   userId: string;
   token: string;
 }): Promise<void> {
-  const link = `${FRONTEND}/auth/verify-email-change?token=${opts.token}`;
+  const link = `${FRONTEND}/verify-email-change?token=${opts.token}`;
   const { html, text } = getEmailChangeVerificationTemplate({
     name: opts.name,
     link,
@@ -190,7 +193,7 @@ export async function sendEmailChangeVerificationEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'Verify your new NexusBid email address',
+    subject: 'Verify your new RFPNexa email address',
     html,
     text,
   });
@@ -209,7 +212,7 @@ export async function sendEmailChangeAlertEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'NexusBid Account Alert: Email change requested',
+    subject: 'RFPNexa Account Alert: Email change requested',
     html,
     text,
   });
@@ -233,7 +236,7 @@ export async function sendLoginNotificationEmail(opts: {
   });
   await send({
     to: opts.to,
-    subject: 'Security Alert: New login detected on your NexusBid account',
+    subject: 'Security Alert: New login detected on your RFPNexa account',
     html,
     text,
   });
@@ -263,8 +266,8 @@ export async function sendAdminApprovalStatusEmail(opts: {
 }): Promise<void> {
   const subject =
     opts.status === 'approved'
-      ? 'Your NexusBid Admin Account has been Approved'
-      : 'Your NexusBid Admin Account Request has been Rejected';
+      ? 'Your RFPNexa Admin Account has been Approved'
+      : 'Your RFPNexa Admin Account Request has been Rejected';
 
   const { html, text } = getAdminApprovalStatusTemplate(opts);
   await send({

@@ -29,6 +29,9 @@ export class TenderReviewAssignment {
   @JoinColumn({ name: 'reviewer_id' })
   reviewer: User;
 
+  @Column({ length: 50, default: 'PENDING' })
+  decision: string;
+
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt: Date;
 

@@ -1,7 +1,12 @@
 import { AppDataSource } from '../config/database';
 import { logger } from '../config/logger';
 import { Tender } from '../database/entities/Tender';
-import { TenderLifecycleStatus, TenderPublicationStatus } from '../types/enums';
+import {
+  TenderBiddingStatus,
+  TenderLifecycleStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+} from '../types/enums';
 
 const tenderRepo = AppDataSource.getRepository(Tender);
 
@@ -17,7 +22,9 @@ export async function publishTendersJob(): Promise<void> {
     .getMany();
 
   for await (const t of pendingTenders) {
-    t.publicationStatus = TenderPublicationStatus.OPEN;
+    t.publicationStatus = TenderPublicationStatus.PUBLISHED;
+    t.biddingStatus = TenderBiddingStatus.OPEN;
+    t.processStatus = TenderProcessStatus.IN_BIDDING;
     await tenderRepo.save(t);
   }
 

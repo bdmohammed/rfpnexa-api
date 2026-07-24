@@ -39,21 +39,27 @@ export class RbacReviewController {
     res.json({ success: true, message: 'Review decision submitted successfully' });
   });
 
-  public static getReviewDetails = asyncHandler<
-    IdParamDto,
-    SuccessResponse<RoleReview | undefined>
-  >(async (req, res) => {
-    const { id } = req.params;
-    const review = await AppDataSource.getRepository(RoleReview).findOne({
-      where: { id },
-      relations: [
-        'assignments',
-        'assignments.reviewer',
-        'comments',
-        'comments.user',
-        'roleVersion',
-      ],
-    });
-    res.json({ success: true, data: review ?? undefined });
-  });
+  public static getReviewDetails = asyncHandler<IdParamDto, SuccessResponse<any>>(
+    async (req, res) => {
+      const { id } = req.params;
+      const review = await AppDataSource.getRepository(RoleReview).findOne({
+        where: { id },
+        relations: [
+          'roleReviewAssignments',
+          'roleReviewAssignments.reviewer',
+          'roleReviewComments',
+          'roleReviewComments.user',
+          'roleVersion',
+        ],
+      });
+      const mapped = review
+        ? {
+            ...review,
+            assignments: review.roleReviewAssignments,
+            comments: review.roleReviewComments,
+          }
+        : undefined;
+      res.json({ success: true, data: mapped });
+    },
+  );
 }

@@ -24,8 +24,8 @@ export const TenderSearchQuerySchema = z.object({
 export type TenderSearchQueryDto = z.infer<typeof TenderSearchQuerySchema>;
 
 export const CreateTenderSchema = z.object({
-  title: z.string().min(5).max(400).trim(),
-  description: z.string().min(20).trim(),
+  title: z.string().min(1).max(400).trim(),
+  description: z.string().min(1).trim().default('Draft Tender Description'),
   procurementType: z.string().trim().optional(),
   priority: z.string().default('Medium'),
   estimatedBudget: z.number().int().min(0).optional(),

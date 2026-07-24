@@ -19,40 +19,47 @@ export const CmsPermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.CMS, PermissionActions.CREATE, {
-    name: 'Create Content',
-    description: 'Create CMS pages and blog posts.',
-    displayOrder: 2,
+  MANAGE: definePermission(PermissionModules.CMS, PermissionActions.MANAGE, {
+    name: 'Manage CMS',
+    description: 'Manage CMS pages, blogs and content.',
+    displayOrder: 1,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.CMS, PermissionActions.UPDATE, {
-    name: 'Update Content',
-    description: 'Edit existing CMS content.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.CMS, PermissionActions.CREATE, {
+  //   name: 'Create Content',
+  //   description: 'Create CMS pages and blog posts.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.CMS, PermissionActions.DELETE, {
-    name: 'Delete Content',
-    description: 'Delete CMS content.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.CMS, PermissionActions.UPDATE, {
+  //   name: 'Update Content',
+  //   description: 'Edit existing CMS content.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
-  RESTORE: definePermission(PermissionModules.CMS, PermissionActions.RESTORE, {
-    name: 'Restore Content',
-    description: 'Restore archived or deleted CMS content.',
-    displayOrder: 5,
-    isActive: true,
-  }),
+  // DELETE: definePermission(PermissionModules.CMS, PermissionActions.DELETE, {
+  //   name: 'Delete Content',
+  //   description: 'Delete CMS content.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
-  PUBLISH: definePermission(PermissionModules.CMS, PermissionActions.PUBLISH, {
-    name: 'Publish Content',
-    description: 'Publish draft content to the live website.',
-    displayOrder: 6,
-    isActive: true,
-  }),
+  // RESTORE: definePermission(PermissionModules.CMS, PermissionActions.RESTORE, {
+  //   name: 'Restore Content',
+  //   description: 'Restore archived or deleted CMS content.',
+  //   displayOrder: 5,
+  //   isActive: true,
+  // }),
+
+  // PUBLISH: definePermission(PermissionModules.CMS, PermissionActions.PUBLISH, {
+  //   name: 'Publish Content',
+  //   description: 'Publish draft content to the live website.',
+  //   displayOrder: 6,
+  //   isActive: true,
+  // }),
 
   // UNPUBLISH: definePermission(PermissionModules.CMS, 'unpublish', {
   //   name: 'Unpublish Content',
@@ -61,33 +68,33 @@ export const CmsPermissions = {
   //   isActive: true,
   // }),
 
-  ARCHIVE: definePermission(PermissionModules.CMS, PermissionActions.ARCHIVE, {
-    name: 'Archive Content',
-    description: 'Archive CMS pages and blog posts.',
-    displayOrder: 8,
-    isActive: true,
-  }),
+  // ARCHIVE: definePermission(PermissionModules.CMS, PermissionActions.ARCHIVE, {
+  //   name: 'Archive Content',
+  //   description: 'Archive CMS pages and blog posts.',
+  //   displayOrder: 8,
+  //   isActive: true,
+  // }),
 
-  MEDIA_MANAGE: definePermission(PermissionModules.CMS, PermissionActions.MANAGE, {
-    name: 'Manage Media',
-    description: 'Upload, replace and remove media assets.',
-    displayOrder: 9,
-    isActive: true,
-  }),
+  // MEDIA_MANAGE: definePermission(PermissionModules.CMS, PermissionActions.MANAGE, {
+  //   name: 'Manage Media',
+  //   description: 'Upload, replace and remove media assets.',
+  //   displayOrder: 9,
+  //   isActive: true,
+  // }),
 
-  SEO_MANAGE: definePermission(PermissionModules.CMS, PermissionActions.MANAGE, {
-    name: 'Manage SEO',
-    description: 'Manage SEO metadata for CMS pages.',
-    displayOrder: 10,
-    isActive: true,
-  }),
+  // SEO_MANAGE: definePermission(PermissionModules.CMS, PermissionActions.MANAGE, {
+  //   name: 'Manage SEO',
+  //   description: 'Manage SEO metadata for CMS pages.',
+  //   displayOrder: 10,
+  //   isActive: true,
+  // }),
 
-  EXPORT: definePermission(PermissionModules.CMS, PermissionActions.EXPORT, {
-    name: 'Export Content',
-    description: 'Export CMS pages and blog posts.',
-    displayOrder: 11,
-    isActive: true,
-  }),
+  // EXPORT: definePermission(PermissionModules.CMS, PermissionActions.EXPORT, {
+  //   name: 'Export Content',
+  //   description: 'Export CMS pages and blog posts.',
+  //   displayOrder: 11,
+  //   isActive: true,
+  // }),
 
   // AUDIT: definePermission(PermissionModules.CMS, 'audit', {
   //   name: 'View CMS Audit',

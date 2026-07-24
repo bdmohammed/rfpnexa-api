@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# .dockerignore — NexusBid API
+# .dockerignore — RFPNexa API
 #
 # Excludes files that must NOT enter the Docker build context.
 # Without this file every .env.* secret, the full .git history, and

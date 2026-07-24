@@ -57,7 +57,7 @@ export async function createOrder(input: CreateOrderInput): Promise<PayPalOrder>
       application_context: {
         return_url: input.returnUrl,
         cancel_url: input.cancelUrl,
-        brand_name: 'NexusBid',
+        brand_name: 'RFPNexa',
         user_action: 'PAY_NOW',
         shipping_preference: 'NO_SHIPPING',
       },

@@ -54,5 +54,24 @@ export class UserRole {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
+  @Column({ name: 'status', type: 'varchar', length: 50, default: 'ACTIVE' })
+  status: string;
+
+  @Column({ name: 'reviewer_id', type: 'uuid', nullable: true })
+  reviewerId?: string | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'reviewer_id' })
+  reviewer?: User | null;
+
+  @Column({ name: 'reason', type: 'text', nullable: true })
+  reason?: string | null;
+
+  @Column({ name: 'comment', type: 'text', nullable: true })
+  comment?: string | null;
+
+  @Column({ name: 'effective_at', type: 'timestamptz', nullable: true })
+  effectiveAt?: Date | null;
+
   // ─── Relations ────────────────────────────────────────────────────────────
 }

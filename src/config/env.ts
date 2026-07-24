@@ -53,7 +53,7 @@ const envSchema = z.object({
   AWS_S3_BUCKET: z.string().min(1),
 
   // Email — configured via EMAIL_PROVIDER
-  EMAIL_PROVIDER: z.enum(['ses', 'dummy']).default('dummy'),
+  EMAIL_PROVIDER: z.enum(['ses', 'resend', 'dummy']).default('dummy'),
   FROM_EMAIL: z.string().email(),
   NEXUSBID_SYSTEM_ADMIN_EMAIL: z.string().email(),
   RESEND_API_KEY: z.string().optional(),

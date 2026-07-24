@@ -14,6 +14,7 @@ import type { CreateSubscriptionDto } from './subscriptions.dto';
 const planRepository = AppDataSource.getRepository(Plan);
 const subscriptionRepository = AppDataSource.getRepository(Subscription);
 const couponRepository = AppDataSource.getRepository(Coupon);
+const subRepo = AppDataSource.getRepository(Subscription);
 
 // ─── List active plans ────────────────────────────────────────────────────────
 
@@ -333,4 +334,17 @@ export async function cancelMySubscription(userId: string): Promise<void> {
     { userId, subscriptionId: subscription.id, durationMs },
     'Subscription cancellation completed',
   );
+}
+
+export async function listAllSubscriptions(opts: {
+  page: number;
+  limit: number;
+}): Promise<{ subscriptions: Subscription[]; total: number }> {
+  const [subscriptions, total] = await subRepo.findAndCount({
+    relations: ['user', 'planVersion', 'planVersion.plan'],
+    order: { createdAt: 'DESC' },
+    skip: (opts.page - 1) * opts.limit,
+    take: opts.limit,
+  });
+  return { subscriptions, total };
 }

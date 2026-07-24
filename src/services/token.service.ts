@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-import { IsNull, MoreThan } from 'typeorm';
+import { IsNull, MoreThan, type EntityManager } from 'typeorm';
 
 import { AppDataSource } from '../config/database';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
@@ -43,17 +43,22 @@ export async function createEmailToken(userId: string, type: EmailTokenType): Pr
 /**
  * Verifies a raw token against the DB hash and marks it as used.
  * Throws AppError if the token is invalid, expired, or already used.
+ * Accepts optional transactionManager so token consumption rolls back if transaction fails.
  *
  * For password reset: deletes ALL password_reset tokens for the user after success.
  */
 export async function verifyAndConsumeToken(
   rawToken: string,
   type: EmailTokenType,
+  transactionManager?: EntityManager,
 ): Promise<string> {
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const repo = transactionManager
+    ? transactionManager.getRepository(EmailToken)
+    : emailTokenRepository;
 
   // Find the exact non-expired, non-used token of this type matching the hash
-  const matched = await emailTokenRepository.findOne({
+  const matched = await repo.findOne({
     where: {
       tokenHash,
       type,
@@ -71,11 +76,11 @@ export async function verifyAndConsumeToken(
   }
 
   // Mark as used
-  await emailTokenRepository.update(matched.id, { usedAt: new Date() });
+  await repo.update(matched.id, { usedAt: new Date() });
 
   // For password reset — delete all reset tokens for this user
   if (type === EmailTokenType.PASSWORD_RESET) {
-    await emailTokenRepository.delete({ userId: matched.userId, type });
+    await repo.delete({ userId: matched.userId, type });
   }
 
   return matched.userId;

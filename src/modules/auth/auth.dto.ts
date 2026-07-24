@@ -9,7 +9,7 @@ export const RegisterSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   companyName: z.string().max(160).trim().optional(),
-  country: z.string().max(100).trim().optional(),
+  countryId: z.coerce.string().min(1, 'Country ID is required'),
 });
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 

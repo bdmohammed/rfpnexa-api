@@ -2,9 +2,13 @@ import { Router } from 'express';
 
 import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
+import { ListSubscriptionsQuerySchema } from '../admin/admin.dto';
 
 import * as controller from './subscriptions.controller';
 import { CreateSubscriptionSchema } from './subscriptions.dto';
+
+import { BillingPermissions } from '@/constants/permissions';
+import { requirePermission } from '@/middleware/permissions';
 
 const router = Router();
 
@@ -207,5 +211,29 @@ router.post('/', authenticate, validate(CreateSubscriptionSchema), controller.cr
  */
 router.get('/me', authenticate, controller.getMySubscription);
 router.delete('/me', authenticate, controller.cancelMySubscription);
+
+/**
+ * @swagger
+ * /api/v1/subscriptions:
+ *   get:
+ *     summary: List all user subscriptions
+ *     description: |
+ *       Returns a paginated list of all subscriptions in the platform.
+ *       **Required Permission:** `subscription.view`
+ *     operationId: adminListSubscriptions
+ *     tags: [Subscriptions Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Subscriptions list resolved
+ */
+router.get(
+  '/',
+  authenticate,
+  requirePermission(BillingPermissions.VIEW.key),
+  validate(ListSubscriptionsQuerySchema, 'query'),
+  controller.listSubscriptions,
+);
 
 export { router as subscriptionsRouter };

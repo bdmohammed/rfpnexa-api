@@ -10,7 +10,12 @@ import {
   VersionColumn,
 } from 'typeorm';
 
-import { TenderLifecycleStatus, TenderPublicationStatus } from '../../types/enums';
+import {
+  TenderBiddingStatus,
+  TenderLifecycleStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+} from '../../types/enums';
 
 import { DownloadHistory } from './DownloadHistory';
 import { TenderAmendment } from './TenderAmendment';
@@ -50,9 +55,28 @@ export class Tender {
     name: 'publication_status',
     type: 'varchar',
     length: 50,
-    default: TenderPublicationStatus.SCHEDULED,
+    default: TenderPublicationStatus.UNPUBLISHED,
   })
   publicationStatus: TenderPublicationStatus;
+
+  @Column({
+    name: 'bidding_status',
+    type: 'varchar',
+    length: 50,
+    default: TenderBiddingStatus.NOT_OPEN,
+  })
+  biddingStatus: TenderBiddingStatus;
+
+  @Column({
+    name: 'process_status',
+    type: 'varchar',
+    length: 50,
+    default: TenderProcessStatus.PRE_BIDDING,
+  })
+  processStatus: TenderProcessStatus;
+
+  @Column({ name: 'publish_at', type: 'timestamptz', nullable: true })
+  publishAt: Date | null;
 
   @VersionColumn({ name: 'db_version', default: 1 })
   dbVersion: number;

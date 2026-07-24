@@ -1,6 +1,6 @@
 # Architecture Gap Report v1.0
 
-This audit document evaluates the current NexusBid backend codebase structure against the approved **Backend Architecture Standard v1.0**. It identifies structural gaps, architectural deviations, and configuration redundancies, providing an actionable roadmap for remediation without introducing behavioral risks.
+This audit document evaluates the current RFPNexa backend codebase structure against the approved **Backend Architecture Standard v1.0**. It identifies structural gaps, architectural deviations, and configuration redundancies, providing an actionable roadmap for remediation without introducing behavioral risks.
 
 ---
 

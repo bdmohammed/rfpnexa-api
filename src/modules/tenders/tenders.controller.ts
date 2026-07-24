@@ -5,7 +5,12 @@ import { paginationMeta, sendCreated, sendNoContent, sendOk } from '../../core/r
 import { Tender } from '../../database/entities/Tender';
 import { TenderVersion } from '../../database/entities/TenderVersion';
 import { generateUploadUrl } from '../../services/s3.service';
-import { TenderLifecycleStatus, TenderPublicationStatus } from '../../types/enums';
+import {
+  TenderBiddingStatus,
+  TenderLifecycleStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+} from '../../types/enums';
 
 import * as service from './tenders.service';
 import { TenderWorkflowService } from './TenderWorkflowService';
@@ -58,8 +63,8 @@ export const list = asyncHandler<{}, object, {}, TenderSearchQueryDto>(async (re
 
 export const getBySlug = asyncHandler<TenderSlugParamDto>(async (req, res) => {
   const { slug } = req.params;
-  const { userId } = req.user as JwtPayload;
-  const tender = await service.getTenderBySlug(slug, userId);
+  const { user } = req;
+  const tender = await service.getTenderBySlug(slug, user?.userId);
   return sendOk(res, tender);
 });
 
@@ -155,6 +160,18 @@ export const adminRegisterDocument = asyncHandler<TenderIdParamDto, object, Regi
   },
 );
 
+export const adminGetDocuments = asyncHandler<TenderIdParamDto>(async (req, res) => {
+  const { id } = req.params;
+  const docs = await service.getTenderDocuments(id);
+  return sendOk(res, docs);
+});
+
+export const adminDeleteDocument = asyncHandler<{ docId: string }>(async (req, res) => {
+  const { docId } = req.params;
+  await service.deleteDocument(docId);
+  return sendNoContent(res);
+});
+
 export const getStatistics = asyncHandler(async (_req, res) => {
   const stats = await service.getTenderStatistics();
   return sendOk(res, stats);
@@ -162,14 +179,16 @@ export const getStatistics = asyncHandler(async (_req, res) => {
 
 export const cancelTender = asyncHandler<TenderIdParamDto>(async (req, res) => {
   const { id } = req.params;
-  const userId = getUserId(req);
-  const tender = await service.updateTenderStatus(
-    id,
-    { publicationStatus: TenderPublicationStatus.CLOSED },
-    userId,
-  );
+  const tenderRepo = AppDataSource.getRepository(Tender);
+  const tender = await tenderRepo.findOne({ where: { id } });
+  if (!tender) {
+    throw new AppError('Tender not found', HttpStatusCode.NOT_FOUND, AppErrorCode.NOT_FOUND);
+  }
+
   tender.status = TenderLifecycleStatus.CANCELLED;
-  await AppDataSource.getRepository(Tender).save(tender);
+  tender.biddingStatus = TenderBiddingStatus.CLOSED;
+  tender.processStatus = TenderProcessStatus.FAILED;
+  await tenderRepo.save(tender);
   return sendOk(res, tender, 'Tender cancelled');
 });
 
@@ -359,4 +378,88 @@ export const saveTemplate = asyncHandler<{}, object, TenderTemplateDto>(async (r
   const userId = getUserId(req);
   const tenderTemplate = await service.createTemplate(dto, userId);
   return sendCreated(res, tenderTemplate, 'Template saved');
+});
+
+export const submitDraftForReview = asyncHandler<TenderIdParamDto>(async (req, res) => {
+  const { id } = req.params;
+  const userId = getUserId(req);
+  const review = await service.submitDraftForReview(id, userId);
+  return sendCreated(res, review, 'Submitted for governance review');
+});
+
+export const getTenderReviews = asyncHandler<TenderIdParamDto>(async (req, res) => {
+  const { id } = req.params;
+  const reviews = await service.getTenderReviews(id);
+  return sendOk(res, reviews);
+});
+
+export const submitReviewDecision = asyncHandler<
+  { reviewId: string },
+  object,
+  { decision: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED'; commentText?: string }
+>(async (req, res) => {
+  const { reviewId } = req.params;
+  const { decision, commentText } = req.body;
+  const userId = getUserId(req);
+  const review = await service.submitReviewDecision(reviewId, decision, commentText, userId);
+  return sendOk(res, review, 'Review decision recorded');
+});
+
+export const getVersionDiff = asyncHandler<
+  TenderIdParamDto,
+  object,
+  object,
+  { v1?: string; v2?: string }
+>(async (req, res) => {
+  const { id } = req.params;
+  const v1 = Number(req.query.v1 ?? 1);
+  const v2 = Number(req.query.v2 ?? 2);
+  const diff = await service.getTenderVersionDiff(id, v1, v2);
+  return sendOk(res, diff);
+});
+
+export const updateBasicInfo = asyncHandler<TenderIdParamDto, object, Partial<UpdateTenderDto>>(
+  async (req, res) => {
+    const { id } = req.params;
+    const dto = req.body;
+    const userId = getUserId(req);
+    const tender = await service.updateTenderBasicInfo(id, dto, userId);
+    return sendOk(res, tender, 'Basic info updated');
+  },
+);
+
+export const updateLocation = asyncHandler<TenderIdParamDto, object, Partial<UpdateTenderDto>>(
+  async (req, res) => {
+    const { id } = req.params;
+    const dto = req.body;
+    const userId = getUserId(req);
+    const tender = await service.updateTenderLocation(id, dto, userId);
+    return sendOk(res, tender, 'Location updated');
+  },
+);
+
+export const updateCommercial = asyncHandler<TenderIdParamDto, object, Partial<UpdateTenderDto>>(
+  async (req, res) => {
+    const { id } = req.params;
+    const dto = req.body;
+    const userId = getUserId(req);
+    const tender = await service.updateTenderCommercial(id, dto, userId);
+    return sendOk(res, tender, 'Commercial terms updated');
+  },
+);
+
+export const updateSchedule = asyncHandler<TenderIdParamDto, object, Partial<UpdateTenderDto>>(
+  async (req, res) => {
+    const { id } = req.params;
+    const dto = req.body;
+    const userId = getUserId(req);
+    const tender = await service.updateTenderSchedule(id, dto, userId);
+    return sendOk(res, tender, 'Schedule updated');
+  },
+);
+
+export const getCompletionStatus = asyncHandler<TenderIdParamDto>(async (req, res) => {
+  const { id } = req.params;
+  const status = await service.getTenderCompletionStatus(id);
+  return sendOk(res, status);
 });

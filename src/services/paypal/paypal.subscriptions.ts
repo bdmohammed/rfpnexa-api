@@ -55,7 +55,7 @@ export async function createSubscription(
     body: JSON.stringify({
       plan_id: input.paypalPlanId,
       application_context: {
-        brand_name: 'NexusBid',
+        brand_name: 'RFPNexa',
         locale: 'en-US',
         shipping_preference: 'NO_SHIPPING',
         user_action: 'SUBSCRIBE_NOW',

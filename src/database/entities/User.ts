@@ -9,7 +9,6 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
-  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -66,7 +65,7 @@ export class User {
     name: 'country_id',
     type: 'smallint',
   })
-  countryId: number;
+  countryId: string;
 
   @ManyToOne(() => Country, (country) => country.users, {
     nullable: false,
@@ -93,19 +92,6 @@ export class User {
   @Index()
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.PENDING_EMAIL_VERIFICATION })
   status: UserStatus;
-
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'approved_by_id' })
-  approvedBy: User | null;
-
-  @RelationId((user: User) => user.approvedBy)
-  approvedById: string | null;
-
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
-  approvedAt: Date | null;
-
-  @Column({ name: 'rejection_reason', type: 'text', nullable: true, default: null })
-  rejectionReason: string | null;
 
   /**
    * Incremented on password change, email change, or account block.
@@ -199,10 +185,10 @@ export class User {
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles: UserRole[];
 
-  @OneToMany(() => Role, (role) => role.createdBy)
+  @OneToMany(() => Role, (role) => role.createdByUser)
   rolesCreated: Role[];
 
-  @OneToMany(() => Role, (role) => role.updatedBy)
+  @OneToMany(() => Role, (role) => role.updatedByUser)
   rolesUpdated: Role[];
 
   @OneToMany(() => UserRole, (assignedRoles) => assignedRoles.assignedBy)

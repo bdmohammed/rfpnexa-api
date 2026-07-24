@@ -58,10 +58,20 @@ export const loadPermissions = async (
       return true;
     });
 
+    if (activeUserRoles.length === 0) {
+      return next(
+        new AppError(
+          'Admin account has no active roles assigned',
+          HttpStatusCode.FORBIDDEN,
+          AppErrorCode.FORBIDDEN,
+        ),
+      );
+    }
+
     const roleSlugs = activeUserRoles
       .map((ur) => {
         if (ur.role.isSystemRole) return 'super-admin';
-        return ur.role.activeVersion?.name
+        return ur.role.activeVersion.name
           ? slugify(ur.role.activeVersion.name, { lower: true, strict: true })
           : '';
       })

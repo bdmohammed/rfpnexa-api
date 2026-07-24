@@ -15,6 +15,7 @@ import {
 import * as plansService from './plans.service';
 
 import type { JwtPayload } from '../../types/express';
+import type { PlanParamDto, UpdatePlanDto } from '../admin/admin.dto';
 import type {
   AssignReviewerBodyDto,
   CreateCouponDto,
@@ -26,6 +27,9 @@ import type {
   SubmitReviewActionBodyDto,
   VersionIdParamDto,
 } from './plans.dto';
+import type { ApiResponse } from '@/core/response';
+import type { Plan } from '@/database/entities/Plan';
+import { sendOk } from '@/core/response';
 
 // ─── Plan Workflows ─────────────────────────────────────────────────────────
 
@@ -219,3 +223,16 @@ export const createFeatureCatalogItem = asyncHandler<{}, object, CreateFeatureCa
     res.status(201).json({ success: true, data: item });
   },
 );
+
+export const updatePlan = asyncHandler<PlanParamDto, ApiResponse<Plan>, UpdatePlanDto>(
+  async (req, res) => {
+    const dto = req.body;
+    const plan = await plansService.updatePlan(req.params.id, dto);
+    return sendOk(res, plan, 'Plan updated');
+  },
+);
+
+export const listPlans = asyncHandler<{}, ApiResponse<Plan[]>>(async (_req, res) => {
+  const plans = await plansService.listAllPlans();
+  return sendOk(res, plans);
+});

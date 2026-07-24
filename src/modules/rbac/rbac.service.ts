@@ -10,6 +10,7 @@ import { RoleReviewAssignment } from '../../database/entities/RoleReviewAssignme
 import { RoleReviewComment } from '../../database/entities/RoleReviewComment';
 import { RoleVersion } from '../../database/entities/RoleVersion';
 import { RoleVersionPermission } from '../../database/entities/RoleVersionPermission';
+import { User } from '../../database/entities/User';
 import { UserRole } from '../../database/entities/UserRole';
 import { assignUserRoles, revokeUserRole } from '../admin/admin.service';
 
@@ -25,11 +26,13 @@ import type {
 } from './rbac.dto';
 import { RoleReview } from '@/database/entities/RoleReview';
 import {
+  AccountType,
   ReviewAction,
   ReviewAssignmentStatus,
   ReviewStatus,
   RoleStatus,
   RoleVersionStatus,
+  UserStatus,
 } from '@/types/enums';
 
 export class RbacService {
@@ -41,12 +44,12 @@ export class RbacService {
   private static readonly permRepo = AppDataSource.getRepository(Permission);
   private static readonly moduleRepo = AppDataSource.getRepository(PermissionModule);
   private static readonly userRoleRepo = AppDataSource.getRepository(UserRole);
+  private static readonly userRepo = AppDataSource.getRepository(User);
 
   /**
    * Get all active, disabled and soft-deleted roles, joining their active version.
    */
-  public static async getRoles(includeDeleted = false) {
-    // : Promise<RoleDetails[]>
+  public static async getRoles(includeDeleted = false, userId?: string, isSuperAdmin = false) {
     const roles = await this.roleRepo.find({
       where: includeDeleted ? {} : { status: Not(RoleStatus.ARCHIVED) },
       relations: [
@@ -54,39 +57,117 @@ export class RbacService {
         'activeVersion.roleVersionPermissions',
         'versions',
         'versions.roleVersionPermissions',
+        'versions.reviews',
+        'versions.reviews.roleReviewAssignments',
+        'createdByUser',
+        'userRoles',
       ],
       order: { createdAt: 'DESC' },
     });
 
-    return roles.map((r) => {
+    const now = new Date();
+
+    const formattedRoles = roles.map((r) => {
       let displayVersion = r.activeVersion;
-      if (!displayVersion && r.versions.length > 0) {
+      if (r.versions.length > 0) {
         const sorted = [...r.versions].sort((a, b) => b.version - a.version);
         displayVersion = sorted[0] as RoleVersion;
       }
 
-      const permissions = displayVersion?.roleVersionPermissions.map((p) => p.permissionKey);
+      const permissions = displayVersion.roleVersionPermissions.map((p) => p.permissionKey);
+      const activeUserRoles = r.userRoles.filter(
+        (ur) => !ur.expiresAt || new Date(ur.expiresAt) > now,
+      );
+
+      const reviewerIds = new Set<string>();
+      r.versions.forEach((v) => {
+        v.reviews.forEach((rev) => {
+          rev.roleReviewAssignments.forEach((assign) => {
+            if (assign.reviewerId) reviewerIds.add(assign.reviewerId);
+          });
+        });
+      });
 
       return {
         id: r.id,
-        key: r.isSystemRole
+        slug: r.isSystemRole
           ? 'super-admin'
-          : displayVersion?.name
+          : displayVersion.name
             ? slugify(displayVersion.name, { lower: true, strict: true })
             : '',
         status: r.status,
+        versionStatus: displayVersion.status,
+        versionId: displayVersion.id,
         isSystemRole: r.isSystemRole,
         isDefaultRole: r.isDefaultRole,
         activeVersionId: r.activeVersionId,
-        name: displayVersion?.name ?? 'Unnamed Role',
-        description: displayVersion?.description ?? '',
-        version: displayVersion?.version ?? 0,
-        permissions,
+        name: displayVersion.name,
+        description: displayVersion.description,
+        version: displayVersion.version,
         permissionKeys: permissions,
         createdAt: r.createdAt,
+        createdBy: r.createdBy,
+        createdByUser: {
+          id: r.createdByUser.id,
+          name: r.createdByUser.name,
+          email: r.createdByUser.email,
+        },
+        userCount: activeUserRoles.length,
         updatedAt: r.updatedAt,
         deletedAt: r.status === RoleStatus.ARCHIVED ? r.updatedAt : null,
+        reviewerIds: Array.from(reviewerIds),
       };
+    });
+
+    if (!userId || isSuperAdmin) {
+      return formattedRoles;
+    }
+
+    return formattedRoles.filter((role) => {
+      // 1. All Approved, Rejected, Active, System, or Archived finalized roles
+      const isApprovedOrRejected =
+        role.status === RoleStatus.ACTIVE ||
+        (role.status as string) === 'APPROVED' ||
+        (role.status as string) === 'REJECTED' ||
+        role.versionStatus === RoleVersionStatus.APPROVED ||
+        role.versionStatus === RoleVersionStatus.REJECTED ||
+        role.status === RoleStatus.ARCHIVED ||
+        role.isSystemRole;
+
+      if (isApprovedOrRejected) return true;
+
+      // 2. Own Draft Role
+      const isOwnDraft = role.createdBy === userId || role.createdByUser.id === userId;
+
+      if (isOwnDraft) return true;
+
+      // 3. Assigned to Me (Reviewer)
+      const isAssignedToMe = role.reviewerIds.includes(userId);
+
+      return isAssignedToMe;
+    });
+  }
+
+  /**
+   * Get roles categorized into approved, rejected, own drafts and assigned to me.
+   */
+  public static async getCategorizedRoles(userId: string) {
+    const allRoles = await this.getRoles(false, undefined, true);
+
+    return allRoles.filter((role) => {
+      const isApproved = role.versionStatus === RoleVersionStatus.APPROVED;
+
+      const isRejected = role.versionStatus === RoleVersionStatus.REJECTED;
+
+      const isOwnDraft =
+        (role.versionStatus === RoleVersionStatus.DRAFT ||
+          role.versionStatus === RoleVersionStatus.SUPERSEDED ||
+          role.versionStatus === RoleVersionStatus.PENDING_REVIEW) &&
+        (role.createdBy === userId || role.createdByUser.id === userId);
+
+      const isAssignedToMe = role.reviewerIds.includes(userId);
+
+      return isApproved || isRejected || isOwnDraft || isAssignedToMe;
     });
   }
 
@@ -113,27 +194,29 @@ export class RbacService {
     }
 
     let displayVersion = role.activeVersion;
-    if (!displayVersion && role.versions.length > 0) {
+    if (role.versions.length > 0) {
       const sorted = [...role.versions].sort((a, b) => b.version - a.version);
       displayVersion = sorted[0] as RoleVersion;
     }
 
-    const permissions = displayVersion?.roleVersionPermissions.map((p) => p.permissionKey) ?? [];
+    const permissions = displayVersion.roleVersionPermissions.map((p) => p.permissionKey);
 
     return {
       id: role.id,
       slug: role.isSystemRole
         ? 'super-admin'
-        : displayVersion?.name
+        : displayVersion.name
           ? slugify(displayVersion.name, { lower: true, strict: true })
           : '',
       status: role.status,
+      versionStatus: displayVersion.status,
+      versionId: displayVersion.id,
       isSystemRole: role.isSystemRole,
       isDefaultRole: role.isDefaultRole,
       activeVersionId: role.activeVersionId,
-      name: displayVersion?.name ?? 'Unnamed Role',
-      description: displayVersion?.description ?? '',
-      version: displayVersion?.version ?? 0,
+      name: displayVersion.name,
+      description: displayVersion.description,
+      version: displayVersion.version,
       permissions,
       permissionKeys: permissions,
       createdAt: role.createdAt,
@@ -150,7 +233,9 @@ export class RbacService {
     permissionKeys: string[],
     userId: string,
   ): Promise<CreateRoleResult> {
-    if (name.trim() === '') {
+    const slug = slugify(name, { lower: true, strict: true });
+
+    if (slug === '') {
       throw new AppError(
         AppErrorMessage.ROLE_NAME_REQUIRED,
         HttpStatusCode.BAD_REQUEST,
@@ -158,41 +243,27 @@ export class RbacService {
       );
     }
 
-    if (permissionKeys.length === 0) {
-      throw new AppError(
-        AppErrorMessage.ROLE_PERMISSION_REQUIRED,
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.VALIDATION_ERROR,
-      );
-    }
-
-    // const slug = slugify(name, { lower: true, strict: true });
-
-    // Validate if any version has this name or slug already
-    const existingVersion = await this.versionRepo.findOne({
-      where: { name: name.trim() },
+    // Check if a role with this key/slug already exists
+    const existingRole = await this.roleRepo.findOne({
+      where: { key: slug },
     });
-    if (existingVersion) {
+
+    if (existingRole) {
       throw new AppError(
-        AppErrorMessage.ROLE_VERSION_ALREADY_EXISTS(name),
+        `A role with the name "${name.trim()}" already exists. Please enter a unique role name.`,
         HttpStatusCode.CONFLICT,
-        AppErrorCode.ROLE_ALREADY_EXISTS,
+        AppErrorCode.ALREADY_EXISTS,
       );
     }
 
-    // Resolve registry permissions
-    const permissions = await this.permRepo.find({
-      where: { key: In(permissionKeys) },
-      relations: ['module'],
-    });
-
-    if (permissions.length === 0) {
-      throw new AppError(
-        AppErrorMessage.PERMISSIONS_NOT_IN_REGISTRY,
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.VALIDATION_ERROR,
-      );
-    }
+    // Resolve registry permissions if provided
+    const permissions =
+      permissionKeys.length > 0
+        ? await this.permRepo.find({
+            where: { key: In(permissionKeys) },
+            relations: ['module'],
+          })
+        : [];
 
     return AppDataSource.transaction(async (transactionManager) => {
       // 1. Create Role
@@ -200,6 +271,9 @@ export class RbacService {
       role.status = RoleStatus.DISABLED; // Disabled until a version is approved
       role.isSystemRole = false;
       role.isDefaultRole = false;
+      role.createdBy = userId;
+      role.updatedBy = userId;
+      role.key = slug;
       const savedRole = await transactionManager.save(role);
 
       // 2. Create Version 1
@@ -333,6 +407,10 @@ export class RbacService {
       await AppDataSource.transaction(async (transactionManager) => {
         await transactionManager.save(draft);
 
+        // Update Role shell updatedBy
+        role.updatedBy = userId;
+        await transactionManager.save(role);
+
         // Delete old snapshot permissions
         await transactionManager.delete(RoleVersionPermission, { roleVersionId: draft.id });
 
@@ -385,6 +463,10 @@ export class RbacService {
 
       await AppDataSource.transaction(async (transactionManager) => {
         const savedDraft = await transactionManager.save(newDraft);
+
+        // Update Role shell updatedBy
+        role.updatedBy = userId;
+        await transactionManager.save(role);
 
         const versionPermissions = permissions.map((p) => {
           const rvp = new RoleVersionPermission();
@@ -494,7 +576,7 @@ export class RbacService {
     return this.versionRepo.find({
       where: { roleId },
       order: { version: 'DESC' },
-      relations: ['createdByUser'],
+      relations: ['createdByUser', 'reviews'],
     });
   }
 
@@ -578,8 +660,26 @@ export class RbacService {
       );
     }
 
-    // Business Rules: Cannot assign oneself as reviewer
-    if (reviewerIds.includes(userId)) {
+    // Business Rules: Cannot assign oneself as reviewer unless sole administrator
+    const otherAdminsCount = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoin('user.userRoles', 'userRole')
+      .leftJoin('userRole.role', 'role')
+      .leftJoin('role.activeVersion', 'activeVersion')
+      .leftJoin('activeVersion.roleVersionPermissions', 'rvp')
+      .where('user.id != :userId', { userId })
+      .andWhere('user.accountType = :accountType', { accountType: AccountType.ADMIN })
+      .andWhere('user.status = :status', { status: UserStatus.ACTIVE })
+      .andWhere('user.email IS NOT NULL AND user.email != :empty', { empty: '' })
+      .andWhere('role.status = :roleStatus', { roleStatus: RoleStatus.ACTIVE })
+      .andWhere('(userRole.expiresAt IS NULL OR userRole.expiresAt > :now)', { now: new Date() })
+      .andWhere('(role.isSystemRole = :isSystemRole OR rvp.permissionKey = :permissionKey)', {
+        isSystemRole: true,
+        permissionKey: 'role.manage',
+      })
+      .getCount();
+
+    if (otherAdminsCount > 0 && reviewerIds.includes(userId)) {
       throw new AppError(
         AppErrorMessage.CREATOR_REVIEWER_BLOCKED,
         HttpStatusCode.BAD_REQUEST,
@@ -766,6 +866,16 @@ export class RbacService {
         await transactionManager.save(review);
         await transactionManager.save(review.roleVersion);
 
+        // Mark previous approved versions for this role as SUPERSEDED to maintain immutable audit trail
+        await transactionManager
+          .createQueryBuilder()
+          .update(RoleVersion)
+          .set({ status: RoleVersionStatus.SUPERSEDED })
+          .where('roleId = :roleId', { roleId: review.roleId })
+          .andWhere('id != :currentVersionId', { currentVersionId: review.roleVersionId })
+          .andWhere('status = :approvedStatus', { approvedStatus: RoleVersionStatus.APPROVED })
+          .execute();
+
         // Update active version of Role
         const { role } = review;
         role.status = RoleStatus.ACTIVE;
@@ -773,7 +883,7 @@ export class RbacService {
         await transactionManager.save(role);
 
         // Check if role replaces a previous role
-        const description = review.roleVersion.description ?? '';
+        const { description } = review.roleVersion;
         const match = description.match(/\[ReplacesRole:\s*([0-9a-fA-F-]+)\]/);
         if (match) {
           const previousRoleId = match[1];
@@ -851,13 +961,13 @@ export class RbacService {
       v1: {
         version: ver1.version,
         name: ver1.name,
-        description: ver1.description as string,
+        description: ver1.description,
         status: ver1.status,
       },
       v2: {
         version: ver2.version,
         name: ver2.name,
-        description: ver2.description as string,
+        description: ver2.description,
         status: ver2.status,
       },
       diff: {
@@ -904,10 +1014,10 @@ export class RbacService {
       slug: r.key,
       status: r.status,
       isSystemRole: r.isSystemRole,
-      name: r.activeVersion?.name ?? '',
-      description: r.activeVersion?.description ?? '',
-      version: r.activeVersion?.version ?? 0,
-      permissions: r.activeVersion?.roleVersionPermissions.map((p) => p.permissionKey) ?? [],
+      name: r.activeVersion.name,
+      description: r.activeVersion.description,
+      version: r.activeVersion.version,
+      permissions: r.activeVersion.roleVersionPermissions.map((p) => p.permissionKey),
     }));
   }
 
@@ -916,7 +1026,7 @@ export class RbacService {
    */
   public static async getAssignments(): Promise<UserRole[]> {
     return this.userRoleRepo.find({
-      relations: ['user', 'role', 'assignedBy'],
+      relations: ['user', 'role', 'assignedBy', 'reviewer'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -929,6 +1039,13 @@ export class RbacService {
     roleId: string,
     expiresAt: string | null,
     currentUserId: string,
+    extra?: {
+      effectiveAt?: string | null | undefined;
+      reason?: string | undefined;
+      comment?: string | undefined;
+      reviewerId?: string | undefined;
+      status?: string | undefined;
+    },
   ): Promise<void> {
     const role = await this.roleRepo.findOne({
       where: { id: roleId },
@@ -941,9 +1058,12 @@ export class RbacService {
         AppErrorCode.NOT_FOUND,
       );
 
-    const existingAssignments = await this.userRoleRepo.find({ where: { userId } });
+    const existingAssignments = await this.userRoleRepo.find({
+      where: { userId },
+      relations: ['role'],
+    });
     const assignments = existingAssignments
-      .filter((ur) => ur.roleId !== roleId)
+      .filter((ur) => ur.roleId !== roleId && ur.role.status === RoleStatus.ACTIVE)
       .map((ur) => ({
         roleId: ur.roleId,
         expiresAt: ur.expiresAt ? ur.expiresAt.toISOString() : null,
@@ -953,9 +1073,18 @@ export class RbacService {
 
     await assignUserRoles(userId, { assignments }, currentUserId);
 
-    const resolvedName = role.isSystemRole
-      ? 'Super Admin'
-      : (role.activeVersion?.name ?? 'Unnamed Role');
+    // Update extra governance metadata on the created/updated UserRole record
+    const userRole = await this.userRoleRepo.findOne({ where: { userId, roleId } });
+    if (userRole) {
+      userRole.status = extra?.status ?? 'ACTIVE';
+      userRole.reason = extra?.reason ?? null;
+      userRole.comment = extra?.comment ?? null;
+      userRole.reviewerId = extra?.reviewerId ?? null;
+      userRole.effectiveAt = extra?.effectiveAt ? new Date(extra.effectiveAt) : null;
+      await this.userRoleRepo.save(userRole);
+    }
+
+    const resolvedName = role.isSystemRole ? 'Super Admin' : role.activeVersion.name;
 
     rbacEventEmitter.emit('RoleAssigned', {
       roleId,
@@ -963,6 +1092,56 @@ export class RbacService {
       targetUserId: userId,
       userId: currentUserId,
     });
+  }
+
+  /**
+   * Update assignment governance status (Maker-Checker flow)
+   */
+  public static async updateAssignmentStatus(
+    assignmentId: string,
+    status: string,
+    comment?: string,
+    currentUserId?: string,
+  ): Promise<UserRole> {
+    const userRole = await this.userRoleRepo.findOne({
+      where: { id: assignmentId },
+      relations: ['user', 'role', 'reviewer'],
+    });
+
+    if (!userRole) {
+      throw new AppError(
+        AppErrorMessage.ROLE_ASSIGNMENT_NOT_FOUND,
+        HttpStatusCode.NOT_FOUND,
+        AppErrorCode.NOT_FOUND,
+      );
+    }
+
+    if ((status === 'APPROVED' || status === 'ACTIVE') && userRole.status === 'DRAFT') {
+      throw new AppError(
+        'Draft role assignments must be submitted for review before approval.',
+        HttpStatusCode.BAD_REQUEST,
+        AppErrorCode.BAD_REQUEST,
+      );
+    }
+
+    userRole.status = status;
+    if (comment !== undefined) {
+      userRole.comment = comment;
+    }
+    if (currentUserId) {
+      userRole.reviewerId = currentUserId;
+    }
+
+    // When role assignment is approved, if the target user account is in
+    // pending_approval state, approve the user account as well
+    if (status === 'APPROVED' || status === 'ACTIVE') {
+      if (userRole.user.status === UserStatus.PENDING_APPROVAL) {
+        userRole.user.status = UserStatus.ACTIVE;
+        await this.userRepo.save(userRole.user);
+      }
+    }
+
+    return this.userRoleRepo.save(userRole);
   }
 
   /**
@@ -975,6 +1154,14 @@ export class RbacService {
         AppErrorMessage.ROLE_ASSIGNMENT_NOT_FOUND,
         HttpStatusCode.NOT_FOUND,
         AppErrorCode.NOT_FOUND,
+      );
+    }
+
+    if (userRole.userId === currentUserId) {
+      throw new AppError(
+        'You cannot revoke your own role assignment.',
+        HttpStatusCode.FORBIDDEN,
+        AppErrorCode.FORBIDDEN,
       );
     }
 

@@ -1,38 +1,35 @@
 import { z } from 'zod';
 
 import type { SubscriptionStatus, TransactionStatus } from '@/types/enums';
-import { PlanType, StateType, UserStatus } from '@/types/enums';
+import { AccountType, PlanType, UserStatus } from '@/types/enums';
 
 export const BlockUserSchema = z.object({
   isBlocked: z.boolean(),
 });
 export type BlockUserDto = z.infer<typeof BlockUserSchema>;
 
+const booleanQueryParam = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    if (val.toLowerCase() === 'true' || val === '1') return true;
+    if (val.toLowerCase() === 'false' || val === '0') return false;
+  }
+  return val;
+}, z.boolean().optional());
+
 export const ListUsersQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
-  accountType: z.enum(['user', 'admin']).optional(),
+  accountType: z.enum(AccountType).optional(),
   status: z.enum(UserStatus).optional(),
-  country: z.string().optional(),
-  verified: z
-    .preprocess((val) => {
-      if (val === true || val === 'true' || val === '1') {
-        return true;
-      }
-
-      if (val === false || val === 'false' || val === '0') {
-        return false;
-      }
-
-      return val;
-    }, z.boolean())
-    .optional(),
+  country: booleanQueryParam,
   dateFrom: z.string().optional(), // Using optional string for dynamic date parses
   dateTo: z.string().optional(),
   planId: z.string().uuid().optional(),
   roleId: z.string().uuid().optional(),
+  verified: booleanQueryParam,
   approvalStatus: z.enum(UserStatus).optional(),
+  permission: z.string().optional(),
 });
 export type ListUsersQueryDto = z.infer<typeof ListUsersQuerySchema>;
 
@@ -87,119 +84,6 @@ export const AnalyticsQuerySchema = z.object({
 });
 export type AnalyticsQueryDto = z.infer<typeof AnalyticsQuerySchema>;
 
-export const CreateCategorySchema = z.object({
-  code: z
-    .string()
-    .regex(/^\d{3}$/, 'Category code must be exactly 3 digits')
-    .optional(),
-  name: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).optional(),
-  description: z.string().max(1000).nullable().optional(),
-  isActive: z.boolean().optional(),
-});
-export type CreateCategoryDto = z.infer<typeof CreateCategorySchema>;
-
-export const UpdateCategorySchema = z.object({
-  code: z
-    .string()
-    .regex(/^\d{3}$/, 'Category code must be exactly 3 digits')
-    .optional(),
-  name: z.string().min(1).max(200).optional(),
-  slug: z.string().min(1).max(200).optional(),
-  description: z.string().max(1000).nullable().optional(),
-  isActive: z.boolean().optional(),
-});
-export type UpdateCategoryDto = z.infer<typeof UpdateCategorySchema>;
-
-export const BatchCategoryItemSchema = z
-  .object({
-    action: z.enum(['upsert', 'delete']).default('upsert'),
-    code: z.string().regex(/^\d{3}$/, 'Category code must be exactly 3 digits'),
-    name: z.string().min(1).max(200).optional(),
-    slug: z.string().min(1).max(200).optional(),
-    description: z.string().max(1000).nullable().optional(),
-    isActive: z.boolean().optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.action === 'upsert' && !data.name) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: 'Name is required for upsert operation',
-      path: ['name'],
-    },
-  );
-export type BatchCategoryItemDto = z.infer<typeof BatchCategoryItemSchema>;
-
-export const BatchCategorySchema = z.array(BatchCategoryItemSchema);
-export type BatchCategoryDto = z.infer<typeof BatchCategorySchema>;
-
-export const CategoryQuerySchema = z.object({
-  search: z.string().optional(),
-  code: z.string().optional(),
-  slug: z.string().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'ARCHIVED']).optional(),
-  createdBy: z.string().uuid().optional(),
-  dateFrom: z.string().date().optional(),
-  dateTo: z.string().date().optional(),
-  unusedOnly: z
-    .preprocess((val) => {
-      if (val === true || val === 'true' || val === '1') {
-        return true;
-      }
-
-      if (val === false || val === 'false' || val === '0') {
-        return false;
-      }
-
-      return val;
-    }, z.boolean())
-    .optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-});
-export type CategoryQueryDto = z.infer<typeof CategoryQuerySchema>;
-
-export const UpdateStateSchema = z.object({
-  isActive: z.boolean(),
-});
-export type UpdateStateDto = z.infer<typeof UpdateStateSchema>;
-
-export const UpdateStateParamsSchema = z.object({
-  id: z.string(),
-});
-export type UpdateStateParamsDto = z.infer<typeof UpdateStateParamsSchema>;
-
-export const UpdateStateBodySchema = z.object({
-  isActive: z.boolean(),
-});
-export type UpdateStateBodyDto = z.infer<typeof UpdateStateBodySchema>;
-
-export const UpdateCountryParamsSchema = z.object({
-  id: z.string(),
-});
-export type UpdateCountryParamsDto = z.infer<typeof UpdateCountryParamsSchema>;
-
-export const UpdateCountryBodySchema = z.object({
-  isActive: z.boolean(),
-});
-export type UpdateCountryBodyDto = z.infer<typeof UpdateCountryBodySchema>;
-
-export const StateQuerySchema = z.object({
-  search: z.string().optional(),
-  code: z.string().optional(),
-  slug: z.string().optional(),
-  type: z.enum(StateType).optional(),
-  countryId: z.coerce.number().int().optional(),
-  countryCode: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-});
-export type StateQueryDto = z.infer<typeof StateQuerySchema>;
-
 export const CreateUserNoteSchema = z.object({
   note: z.string().min(1, 'Note content cannot be empty'),
 });
@@ -220,32 +104,18 @@ export const ImpersonateUserSchema = z.object({
 });
 export type ImpersonateUserDto = z.infer<typeof ImpersonateUserSchema>;
 
-export const RejectAdminParamsSchema = z.object({
-  id: z.uuid(),
-});
-
-export const RejectAdminBodySchema = z.object({
-  reason: z.string().trim().min(1, 'Reason is required').max(500),
-});
-
-export type RejectAdminParamsDto = z.infer<typeof RejectAdminParamsSchema>;
-export type RejectAdminBodyDto = z.infer<typeof RejectAdminBodySchema>;
-
-export const ApproveAdminParamsSchema = z.object({
-  id: z.uuid({ message: 'Invalid administrator ID' }),
-});
-
-export const ApproveAdminBodySchema = z.object({
+export const SubmitApprovalBodySchema = z.object({
   roleId: z.uuid({ message: 'Invalid role ID' }),
+  description: z.string().trim().min(1, 'Description is required').max(1000),
+  reviewerId: z.uuid({ message: 'Invalid reviewer ID' }),
 });
+export type SubmitApprovalBodyDto = z.infer<typeof SubmitApprovalBodySchema>;
 
-export type ApproveAdminParamsDto = z.infer<typeof ApproveAdminParamsSchema>;
-export type ApproveAdminBodyDto = z.infer<typeof ApproveAdminBodySchema>;
-
-export const IdParamSchema = z.object({
-  id: z.uuid('Invalid ID format'),
+export const ReviewApprovalBodySchema = z.object({
+  action: z.enum(['APPROVE', 'REJECT']),
+  comment: z.string().trim().max(1000).optional(),
 });
-export type IdParamDto = z.infer<typeof IdParamSchema>;
+export type ReviewApprovalBodyDto = z.infer<typeof ReviewApprovalBodySchema>;
 
 export const SessionParamSchema = z.object({
   id: z.uuid('Invalid user ID'),
@@ -450,16 +320,7 @@ export interface TopDownloadResultDto {
   download_count: number;
 }
 
-export interface CategoryStatsDto {
-  total: number;
-  active: number;
-  inactive: number;
-  archived: number;
-  tendersCount: number;
-}
-
-export interface BatchCategoriesResultDto {
-  created: number;
-  updated: number;
-  deleted: number;
-}
+export const IdParamSchema = z.object({
+  id: z.string().uuid(),
+});
+export type IdParamDto = z.infer<typeof IdParamSchema>;

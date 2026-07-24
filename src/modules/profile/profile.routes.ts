@@ -1,8 +1,5 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { validate } from '../../middleware/validate';
-
 import * as controller from './profile.controller';
 import {
   ChangePasswordSchema,
@@ -13,6 +10,9 @@ import {
   UpdatePreferencesSchema,
   UpdateProfileSchema,
 } from './profile.dto';
+
+import { authenticate } from '@/middleware/authenticate';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

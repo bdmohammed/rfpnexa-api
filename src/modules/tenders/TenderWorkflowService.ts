@@ -1,5 +1,11 @@
-import { TenderPublicationStatus, TenderVersionStatus } from '../../types/enums';
+import {
+  TenderBiddingStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+  TenderVersionStatus,
+} from '../../types/enums';
 
+import type { Tender } from '../../database/entities/Tender';
 import type { TenderVersion } from '../../database/entities/TenderVersion';
 
 export class TenderWorkflowService {
@@ -10,6 +16,8 @@ export class TenderWorkflowService {
     current: TenderVersionStatus,
     next: TenderVersionStatus,
   ): boolean {
+    if (current === next) return true;
+
     const allowed: Record<TenderVersionStatus, TenderVersionStatus[]> = {
       [TenderVersionStatus.DRAFT]: [TenderVersionStatus.SUBMITTED],
       [TenderVersionStatus.SUBMITTED]: [
@@ -25,9 +33,10 @@ export class TenderWorkflowService {
         TenderVersionStatus.REJECTED,
         TenderVersionStatus.CHANGES_REQUESTED,
       ],
-      [TenderVersionStatus.APPROVED]: [TenderVersionStatus.DRAFT], // To reopen or create new draft
+      [TenderVersionStatus.APPROVED]: [],
       [TenderVersionStatus.REJECTED]: [TenderVersionStatus.DRAFT],
       [TenderVersionStatus.CHANGES_REQUESTED]: [TenderVersionStatus.DRAFT],
+      [TenderVersionStatus.ARCHIVED_VERSION]: [],
     };
 
     return allowed[current].includes(next);
@@ -40,26 +49,73 @@ export class TenderWorkflowService {
     current: TenderPublicationStatus,
     next: TenderPublicationStatus,
   ): boolean {
+    if (current === next) return true;
+
     const allowed: Record<TenderPublicationStatus, TenderPublicationStatus[]> = {
-      [TenderPublicationStatus.SCHEDULED]: [TenderPublicationStatus.PUBLISHED],
-      [TenderPublicationStatus.PUBLISHED]: [
-        TenderPublicationStatus.OPEN,
-        TenderPublicationStatus.CLOSED,
+      [TenderPublicationStatus.UNPUBLISHED]: [
+        TenderPublicationStatus.SCHEDULED,
+        TenderPublicationStatus.PUBLISHED,
       ],
-      [TenderPublicationStatus.OPEN]: [
-        TenderPublicationStatus.CLOSING,
-        TenderPublicationStatus.CLOSED,
+      [TenderPublicationStatus.SCHEDULED]: [
+        TenderPublicationStatus.PUBLISHED,
+        TenderPublicationStatus.UNPUBLISHED,
       ],
-      [TenderPublicationStatus.CLOSING]: [TenderPublicationStatus.CLOSED],
-      [TenderPublicationStatus.CLOSED]: [
-        TenderPublicationStatus.AWARDED,
-        TenderPublicationStatus.COMPLETED,
-      ],
-      [TenderPublicationStatus.AWARDED]: [TenderPublicationStatus.COMPLETED],
-      [TenderPublicationStatus.COMPLETED]: [],
+      [TenderPublicationStatus.PUBLISHED]: [TenderPublicationStatus.RETRACTED],
+      [TenderPublicationStatus.RETRACTED]: [TenderPublicationStatus.PUBLISHED],
     };
 
     return allowed[current].includes(next);
+  }
+
+  /**
+   * Enforce orthogonal state transitions for a Tender aggregate
+   */
+  // eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+  static computeStateTransition(
+    tender: Tender,
+    targetPublicationStatus?: TenderPublicationStatus,
+    targetVersionStatus?: TenderVersionStatus,
+  ) {
+    let { publicationStatus, biddingStatus, processStatus } = tender;
+
+    if (targetPublicationStatus) {
+      if (!this.validatePublicationTransition(publicationStatus, targetPublicationStatus)) {
+        throw new Error(
+          `Invalid publication transition from ${publicationStatus} to ${targetPublicationStatus}`,
+        );
+      }
+      publicationStatus = targetPublicationStatus;
+
+      if (publicationStatus === TenderPublicationStatus.PUBLISHED) {
+        const now = new Date();
+        const opening = tender.activeVersion?.openingDate
+          ? new Date(tender.activeVersion.openingDate)
+          : now;
+
+        if (opening <= now) {
+          biddingStatus = TenderBiddingStatus.OPEN;
+          processStatus = TenderProcessStatus.IN_BIDDING;
+        } else {
+          biddingStatus = TenderBiddingStatus.NOT_OPEN;
+          processStatus = TenderProcessStatus.PRE_BIDDING;
+        }
+      }
+    }
+
+    if (targetVersionStatus && tender.activeVersion?.status) {
+      if (!this.validateVersionTransition(tender.activeVersion.status, targetVersionStatus)) {
+        throw new Error(
+          `Invalid version transition from ${tender.activeVersion.status} to ${targetVersionStatus}`,
+        );
+      }
+    }
+
+    return {
+      publicationStatus,
+      biddingStatus,
+      processStatus,
+      versionStatus: targetVersionStatus,
+    };
   }
 
   /**
@@ -84,18 +140,21 @@ export class TenderWorkflowService {
       'visibility',
     ];
 
-    const added: any = {};
-    const removed: any = {};
-    const changed: any = {};
+    const added: Record<string, unknown> = {};
+    const removed: Record<string, unknown> = {};
+    const changed: Record<string, unknown> = {};
 
     for (const field of fieldsToCompare) {
       const value1 = version1[field];
       const value2 = version2[field];
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (value1 === null || value1 === undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (value2 !== null && value2 !== undefined) {
           added[field] = value2;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (value2 === null || value2 === undefined) {
         removed[field] = value1;
       } else if (JSON.stringify(value1) !== JSON.stringify(value2)) {

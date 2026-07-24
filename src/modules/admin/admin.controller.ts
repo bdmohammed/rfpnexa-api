@@ -1,48 +1,23 @@
-import { parse } from 'csv-parse/sync';
-
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { asyncHandler } from '../../core/asyncHandler';
 import { type ApiResponse, paginationMeta, sendCreated, sendOk } from '../../core/response';
 
 import {
-  type AnalyticsQueryDto,
-  type ApproveAdminBodyDto,
-  type ApproveAdminParamsDto,
   type AssignUserRolesBodyDto,
-  type BatchCategoriesResultDto,
-  type BatchCategoryItemDto,
-  BatchCategorySchema,
   type BlockUserDto,
-  type CategoryQueryDto,
-  type CategoryStatsDto,
   type CreateAdminDto,
-  type CreateCategoryDto,
-  type CreatePlanDto,
   type CreateUserNoteDto,
   type IdParamDto,
   type ImpersonateUserDto,
-  type ListSubscriptionsQueryDto,
   type ListUsersQueryDto,
   type PaginationQueryDto,
-  type PlanParamDto,
   type PreviewPermissionResponseDto,
-  type RejectAdminBodyDto,
-  type RejectAdminParamsDto,
-  type RevenueAnalyticsResultDto,
+  type ReviewApprovalBodyDto,
   type RoleParamDto,
   type SessionParamDto,
-  type StateQueryDto,
-  type TopDownloadResultDto,
-  type UpdateCategoryDto,
-  type UpdateCountryBodyDto,
-  type UpdateCountryParamsDto,
-  type UpdatePlanDto,
-  type UpdateStateBodyDto,
-  type UpdateStateParamsDto,
+  type SubmitApprovalBodyDto,
   type UpdateUserDetailDto,
   type UserActivityDetailDto,
   type UserDeviceDto,
-  type UserGrowthResultDto,
   type UserNoteDetailDto,
   type UserOverviewDto,
   type UserRolesDto,
@@ -55,11 +30,6 @@ import {
 import * as service from './admin.service';
 
 import type { AuditLog } from '../../database/entities/AuditLog';
-import type { Category } from '../../database/entities/Category';
-import type { Country } from '../../database/entities/Country';
-import type { Plan } from '../../database/entities/Plan';
-import type { State } from '../../database/entities/State';
-import type { Subscription } from '../../database/entities/Subscription';
 import type { User } from '../../database/entities/User';
 import type { UserNote } from '../../database/entities/UserNote';
 
@@ -295,305 +265,28 @@ export const previewUserPermissions = asyncHandler<
   return sendOk(res, data);
 });
 
-// ─── Plans ────────────────────────────────────────────────────────────────────
-
-export const listPlans = asyncHandler<{}, ApiResponse<Plan[]>>(async (_req, res) => {
-  const plans = await service.listAllPlans();
-  return sendOk(res, plans);
-});
-
-export const createPlan = asyncHandler<{}, ApiResponse<Plan>, CreatePlanDto>(async (req, res) => {
-  const dto = req.body;
-  const plan = await service.createPlan(dto, req.user!.userId);
-  return sendCreated(res, plan, 'Plan created');
-});
-
-export const updatePlan = asyncHandler<PlanParamDto, ApiResponse<Plan>, UpdatePlanDto>(
+export const submitApproval = asyncHandler<IdParamDto, ApiResponse<null>, SubmitApprovalBodyDto>(
   async (req, res) => {
-    const dto = req.body;
-    const plan = await service.updatePlan(req.params.id, dto);
-    return sendOk(res, plan, 'Plan updated');
+    const { id } = req.params;
+    const { roleId, description, reviewerId } = req.body;
+    await service.submitUserApprovalRequest(id, req.user!.userId, roleId, description, reviewerId);
+    return sendOk(res, null, 'Approval request submitted successfully to reviewer');
   },
 );
 
-// ─── Subscriptions ────────────────────────────────────────────────────────────
-
-export const listSubscriptions = asyncHandler<
-  {},
-  ApiResponse<Subscription[]>,
-  {},
-  ListSubscriptionsQueryDto
->(async (req, res) => {
-  const { page, limit } = req.query;
-  const { subscriptions, total } = await service.listAllSubscriptions({ page, limit });
-  return sendOk(res, subscriptions, 'OK', paginationMeta(total, page, limit));
-});
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
-
-export const getRevenue = asyncHandler<
-  {},
-  ApiResponse<RevenueAnalyticsResultDto[]>,
-  {},
-  AnalyticsQueryDto
->(async (req, res) => {
-  const dto = req.query;
-  const data = await service.getRevenueAnalytics(dto);
-  return sendOk(res, data);
-});
-
-export const getTopDownloads = asyncHandler<{}, ApiResponse<TopDownloadResultDto[]>>(
-  async (_req, res) => {
-    const data = await service.getTopDownloads();
-    return sendOk(res, data);
-  },
-);
-
-export const getUserGrowth = asyncHandler<
-  {},
-  ApiResponse<UserGrowthResultDto[]>,
-  {},
-  AnalyticsQueryDto
->(async (req, res) => {
-  const dto = req.query;
-  const data = await service.getUserGrowth(dto);
-  return sendOk(res, data);
-});
-
-// ─── Categories ──────────────────────────────────────────────────────────────
-
-export const listCategories = asyncHandler<
-  {},
-  ApiResponse<{ categories: Category[]; total: number; stats: CategoryStatsDto }>,
-  {},
-  CategoryQueryDto
->(async (req, res) => {
-  const { query } = req;
-  const { categories, total } = await service.listAllCategories(query);
-  const stats = await service.getCategoryStats();
-  return sendOk(
-    res,
-    { categories, total, stats },
-    'OK',
-    paginationMeta(total, query.page, query.limit),
-  );
-});
-
-export const getCategoryHistory = asyncHandler<IdParamDto, ApiResponse<AuditLog[]>>(
+export const reviewApproval = asyncHandler<IdParamDto, ApiResponse<null>, ReviewApprovalBodyDto>(
   async (req, res) => {
-    const history = await service.getCategoryHistory(req.params.id);
-    return sendOk(res, history);
+    const { id } = req.params;
+    const { action, comment } = req.body;
+    await service.reviewUserApprovalRequest(id, req.user!.userId, action, comment);
+    return sendOk(res, null, `Approval request ${action.toLowerCase()}d successfully`);
   },
 );
 
-export const createCategory = asyncHandler<{}, ApiResponse<Category>, CreateCategoryDto>(
+export const getApprovalRequest = asyncHandler<IdParamDto, ApiResponse<unknown>>(
   async (req, res) => {
-    const dto = req.body;
-    const category = await service.createCategory(dto, req.user!.userId);
-    return sendCreated(res, category, 'Category created');
+    const { id } = req.params;
+    const request = await service.getUserApprovalRequest(id);
+    return sendOk(res, request, 'Approval request details retrieved successfully');
   },
 );
-
-export const updateCategory = asyncHandler<IdParamDto, ApiResponse<Category>, UpdateCategoryDto>(
-  async (req, res) => {
-    const dto = req.body;
-    const before = await service.getCategoryById(req.params.id);
-    res.locals['auditBefore'] = {
-      code: before.code,
-      name: before.name,
-      slug: before.slug,
-      description: before.description,
-      isActive: before.isActive,
-    };
-    const category = await service.updateCategory(req.params.id, dto, req.user!.userId);
-    return sendOk(res, category, 'Category updated');
-  },
-);
-
-export const deleteCategory = asyncHandler<IdParamDto, ApiResponse<null>>(async (req, res) => {
-  const before = await service.getCategoryById(req.params.id);
-  res.locals['auditBefore'] = {
-    code: before.code,
-    name: before.name,
-    slug: before.slug,
-    description: before.description,
-    isActive: before.isActive,
-  };
-  await service.deleteCategory(req.params.id, req.user!.userId);
-  return sendOk(res, null, 'Category deleted');
-});
-
-export const batchCategories = asyncHandler<
-  {},
-  ApiResponse<BatchCategoriesResultDto>,
-  string | BatchCategoryItemDto[]
->(async (req, res) => {
-  // eslint-disable-next-line no-useless-assignment
-  let items: BatchCategoryItemDto[] = [];
-  const contentType = req.headers['content-type'] ?? '';
-
-  if (contentType.includes('text/csv') || contentType.includes('text/plain')) {
-    if (typeof req.body !== 'string' || !req.body.trim()) {
-      throw new AppError(
-        AppErrorMessage.CSV_EMPTY_OR_INVALID,
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.INVALID_BATCH_BODY,
-      );
-    }
-
-    try {
-      const records = parse(req.body, {
-        columns: true,
-        skip_empty_lines: true,
-        trim: true,
-      }) as Record<string, unknown>[];
-
-      items = records.map((record) => {
-        const rawAction = record['action'] ?? 'upsert';
-        const action = typeof rawAction === 'string' ? rawAction.toLowerCase() : 'upsert';
-
-        return {
-          action: ['upsert', 'delete'].includes(action)
-            ? (action as 'upsert' | 'delete')
-            : 'upsert',
-          code: record['code'] ? String(record['code']).trim() : '',
-          name: record['name'] ? String(record['name']).trim() : undefined,
-          slug: record['slug'] ? String(record['slug']).trim() : undefined,
-          description: record['description'] ? String(record['description']).trim() : undefined,
-          isActive:
-            record['is_active'] !== undefined
-              ? record['is_active'] === 'true' || record['is_active'] === '1'
-              : undefined,
-        };
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new AppError(
-        AppErrorMessage.CSV_PARSE_FAILED({ message }),
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.CSV_PARSE_FAILED,
-      );
-    }
-  } else if (contentType.includes('application/json')) {
-    if (!Array.isArray(req.body)) {
-      throw new AppError(
-        AppErrorMessage.INVALID_BATCH_JSON,
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.INVALID_BATCH_BODY,
-      );
-    }
-    items = (req.body as Record<string, unknown>[]).map((item) => ({
-      action:
-        typeof item['action'] === 'string' && ['upsert', 'delete'].includes(item['action'])
-          ? (item['action'] as 'upsert' | 'delete')
-          : 'upsert',
-      code: item['code'] ? String(item['code']).trim() : '',
-      name: item['name'] ? String(item['name']).trim() : undefined,
-      slug: item['slug'] ? String(item['slug']).trim() : undefined,
-      description: item['description'] ? String(item['description']).trim() : undefined,
-      isActive: item['isActive'] !== undefined ? Boolean(item['isActive']) : undefined,
-    }));
-  } else {
-    throw new AppError(
-      AppErrorMessage.UNSUPPORTED_CONTENT_TYPE,
-      HttpStatusCode.UNSUPPORTED_MEDIA_TYPE,
-      AppErrorCode.UNSUPPORTED_MEDIA_TYPE,
-    );
-  }
-
-  const MAX_BATCH_SIZE = 500;
-  if (items.length > MAX_BATCH_SIZE) {
-    throw new AppError(
-      AppErrorMessage.BATCH_SIZE_EXCEEDED(MAX_BATCH_SIZE),
-      HttpStatusCode.BAD_REQUEST,
-      AppErrorCode.BATCH_SIZE_EXCEEDED,
-    );
-  }
-
-  if (items.length === 0) {
-    throw new AppError(
-      AppErrorMessage.EMPTY_BATCH_PAYLOAD,
-      HttpStatusCode.BAD_REQUEST,
-      AppErrorCode.EMPTY_BATCH,
-    );
-  }
-
-  const validationResult = BatchCategorySchema.safeParse(items);
-  if (!validationResult.success) {
-    throw new AppError(
-      AppErrorMessage.BATCH_VALIDATION_FAILED,
-      HttpStatusCode.UNPROCESSABLE_ENTITY,
-      AppErrorCode.VALIDATION_ERROR,
-    );
-  }
-
-  const result = await service.processBatchCategories(validationResult.data, req.user!.userId);
-  return sendOk(res, result, 'Batch processed successfully');
-});
-
-// ─── States ───────────────────────────────────────────────────────────────────
-
-export const listStates = asyncHandler<{}, ApiResponse<State[]>, {}, StateQueryDto>(
-  async (req, res) => {
-    const q = req.query;
-    const { states, total } = await service.listAllStates(q);
-    return sendOk(res, states, 'OK', paginationMeta(total, q.page, q.limit));
-  },
-);
-
-export const listCountries = asyncHandler<{}, ApiResponse<string[]>>(async (_req, res) => {
-  const countries = await service.listDistinctCountries();
-  return sendOk(res, countries);
-});
-
-export const updateState = asyncHandler<
-  UpdateStateParamsDto,
-  ApiResponse<State>,
-  UpdateStateBodyDto
->(async (req, res) => {
-  const dto = req.body;
-  const { id } = req.params;
-  const before = await service.getStateById(id);
-  res.locals['auditBefore'] = {
-    isActive: before.isActive,
-  };
-  const state = await service.updateState(id, dto, req.user!.userId);
-  return sendOk(res, state, 'State updated');
-});
-
-export const updateCountry = asyncHandler<
-  UpdateCountryParamsDto,
-  ApiResponse<Country>,
-  UpdateCountryBodyDto
->(async (req, res) => {
-  const dto = req.body;
-  const { id } = req.params;
-  const before = await service.getCountryById(id);
-  res.locals['auditBefore'] = {
-    isActive: before.isActive,
-  };
-  const country = await service.updateCountry(id, dto, req.user!.userId);
-  return sendOk(res, country, 'Country updated');
-});
-
-export const approveAdmin = asyncHandler<
-  ApproveAdminParamsDto,
-  ApiResponse<null>,
-  ApproveAdminBodyDto
->(async (req, res) => {
-  const { id } = req.params;
-  const { roleId } = req.body;
-  await service.approveAdminUser(id, req.user!.userId, roleId);
-  return sendOk(res, null, 'Administrator request approved successfully');
-});
-
-export const rejectAdmin = asyncHandler<
-  RejectAdminParamsDto,
-  ApiResponse<null>,
-  RejectAdminBodyDto
->(async (req, res) => {
-  const { id } = req.params;
-  const { reason } = req.body;
-  await service.rejectAdminUser(id, req.user!.userId, reason);
-  return sendOk(res, null, 'Administrator request rejected successfully');
-});

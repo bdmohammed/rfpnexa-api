@@ -1,11 +1,12 @@
 import { type DataSource, In } from 'typeorm';
 
 import { Country } from '../../entities/Country';
+import { CountryActivity } from '../../entities/CountryActivity';
 import { State } from '../../entities/State';
 
 import type { SeedInterface } from '../seed.interface';
 import type { User } from '@/database/entities/User';
-import { StateType } from '@/types/enums';
+import { ActorType, CountryActivityType, StateType } from '@/types/enums';
 
 type StateSeed = Required<Pick<State, 'code' | 'name' | 'slug' | 'type'>>;
 
@@ -93,39 +94,76 @@ export default class AddedAllUSStates1720800002 implements SeedInterface {
     const stateRepo = dataSource.getRepository(State);
 
     // 1. Find or create United States country
-    let country = await countryRepo.findOne({ where: { code: 'USA' } });
+    let country = await countryRepo.findOne({ where: { code: 'US' } });
     if (!country) {
-      country = countryRepo.create({
-        code: 'USA',
+      const newCountry = countryRepo.create({
+        code: 'US',
         name: 'United States of America',
         slug: 'united-states-of-america',
         isActive: true,
         createdById: systemUser.id,
         updatedById: systemUser.id,
       });
-      country = await countryRepo.save(country);
+      country = await countryRepo.save(newCountry);
+
+      const activityRepo = dataSource.getRepository(CountryActivity);
+      await activityRepo.save(
+        activityRepo.create({
+          countryId: country.id,
+          actorId: systemUser.id,
+          actorType: ActorType.SYSTEM,
+          eventType: CountryActivityType.SEEDED,
+          title: 'Country Seeded',
+          description: 'United States initialized during system seeded.',
+        }),
+      );
     }
 
-    const existingCodes = new Set(
-      (
-        await stateRepo.find({
-          where: { countryId: country.id },
-          select: { code: true },
-        })
-      ).map((state) => state.code),
-    );
+    const existingStates = await stateRepo.find({
+      where: { countryId: country.id },
+      select: ['code'],
+    });
+    const existingCodes = new Set(existingStates.map((state) => state.code));
 
-    const states = US_STATES.filter(({ code }) => !existingCodes.has(code)).map((state) =>
-      stateRepo.create({
-        ...state,
-        countryId: country.id,
-        createdById: systemUser.id,
-        updatedById: systemUser.id,
-      }),
-    );
+    const newStates = US_STATES.filter(({ code }) => !existingCodes.has(code));
+    if (newStates.length > 0) {
+      const statesToInsert = newStates.map((state) =>
+        stateRepo.create({
+          ...state,
+          countryId: country.id,
+          createdById: systemUser.id,
+          updatedById: systemUser.id,
+        }),
+      );
+      const savedStates = await stateRepo.save(statesToInsert);
 
-    if (states.length > 0) {
-      await stateRepo.save(states);
+      const activityRepo = dataSource.getRepository(CountryActivity);
+      const stateActivities = savedStates.map((savedState) =>
+        activityRepo.create({
+          countryId: country.id,
+          stateId: savedState.id,
+          actorId: systemUser.id,
+          actorType: ActorType.SYSTEM,
+          eventType: CountryActivityType.SEEDED,
+          title: 'State Seeded',
+          description: `State "${savedState.name} (${savedState.code})" was created during the initial system data seeding.`,
+          oldValue: null,
+          newValue: {
+            name: savedState.name,
+            code: savedState.code,
+            isActive: savedState.isActive,
+          },
+          metadata: {
+            source: 'SYSTEM_SEEDER',
+            countryCode: country.code,
+            stateCode: savedState.code,
+            stateName: savedState.name,
+          },
+        }),
+      );
+      if (stateActivities.length > 0) {
+        await activityRepo.save(stateActivities);
+      }
     }
   }
 

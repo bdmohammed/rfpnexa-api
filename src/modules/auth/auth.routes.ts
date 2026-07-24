@@ -1,15 +1,5 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { loadPermissions } from '../../middleware/permissions';
-import {
-  loginLimiter,
-  passwordResetLimiter,
-  registerLimiter,
-  resendVerificationLimiter,
-} from '../../middleware/rateLimits';
-import { validate } from '../../middleware/validate';
-
 import * as controller from './auth.controller';
 import {
   ChangePasswordSchema,
@@ -25,6 +15,16 @@ import {
   VerifyEmailSchema,
 } from './auth.dto';
 import * as oauthController from './oauth.controller';
+
+import { authenticate } from '@/middleware/authenticate';
+import { loadPermissions } from '@/middleware/permissions';
+import {
+  loginLimiter,
+  passwordResetLimiter,
+  registerLimiter,
+  resendVerificationLimiter,
+} from '@/middleware/rateLimits';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

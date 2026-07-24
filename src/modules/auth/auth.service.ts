@@ -10,15 +10,17 @@ import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../c
 import { BCRYPT_ROUNDS, JWT_COOKIE_NAME } from '../../core/constants';
 import { Country } from '../../database/entities/Country';
 import { EmailToken } from '../../database/entities/EmailToken';
+import { Permission } from '../../database/entities/Permission';
 import { Role } from '../../database/entities/Role';
 import { RoleVersion } from '../../database/entities/RoleVersion';
+import { RoleVersionPermission } from '../../database/entities/RoleVersionPermission';
 import { User } from '../../database/entities/User';
 import { UserDevice } from '../../database/entities/UserDevice';
 import { UserRole } from '../../database/entities/UserRole';
 import { UserSession } from '../../database/entities/UserSession';
 import {
   sendAdminApprovalStatusEmail,
-  sendAdminBootstrapNotification, // keep imports aligned if needed, but not needed
+  sendAdminBootstrapNotification,
   sendAdminRegistrationNotification,
   sendAdminVerificationEmail,
   sendEmailChangeAlertEmail,
@@ -45,7 +47,7 @@ import { logSecurityEvent } from './securityLog.service';
 import type { JwtPayload } from '../../types/express.d';
 import type { LoginDto, RegisterDto } from './auth.dto';
 import type { Response } from 'express';
-import type { DeepPartial } from 'typeorm';
+import type { DeepPartial, EntityManager } from 'typeorm';
 import { RoleStatus, RoleVersionStatus } from '@/types/enums';
 
 const userRepository = AppDataSource.getRepository(User);
@@ -59,9 +61,9 @@ const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
 
 // Refresh token configuration
 const REFRESH_EXPIRY = {
-  NORMAL: 7 * 24 * 60 * 60 * 1000, // 7 days
-  REMEMBER_ME: 30 * 24 * 60 * 60 * 1000, // 30 days
-  ADMIN: 4 * 60 * 60 * 1000, // 4 hours
+  NORMAL: 30 * 24 * 60 * 60 * 1000, // 30 days
+  REMEMBER_ME: 90 * 24 * 60 * 60 * 1000, // 90 days
+  ADMIN: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 /**
@@ -164,26 +166,22 @@ export async function registerUser(
     );
   }
 
+  const countryRepo = AppDataSource.getRepository(Country);
+  const country = await countryRepo.findOne({
+    where: { id: dto.countryId, isActive: true },
+  });
+  if (!country) {
+    throw new AppError(
+      'Country not found',
+      HttpStatusCode.BAD_REQUEST,
+      AppErrorCode.VALIDATION_ERROR,
+    );
+  }
+
   // Verify that the password is not leaked/breached
   await verifyPasswordBreach(dto.password);
 
   const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS.PASSWORD);
-
-  let country: Country | undefined;
-  if (dto.country) {
-    const countryRepo = AppDataSource.getRepository(Country);
-    const countryObj = await countryRepo.findOne({
-      where: [{ id: dto.country }, { name: dto.country }, { code: dto.country }],
-    });
-    if (!countryObj) {
-      throw new AppError(
-        'Country not found',
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.VALIDATION_ERROR,
-      );
-    }
-    country = countryObj;
-  }
 
   const userInput: DeepPartial<User> = {
     name: dto.name,
@@ -193,13 +191,11 @@ export async function registerUser(
     status: UserStatus.PENDING_EMAIL_VERIFICATION,
     emailVerified: false,
     passwordChangedAt: new Date(),
+    country,
   };
 
   if (dto.companyName) {
     userInput.companyName = dto.companyName;
-  }
-  if (country) {
-    userInput.country = country;
   }
 
   const user = userRepository.create(userInput);
@@ -949,26 +945,22 @@ export async function registerAdmin(
     );
   }
 
+  const countryRepo = AppDataSource.getRepository(Country);
+  const country = await countryRepo.findOne({
+    where: { id: dto.countryId, isActive: true },
+  });
+  if (!country) {
+    throw new AppError(
+      'Country not found',
+      HttpStatusCode.BAD_REQUEST,
+      AppErrorCode.VALIDATION_ERROR,
+    );
+  }
+
   // Verify that the password is not leaked/breached
   await verifyPasswordBreach(dto.password);
 
   const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS.PASSWORD);
-
-  let country: Country | undefined;
-  if (dto.country) {
-    const countryRepo = AppDataSource.getRepository(Country);
-    const countryObj = await countryRepo.findOne({
-      where: [{ id: dto.country }, { name: dto.country }, { code: dto.country }],
-    });
-    if (!countryObj) {
-      throw new AppError(
-        'Country not found',
-        HttpStatusCode.BAD_REQUEST,
-        AppErrorCode.VALIDATION_ERROR,
-      );
-    }
-    country = countryObj;
-  }
 
   const userInput: DeepPartial<User> = {
     name: dto.name,
@@ -978,13 +970,11 @@ export async function registerAdmin(
     status: UserStatus.PENDING_APPROVAL,
     emailVerified: false,
     passwordChangedAt: new Date(),
+    country,
   };
 
   if (dto.companyName) {
     userInput.companyName = dto.companyName;
-  }
-  if (country) {
-    userInput.country = country;
   }
 
   const user = userRepository.create(userInput);
@@ -1105,6 +1095,78 @@ export async function verifyBootstrapToken(
   };
 }
 
+/**
+ * Helper to ensure the 'super-admin' role, version 1, and version permissions exist.
+ */
+async function ensureSuperAdminRoleAndPermissions(
+  user: User,
+  transactionManager: EntityManager,
+): Promise<Role> {
+  const roleRepository = transactionManager.getRepository(Role);
+  let superAdminRole = await roleRepository.findOne({ where: { key: 'super-admin' } });
+
+  if (!superAdminRole) {
+    superAdminRole = roleRepository.create({
+      key: 'super-admin',
+      isSystemRole: true,
+      status: RoleStatus.ACTIVE,
+      createdBy: user.id,
+      updatedBy: user.id,
+    });
+    await roleRepository.save(superAdminRole);
+  }
+
+  const roleVersionRepository = transactionManager.getRepository(RoleVersion);
+  let superAdminVersion = await roleVersionRepository.findOne({
+    where: { roleId: superAdminRole.id, version: 1 },
+  });
+
+  if (!superAdminVersion) {
+    superAdminVersion = roleVersionRepository.create({
+      roleId: superAdminRole.id,
+      version: 1,
+      name: 'Super Admin',
+      description: 'System Super Administrator. Has all system permissions by default.',
+      status: RoleVersionStatus.APPROVED,
+      createdByUserId: user.id,
+      approvedByUserId: user.id,
+      approvedAt: new Date(),
+    });
+    await roleVersionRepository.save(superAdminVersion);
+  }
+
+  if (superAdminRole.activeVersionId !== superAdminVersion.id) {
+    superAdminRole.activeVersionId = superAdminVersion.id;
+    await roleRepository.save(superAdminRole);
+  }
+
+  // Populate RoleVersionPermission entries with all system permissions if missing
+  const roleVersionPermissionRepo = transactionManager.getRepository(RoleVersionPermission);
+  const existingPermCount = await roleVersionPermissionRepo.count({
+    where: { roleVersionId: superAdminVersion.id },
+  });
+
+  if (existingPermCount === 0) {
+    const permissionRepo = transactionManager.getRepository(Permission);
+    const allPermissions = await permissionRepo.find({ relations: ['module'] });
+    const roleVersionPerms = allPermissions.map((p) =>
+      roleVersionPermissionRepo.create({
+        roleVersionId: superAdminVersion.id,
+        permissionKey: p.key,
+        permissionName: p.name,
+        moduleSlug: p.module.key,
+        moduleName: p.module.name,
+      }),
+    );
+
+    if (roleVersionPerms.length > 0) {
+      await roleVersionPermissionRepo.save(roleVersionPerms);
+    }
+  }
+
+  return superAdminRole;
+}
+
 export async function approveBootstrapAdmin(
   token: string,
   action: 'approve' | 'reject' = 'approve',
@@ -1126,145 +1188,119 @@ export async function approveBootstrapAdmin(
     );
   }
 
-  // Verify and consume the token
-  const userId = await verifyAndConsumeToken(token, EmailTokenType.SYSTEM_OWNER_APPROVAL);
-  const user = await userRepository.findOne({ where: { id: userId } });
-  if (!user) {
-    throw new AppError(
-      AppErrorMessage.USER_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.USER_NOT_FOUND,
+  let userEmail = '';
+  let userName = '';
+
+  await AppDataSource.transaction(async (transactionManager) => {
+    // Verify and consume the token inside the transaction
+    const userId = await verifyAndConsumeToken(
+      token,
+      EmailTokenType.SYSTEM_OWNER_APPROVAL,
+      transactionManager,
     );
-  }
-
-  if (action === 'approve') {
-    // Mark status as active and verify email
-    user.status = UserStatus.ACTIVE;
-    user.emailVerified = true;
-    await userRepository.save(user);
-
-    // Assign super-admin role
-    const roleRepository = AppDataSource.getRepository(Role);
-    let superAdminRole = await roleRepository.findOne({ where: { key: 'super-admin' } });
-    if (!superAdminRole) {
-      superAdminRole = roleRepository.create({
-        key: 'super-admin',
-        isSystemRole: true,
-        status: RoleStatus.ACTIVE,
-      });
-      await roleRepository.save(superAdminRole);
-
-      const roleVersionRepository = AppDataSource.getRepository(RoleVersion);
-      const superAdminVersion = roleVersionRepository.create({
-        roleId: superAdminRole.id,
-        version: 1,
-        name: 'Super Admin',
-        description: 'System Super Administrator. Has all system permissions by default.',
-        status: RoleVersionStatus.APPROVED,
-      });
-      await roleVersionRepository.save(superAdminVersion);
-
-      superAdminRole.activeVersionId = superAdminVersion.id;
-      await roleRepository.save(superAdminRole);
+    const userRepo = transactionManager.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new AppError(
+        AppErrorMessage.USER_NOT_FOUND,
+        HttpStatusCode.NOT_FOUND,
+        AppErrorCode.USER_NOT_FOUND,
+      );
     }
 
-    const assignment = userRoleRepository.create({
-      userId: user.id,
-      roleId: superAdminRole.id,
-      assignedBy: user,
-      assignedAt: new Date(),
-    });
-    await userRoleRepository.save(assignment);
+    userEmail = user.email;
+    userName = user.name;
 
-    // Send success/approval notification email
-    await sendAdminApprovalStatusEmail({
-      to: user.email,
-      name: user.name,
-      status: 'approved',
-    });
-  } else {
-    // Reject
-    user.status = UserStatus.REJECTED;
-    user.rejectionReason = 'Rejected by System Owner during bootstrap setup';
-    await userRepository.save(user);
+    if (action === 'approve') {
+      await userRepo.update(user.id, { status: UserStatus.ACTIVE });
 
-    // Send rejection email
-    await sendAdminApprovalStatusEmail({
-      to: user.email,
-      name: user.name,
-      status: 'rejected',
-      reason: 'Rejected by System Owner during bootstrap setup',
-    });
-  }
+      const superAdminRole = await ensureSuperAdminRoleAndPermissions(user, transactionManager);
+
+      const userRoleRepository = transactionManager.getRepository(UserRole);
+      let assignment = await userRoleRepository.findOne({
+        where: { userId: user.id, roleId: superAdminRole.id },
+      });
+      if (!assignment) {
+        assignment = userRoleRepository.create({
+          userId: user.id,
+          roleId: superAdminRole.id,
+          assignedBy: user,
+          assignedAt: new Date(),
+        });
+        await userRoleRepository.save(assignment);
+      }
+    } else {
+      await userRepo.update(user.id, {
+        status: UserStatus.REJECTED,
+      });
+    }
+  });
+
+  // Send success/approval/rejection notification email after transaction commits
+  await sendAdminApprovalStatusEmail({
+    to: userEmail,
+    name: userName,
+    status: action === 'approve' ? 'approved' : 'rejected',
+    ...(action === 'reject' && { reason: 'Rejected by System Owner during bootstrap setup' }),
+  });
 }
 
 export async function ownerReview(token: string, action: 'approve' | 'reject'): Promise<void> {
-  const userId = await verifyAndConsumeToken(token, EmailTokenType.SYSTEM_OWNER_APPROVAL);
-  const user = await userRepository.findOne({ where: { id: userId } });
-  if (!user) {
-    throw new AppError(
-      AppErrorMessage.USER_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.USER_NOT_FOUND,
+  let userEmail = '';
+  let userName = '';
+
+  await AppDataSource.transaction(async (transactionManager) => {
+    const userId = await verifyAndConsumeToken(
+      token,
+      EmailTokenType.SYSTEM_OWNER_APPROVAL,
+      transactionManager,
     );
-  }
-
-  if (action === 'approve') {
-    user.status = UserStatus.ACTIVE;
-    user.emailVerified = true;
-    await userRepository.save(user);
-
-    const roleRepository = AppDataSource.getRepository(Role);
-    const userRoleRepository = AppDataSource.getRepository(UserRole);
-
-    let superAdminRole = await roleRepository.findOne({ where: { key: 'super-admin' } });
-    if (!superAdminRole) {
-      superAdminRole = roleRepository.create({
-        key: 'super-admin',
-        isSystemRole: true,
-        status: RoleStatus.ACTIVE,
-      });
-      await roleRepository.save(superAdminRole);
-
-      const roleVersionRepository = AppDataSource.getRepository(RoleVersion);
-      const superAdminVersion = roleVersionRepository.create({
-        roleId: superAdminRole.id,
-        version: 1,
-        name: 'Super Admin',
-        description: 'System Super Administrator. Has all system permissions by default.',
-        status: RoleVersionStatus.APPROVED,
-      });
-      await roleVersionRepository.save(superAdminVersion);
-
-      superAdminRole.activeVersionId = superAdminVersion.id;
-      await roleRepository.save(superAdminRole);
+    const userRepo = transactionManager.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new AppError(
+        AppErrorMessage.USER_NOT_FOUND,
+        HttpStatusCode.NOT_FOUND,
+        AppErrorCode.USER_NOT_FOUND,
+      );
     }
 
-    const assignment = userRoleRepository.create({
-      userId: user.id,
-      roleId: superAdminRole.id,
-      assignedBy: user,
-      assignedAt: new Date(),
-    });
-    await userRoleRepository.save(assignment);
+    userEmail = user.email;
+    userName = user.name;
 
-    await sendAdminApprovalStatusEmail({
-      to: user.email,
-      name: user.name,
-      status: 'approved',
-    });
-  } else {
-    user.status = UserStatus.REJECTED;
-    user.rejectionReason = 'Rejected by System Owner';
-    await userRepository.save(user);
+    if (action === 'approve') {
+      await userRepo.update(user.id, {
+        status: UserStatus.ACTIVE,
+      });
 
-    await sendAdminApprovalStatusEmail({
-      to: user.email,
-      name: user.name,
-      status: 'rejected',
-      reason: 'Rejected by System Owner',
-    });
-  }
+      const superAdminRole = await ensureSuperAdminRoleAndPermissions(user, transactionManager);
+
+      const userRoleRepository = transactionManager.getRepository(UserRole);
+      let assignment = await userRoleRepository.findOne({
+        where: { userId: user.id, roleId: superAdminRole.id },
+      });
+      if (!assignment) {
+        assignment = userRoleRepository.create({
+          userId: user.id,
+          roleId: superAdminRole.id,
+          assignedBy: user,
+          assignedAt: new Date(),
+        });
+        await userRoleRepository.save(assignment);
+      }
+    } else {
+      await userRepo.update(user.id, {
+        status: UserStatus.REJECTED,
+      });
+    }
+  });
+
+  await sendAdminApprovalStatusEmail({
+    to: userEmail,
+    name: userName,
+    status: action === 'approve' ? 'approved' : 'rejected',
+    ...(action === 'reject' && { reason: 'Rejected by System Owner' }),
+  });
 }
 
 // eslint-disable-next-line complexity

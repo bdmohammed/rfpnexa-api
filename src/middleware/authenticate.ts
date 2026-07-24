@@ -7,6 +7,7 @@ import { setUserId } from '../config/requestContext';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
 import { JWT_COOKIE_NAME } from '../core/constants';
 import { User } from '../database/entities/User';
+import { UserStatus } from '../types/enums';
 
 import type { JwtPayload } from '../types/express';
 import type { NextFunction, Request, Response } from 'express';
@@ -36,7 +37,11 @@ function verifyToken(token: string): JwtPayload {
   }
 }
 
-function validateUserAccount(user: User | null, decodedTokenVersion: number): asserts user is User {
+function validateUserAccount(
+  user: User | null,
+  decodedTokenVersion: number,
+  path: string,
+): asserts user is User {
   if (!user) {
     throw new AppError(
       AppErrorMessage.ACCOUNT_NOT_FOUND,
@@ -45,7 +50,11 @@ function validateUserAccount(user: User | null, decodedTokenVersion: number): as
     );
   }
 
-  if (user.isBlocked) {
+  if (
+    user.isBlocked ||
+    user.status === UserStatus.BLOCKED ||
+    user.status === UserStatus.SUSPENDED
+  ) {
     throw new AppError(
       AppErrorMessage.ACCOUNT_SUSPENDED,
       HttpStatusCode.FORBIDDEN,
@@ -59,6 +68,37 @@ function validateUserAccount(user: User | null, decodedTokenVersion: number): as
       HttpStatusCode.UNAUTHORIZED,
       AppErrorCode.SESSION_REVOKED,
     );
+  }
+
+  // Bypass routes that allow unverified/pending accounts to fetch info or logout
+  const isBypassRoute =
+    path.startsWith('/api/v1/auth/logout') ||
+    path.startsWith('/api/v1/auth/me') ||
+    path.startsWith('/api/v1/auth/verify-email') ||
+    path.startsWith('/api/v1/auth/resend-verification');
+
+  if (!isBypassRoute) {
+    if (!user.emailVerified) {
+      throw new AppError(
+        'Email verification required to access private routes',
+        HttpStatusCode.FORBIDDEN,
+        AppErrorCode.EMAIL_NOT_VERIFIED,
+      );
+    }
+
+    if (user.status !== UserStatus.ACTIVE && user.status !== UserStatus.APPROVED) {
+      throw new AppError(
+        user.status === UserStatus.PENDING_APPROVAL
+          ? AppErrorMessage.ADMIN_ACCOUNT_AWAITING_APPROVAL
+          : user.status === UserStatus.REJECTED || user.status === UserStatus.REJECTED_BY_ADMIN
+            ? AppErrorMessage.ADMIN_ACCOUNT_REJECTED
+            : 'Account status is not active or approved',
+        HttpStatusCode.FORBIDDEN,
+        user.status === UserStatus.PENDING_APPROVAL
+          ? AppErrorCode.PENDING_APPROVAL
+          : AppErrorCode.FORBIDDEN,
+      );
+    }
   }
 }
 
@@ -127,6 +167,8 @@ export const authenticate = async (
       where: { id: decodedTokenPayload.sub },
       select: [
         'id',
+        'status',
+        'accountType',
         'tokenVersion',
         'isBlocked',
         'emailVerified',
@@ -136,9 +178,8 @@ export const authenticate = async (
       ],
     });
 
-    validateUserAccount(user, decodedTokenPayload.tokenVersion);
-
     const path = req.originalUrl.split('?')[0] ?? '';
+    validateUserAccount(user, decodedTokenPayload.tokenVersion, path);
     validatePasswordStatus(user, path);
   } catch (err: unknown) {
     return next(err);

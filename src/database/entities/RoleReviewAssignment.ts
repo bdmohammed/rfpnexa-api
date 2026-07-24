@@ -36,6 +36,13 @@ export class RoleReviewAssignment {
   @JoinColumn({ name: 'reviewer_id' })
   reviewer: User;
 
+  @Column({ name: 'assigned_by', type: 'uuid', nullable: true, default: null })
+  assignedByUserId: string | null;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'assigned_by' })
+  assignedByUser: User | null;
+
   @Column({ type: 'enum', enum: ReviewAssignmentStatus, default: ReviewAssignmentStatus.PENDING })
   status: ReviewAssignmentStatus;
 

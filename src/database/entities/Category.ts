@@ -16,14 +16,18 @@ import {
 } from 'typeorm';
 
 import { AlertPreference } from './AlertPreference';
+import { CategoryActivity } from './CategoryActivity';
+import { CategoryVersion } from './CategoryVersion';
 import { TenderDailyMetrics } from './TenderDailyMetrics';
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
 
+import { CategoryStatus } from '@/types/enums';
+
 @Entity('categories')
-@Index('idx_categories_code', ['code'], { unique: true })
 @Index('idx_categories_slug', ['slug'], { unique: true })
 @Index('idx_categories_active', ['isActive'])
+@Index('idx_categories_status', ['status'])
 @Check('"slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'')
 @Check('"code" ~ \'^[0-9]{3}$\'')
 export class Category {
@@ -31,7 +35,7 @@ export class Category {
   id: string;
 
   /** 3-digit NAICS-style code e.g. '001'..'084' */
-  @Column({ type: 'varchar', length: 10, unique: true })
+  @Column({ type: 'varchar', length: 10 })
   code: string;
 
   @Column({ type: 'varchar', length: 200 })
@@ -39,6 +43,16 @@ export class Category {
 
   @Column({ type: 'varchar', length: 200, unique: true })
   slug: string;
+
+  @Column({ type: 'enum', enum: CategoryStatus, default: CategoryStatus.PUBLISHED })
+  status: CategoryStatus;
+
+  @Column({ name: 'active_version_id', type: 'uuid', nullable: true, default: null })
+  activeVersionId: string | null;
+
+  @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'active_version_id' })
+  activeVersion: CategoryVersion | null;
 
   @Column({ name: 'is_deleted', type: 'boolean', default: false })
   isDeleted: boolean;
@@ -85,7 +99,7 @@ export class Category {
   @JoinColumn({ name: 'updated_by' })
   updatedByUser!: User | null;
 
-  // ─── Relations (no eager: true anywhere) ─────────────────────────────────
+  // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => TenderVersion, (t) => t.category)
   tenders: TenderVersion[];
 
@@ -94,6 +108,12 @@ export class Category {
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.category)
   tenderMetrics: TenderDailyMetrics[];
+
+  @OneToMany(() => CategoryVersion, (v) => v.category)
+  versions: CategoryVersion[];
+
+  @OneToMany(() => CategoryActivity, (a) => a.category)
+  activities: CategoryActivity[];
 
   // ─── Hooks ───────────────────────────────────────────────────────────────
   @BeforeInsert()

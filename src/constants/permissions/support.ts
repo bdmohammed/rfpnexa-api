@@ -19,26 +19,33 @@ export const SupportPermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.SUPPORT, PermissionActions.CREATE, {
-    name: 'Create Tickets',
-    description: 'Create support tickets on behalf of customers.',
+  MANAGE: definePermission(PermissionModules.SUPPORT, PermissionActions.MANAGE, {
+    name: 'View Tickets',
+    description: 'View customer support tickets.',
     displayOrder: 2,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.SUPPORT, PermissionActions.UPDATE, {
-    name: 'Update Tickets',
-    description: 'Update support ticket information.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.SUPPORT, PermissionActions.CREATE, {
+  //   name: 'Create Tickets',
+  //   description: 'Create support tickets on behalf of customers.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.SUPPORT, PermissionActions.DELETE, {
-    name: 'Delete Tickets',
-    description: 'Delete support tickets.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.SUPPORT, PermissionActions.UPDATE, {
+  //   name: 'Update Tickets',
+  //   description: 'Update support ticket information.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
+
+  // DELETE: definePermission(PermissionModules.SUPPORT, PermissionActions.DELETE, {
+  //   name: 'Delete Tickets',
+  //   description: 'Delete support tickets.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
   // ASSIGN: definePermission(PermissionModules.SUPPORT, 'assign', {
   //   name: 'Assign Tickets',
@@ -68,12 +75,12 @@ export const SupportPermissions = {
   //   isActive: true,
   // }),
 
-  EXPORT: definePermission(PermissionModules.SUPPORT, PermissionActions.EXPORT, {
-    name: 'Export Tickets',
-    description: 'Export support ticket reports.',
-    displayOrder: 9,
-    isActive: true,
-  }),
+  // EXPORT: definePermission(PermissionModules.SUPPORT, PermissionActions.EXPORT, {
+  //   name: 'Export Tickets',
+  //   description: 'Export support ticket reports.',
+  //   displayOrder: 9,
+  //   isActive: true,
+  // }),
 
   // AUDIT: definePermission(PermissionModules.SUPPORT, 'audit', {
   //   name: 'View Ticket Audit',

@@ -43,39 +43,54 @@ export class Role {
   @Column({ name: 'is_default_role', type: 'boolean', default: false })
   isDefaultRole: boolean;
 
-  @Column({ name: 'active_version_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
   activeVersionId: string | null;
 
-  @ManyToOne(() => RoleVersion, {
+  @Column({
+    name: 'published_version_number',
+    type: 'varchar',
+    length: 20,
     nullable: true,
-    onDelete: 'SET NULL',
+    default: null,
+  })
+  publishedVersionNumber: string | null;
+
+  @Column({
+    name: 'latest_draft_version_number',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    default: null,
+  })
+  latestDraftVersionNumber: string | null;
+
+  @ManyToOne(() => RoleVersion, {
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion: RoleVersion | null;
+  activeVersion: RoleVersion;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  @Column({ name: 'created_by', type: 'uuid' })
+  createdBy: string;
 
   @ManyToOne(() => User, {
-    nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'created_by',
   })
-  createdBy: User | null;
+  createdByUser: User;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedByUserId: string | null;
+  @Column({ name: 'updated_by', type: 'uuid' })
+  updatedBy: string;
 
   @ManyToOne(() => User, {
-    nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedBy: User | null;
+  updatedByUser: User;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

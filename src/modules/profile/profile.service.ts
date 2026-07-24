@@ -34,7 +34,7 @@ function sanitizeUserProfile(user: User) {
 export async function getProfile(userId: string) {
   const user = await userRepo.findOne({
     where: { id: userId },
-    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion'],
+    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion', 'country'],
   });
 
   if (!user) {
@@ -46,17 +46,11 @@ export async function getProfile(userId: string) {
   }
 
   const sanitized = sanitizeUserProfile(user);
-  const roles = user.userRoles.map((ur) => ur.role.activeVersion?.name);
-  // user.userRoles
-  //   .map((ur) => {
-  //     if (!ur.role) return '';
-  //     if (ur.role.isSystemRole) return 'Super Admin';
-  //     return ur.role.activeVersion?.name ?? '';
-  //   })
-  //   .filter(Boolean) ?? [];
+  const roles = user.userRoles.map((ur) => ur.role.activeVersion.name);
 
   return {
     ...sanitized,
+    country: user.country,
     roles,
   };
 }
@@ -433,7 +427,7 @@ export async function requestDeleteAccount(userId: string) {
 export async function exportProfileData(userId: string) {
   const user = await userRepo.findOne({
     where: { id: userId },
-    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion'],
+    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion', 'country'],
   });
 
   if (!user) {
@@ -455,8 +449,11 @@ export async function exportProfileData(userId: string) {
 
   return {
     exportedAt: new Date(),
-    profile: sanitizeUserProfile(user),
-    roles: user.userRoles.map((ur) => ur.role.activeVersion?.name),
+    profile: {
+      ...sanitizeUserProfile(user),
+      country: user.country,
+    },
+    roles: user.userRoles.map((ur) => ur.role.activeVersion.name),
     // roles:
     //   user.userRoles
     //     .map((ur) => {

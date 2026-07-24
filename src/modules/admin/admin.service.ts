@@ -1,27 +1,27 @@
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppDataSource } from '../../config/database';
 import { env } from '../../config/env';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { BCRYPT_ROUNDS } from '../../core/constants';
 import { AuditLog } from '../../database/entities/AuditLog';
-import { Category } from '../../database/entities/Category';
 import { Country } from '../../database/entities/Country';
 import { DownloadHistory } from '../../database/entities/DownloadHistory';
 import { Permission } from '../../database/entities/Permission';
-import { Plan } from '../../database/entities/Plan';
-import { PlanVersion } from '../../database/entities/PlanVersion';
 import { Role } from '../../database/entities/Role';
 import { RoleVersionPermission } from '../../database/entities/RoleVersionPermission';
 import { SecurityLog } from '../../database/entities/SecurityLog';
-import { State } from '../../database/entities/State';
 import { Subscription } from '../../database/entities/Subscription';
 import { Tender } from '../../database/entities/Tender';
-import { TenderVersion } from '../../database/entities/TenderVersion';
 import { Transaction } from '../../database/entities/Transaction';
 import { User } from '../../database/entities/User';
+import {
+  UserApprovalRequest,
+  UserApprovalRequestStatus,
+} from '../../database/entities/UserApprovalRequest';
 import { UserNote } from '../../database/entities/UserNote';
 import { UserRole } from '../../database/entities/UserRole';
 import { UserSession } from '../../database/entities/UserSession';
@@ -35,39 +35,19 @@ import { createEmailToken } from '../../services/token.service';
 import {
   AccountType,
   EmailTokenType,
-  PlanStatus,
-  PlanVersionStatus,
   RoleStatus,
   SecurityEvent,
   SubscriptionStatus,
-  TenderLifecycleStatus,
-  TransactionStatus,
   UserStatus,
 } from '../../types/enums';
-import { generateSlug } from '../../utils/slug';
 
 import type {
-  AnalyticsQueryDto,
   AssignUserRolesBodyDto,
-  BatchCategoriesResultDto,
-  BatchCategoryItemDto,
-  CategoryQueryDto,
-  CategoryStatsDto,
   CreateAdminDto,
-  CreateCategoryDto,
-  CreatePlanDto,
   ListUsersQueryDto,
-  RevenueAnalyticsResultDto,
-  StateQueryDto,
-  TopDownloadResultDto,
-  UpdateCategoryDto,
-  UpdateCountryBodyDto,
-  UpdatePlanDto,
-  UpdateStateDto,
   UpdateUserDetailDto,
   UserActivityDetailDto,
   UserDeviceDto,
-  UserGrowthResultDto,
   UserNoteDetailDto,
   UserRolesDto,
   UserSecurityDto,
@@ -76,15 +56,11 @@ import type {
   UserSubscriptionOverviewDto,
   UserTimelineEvent,
 } from './admin.dto';
-import { UserPermissions } from '@/constants/permissions';
 import { PermissionModule } from '@/database/entities/PermissionModule';
 
 const userRepo = AppDataSource.getRepository(User);
-const planRepo = AppDataSource.getRepository(Plan);
 const subRepo = AppDataSource.getRepository(Subscription);
 const txnRepo = AppDataSource.getRepository(Transaction);
-const categoryRepo = AppDataSource.getRepository(Category);
-const stateRepo = AppDataSource.getRepository(State);
 const countryRepo = AppDataSource.getRepository(Country);
 const tenderRepo = AppDataSource.getRepository(Tender);
 const auditRepo = AppDataSource.getRepository(AuditLog);
@@ -92,11 +68,9 @@ const auditRepo = AppDataSource.getRepository(AuditLog);
 // ─── User Management ──────────────────────────────────────────────────────────
 
 // eslint-disable-next-line complexity, sonarjs/cognitive-complexity
-export async function listUsers(
-  opts: Partial<ListUsersQueryDto> = {},
-): Promise<{ users: User[]; total: number }> {
-  const page = Math.max(1, opts.page ?? 1);
-  const limit = Math.min(100, Math.max(1, opts.limit ?? 20));
+export async function listUsers(opts: ListUsersQueryDto) {
+  const page = Math.max(1, opts.page);
+  const limit = Math.min(100, Math.max(1, opts.limit));
   const skip = (page - 1) * limit;
 
   const qb = userRepo.createQueryBuilder('user');
@@ -107,24 +81,33 @@ export async function listUsers(
     'user.email',
     'user.accountType',
     'user.companyName',
-    'user.country',
     'user.emailVerified',
     'user.isBlocked',
     'user.status',
     'user.createdAt',
     'user.lastLoginAt',
+
+    'country.id',
+    'country.name',
+    'country.code',
+
+    'userRole.id',
+    'role.id',
+    'roleVersion.name',
   ]);
 
-  qb.leftJoinAndSelect('user.userRoles', 'userRole')
-    .leftJoinAndSelect('userRole.role', 'role')
-    .leftJoinAndSelect('role.activeVersion', 'activeVersion')
-    .leftJoinAndSelect(
-      'user.subscriptions',
-      'subscription',
-      'subscription.status = :activeStatus',
-      { activeStatus: SubscriptionStatus.ACTIVE },
-    )
-    .leftJoinAndSelect('subscription.plan', 'plan');
+  qb.leftJoin('user.userRoles', 'userRole')
+    .leftJoin('userRole.role', 'role')
+    .leftJoin('role.activeVersion', 'roleVersion')
+    .leftJoin('user.country', 'country');
+  // .leftJoinAndSelect(
+  //   'user.subscriptions',
+  //   'subscription',
+  //   'subscription.status = :activeStatus',
+  //   { activeStatus: SubscriptionStatus.ACTIVE },
+  // )
+  // .leftJoinAndSelect('subscription.planVersion', 'planVersion')
+  // .leftJoinAndSelect('planVersion.plan', 'plan');
 
   if (opts.search) {
     qb.andWhere(
@@ -135,6 +118,11 @@ export async function listUsers(
 
   if (opts.accountType) {
     qb.andWhere('user.accountType = :accountType', { accountType: opts.accountType });
+  } else {
+    // Exclude automated system service accounts from user lists
+    qb.andWhere('user.accountType != :systemAccountType', {
+      systemAccountType: AccountType.SYSTEM,
+    });
   }
 
   if (opts.status) {
@@ -174,12 +162,21 @@ export async function listUsers(
     qb.andWhere('user.createdAt <= :dateTo', { dateTo: new Date(opts.dateTo) });
   }
 
-  if (opts.planId) {
-    qb.andWhere('plan.id = :planId', { planId: opts.planId });
-  }
-
   if (opts.roleId) {
     qb.andWhere('role.id = :roleId', { roleId: opts.roleId });
+  }
+
+  if (opts.permission) {
+    qb.andWhere(
+      `EXISTS (
+        SELECT 1 FROM "user_roles" "ur"
+        INNER JOIN "roles" "r" ON "r"."id" = "ur"."role_id"
+        INNER JOIN "role_version_permissions" "rvp" ON "rvp"."role_version_id" = "r"."active_version_id"
+        WHERE "ur"."user_id" = "user"."id"
+        AND "rvp"."permission_key" = :permissionKey
+      )`,
+      { permissionKey: opts.permission },
+    );
   }
 
   if (opts.approvalStatus) {
@@ -188,7 +185,10 @@ export async function listUsers(
         status: UserStatus.PENDING_APPROVAL,
       });
     } else if (opts.approvalStatus === UserStatus.APPROVED) {
-      qb.andWhere('user.approvedAt IS NOT NULL');
+      qb.andWhere(
+        'EXISTS (SELECT 1 FROM "user_approval_requests" "req" WHERE "req"."target_user_id" = "user"."id" AND "req"."status" = :reqStatus)',
+        { reqStatus: UserApprovalRequestStatus.APPROVED },
+      );
     } else if (opts.approvalStatus === UserStatus.REJECTED_BY_ADMIN) {
       qb.andWhere('user.status = :status AND user.emailVerified = true', {
         status: UserStatus.REJECTED_BY_ADMIN,
@@ -199,7 +199,14 @@ export async function listUsers(
   qb.orderBy('user.createdAt', 'DESC').skip(skip).take(limit);
 
   const [users, total] = await qb.getManyAndCount();
-  return { users, total };
+
+  // // Map nested planVersion.plan to subscription.plan for UI/API compatibility
+  const result = users.map((user) => ({
+    ...user,
+    roles: user.userRoles.map((ur) => ur.role.activeVersion.name),
+  }));
+
+  return { users: result, total };
 }
 
 export async function getUserById(id: string): Promise<User> {
@@ -452,15 +459,24 @@ export async function updateUserDetail(id: string, dto: UpdateUserDetailDto): Pr
 export async function getUserStats(): Promise<UserStatsDto> {
   const total = await userRepo.count();
   const active = await userRepo.count({
-    where: { status: UserStatus.ACTIVE, emailVerified: true, isBlocked: false },
+    where: {
+      status: UserStatus.ACTIVE,
+      emailVerified: true,
+      isBlocked: false,
+      accountType: Not(AccountType.SYSTEM),
+    },
   });
   const inactive = await userRepo.count({
-    where: { status: UserStatus.PENDING_EMAIL_VERIFICATION },
+    where: { status: UserStatus.PENDING_EMAIL_VERIFICATION, accountType: Not(AccountType.SYSTEM) },
   });
-  const suspended = await userRepo.count({ where: { status: UserStatus.SUSPENDED } });
+  const suspended = await userRepo.count({
+    where: { status: UserStatus.SUSPENDED, accountType: Not(AccountType.SYSTEM) },
+  });
   const admins = await userRepo.count({ where: { accountType: AccountType.ADMIN } });
   const customers = await userRepo.count({ where: { accountType: AccountType.USER } });
-  const pendingVerification = await userRepo.count({ where: { emailVerified: false } });
+  const pendingVerification = await userRepo.count({
+    where: { emailVerified: false, accountType: Not(AccountType.SYSTEM) },
+  });
   const pendingApprovalAdmins = await userRepo.count({
     where: { accountType: AccountType.ADMIN, status: UserStatus.PENDING_APPROVAL },
   });
@@ -520,7 +536,7 @@ export async function getUserStats(): Promise<UserStatsDto> {
 export async function getUserOverview(id: string) {
   const user = await userRepo.findOne({
     where: { id },
-    relations: ['approvedBy'],
+    relations: ['country'],
   });
   if (!user)
     throw new AppError(
@@ -528,6 +544,12 @@ export async function getUserOverview(id: string) {
       HttpStatusCode.NOT_FOUND,
       AppErrorCode.NOT_FOUND,
     );
+
+  const approvalReq = await AppDataSource.getRepository(UserApprovalRequest).findOne({
+    where: { targetUser: { id } },
+    order: { createdAt: 'DESC' },
+    relations: ['reviewer'],
+  });
 
   const notesCount = await AppDataSource.getRepository(UserNote).count({ where: { userId: id } });
 
@@ -560,11 +582,18 @@ export async function getUserOverview(id: string) {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     lastLoginAt: user.lastLoginAt,
-    approvedBy: user.approvedBy
-      ? { id: user.approvedBy.id, name: user.approvedBy.name, email: user.approvedBy.email }
+    approvedBy: approvalReq?.reviewer
+      ? {
+          id: approvalReq.reviewer.id,
+          name: approvalReq.reviewer.name,
+          email: approvalReq.reviewer.email,
+        }
       : null,
-    approvedAt: user.approvedAt,
-    rejectionReason: user.rejectionReason,
+    approvedAt: approvalReq?.decidedAt ?? null,
+    rejectionReason:
+      approvalReq?.status === UserApprovalRequestStatus.REJECTED
+        ? approvalReq.reviewerComment
+        : null,
     notesCount,
     stats: {
       createdTendersCount,
@@ -691,7 +720,7 @@ export async function getUserTimeline(id: string): Promise<UserTimelineEvent[]> 
   });
   for (const l of logs) {
     let description = l.action;
-    if (l.action === UserPermissions.BLOCK.key) {
+    if (l.action === 'user.block') {
       description = l.after?.['isBlocked'] ? 'User account blocked.' : 'User account unblocked.';
     } else if (l.action === 'user.suspend') {
       description = 'User status changed to suspended.';
@@ -828,807 +857,6 @@ export async function createAdmin(dto: CreateAdminDto): Promise<User> {
   return saved;
 }
 
-// ─── Plan Management ──────────────────────────────────────────────────────────
-
-export async function listAllPlans(): Promise<Plan[]> {
-  return planRepo.find({
-    relations: ['activeVersion'],
-    order: { createdAt: 'DESC' },
-  });
-}
-
-export async function createPlan(dto: CreatePlanDto, createdById?: string): Promise<Plan> {
-  const plan = planRepo.create({
-    status: dto.isActive ? PlanStatus.ACTIVE : PlanStatus.ARCHIVED,
-  });
-  const savedPlan = await planRepo.save(plan);
-
-  const versionRepo = AppDataSource.getRepository(PlanVersion);
-  const version = versionRepo.create({
-    planId: savedPlan.id,
-    version: 1,
-    status: PlanVersionStatus.PUBLISHED,
-    name: dto.name,
-    subtitle: '',
-    description: '',
-    priceCents: dto.priceCents,
-    currency: 'USD',
-    durationDays: dto.durationDays,
-    trialDays: dto.trialDays,
-    setupFeeCents: 0,
-    isRecurring: dto.isRecurring,
-    isFeatured: false,
-    planType: dto.planType,
-    targetStateId: dto.targetStateId ?? null,
-    targetCountry: dto.targetCountry ?? null,
-    targetCategoryId: dto.targetCategoryId ?? null,
-    bundleSize: dto.bundleSize ?? null,
-    createdBy: createdById ?? null,
-  });
-  await versionRepo.save(version);
-
-  savedPlan.activeVersionId = version.id;
-  savedPlan.activeVersion = version;
-  return planRepo.save(savedPlan);
-}
-
-// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
-export async function updatePlan(id: string, dto: UpdatePlanDto): Promise<Plan> {
-  const plan = await planRepo.findOne({ where: { id }, relations: ['activeVersion'] });
-  if (!plan)
-    throw new AppError(
-      AppErrorMessage.PLAN_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-
-  if (plan.activeVersion) {
-    const activeVer = plan.activeVersion;
-    if (dto.name !== undefined) activeVer.name = dto.name;
-    if (dto.priceCents !== undefined) activeVer.priceCents = dto.priceCents;
-    if (dto.durationDays !== undefined) activeVer.durationDays = dto.durationDays;
-    if (dto.trialDays !== undefined) activeVer.trialDays = dto.trialDays;
-    if (dto.isRecurring !== undefined) activeVer.isRecurring = dto.isRecurring;
-    if (dto.planType !== undefined) activeVer.planType = dto.planType;
-    if (dto.targetStateId !== undefined) activeVer.targetStateId = dto.targetStateId ?? null;
-    if (dto.targetCountry !== undefined) activeVer.targetCountry = dto.targetCountry ?? null;
-    if (dto.targetCategoryId !== undefined)
-      activeVer.targetCategoryId = dto.targetCategoryId ?? null;
-    if (dto.bundleSize !== undefined) activeVer.bundleSize = dto.bundleSize ?? null;
-    await AppDataSource.getRepository(PlanVersion).save(activeVer);
-  }
-
-  if (dto.isActive !== undefined) {
-    plan.status = dto.isActive ? PlanStatus.ACTIVE : PlanStatus.ARCHIVED;
-  }
-  return planRepo.save(plan);
-}
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
-
-export async function getRevenueAnalytics(
-  dto: AnalyticsQueryDto,
-): Promise<RevenueAnalyticsResultDto[]> {
-  const format = dto.groupBy === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD';
-
-  const qb = txnRepo
-    .createQueryBuilder('txn')
-    .select(`TO_CHAR(txn.created_at, '${format}')`, 'period')
-    .addSelect('SUM(txn.amount_cents)', 'totalCents')
-    .addSelect('COUNT(txn.id)', 'count')
-    .where('txn.status = :status', { status: TransactionStatus.SUCCESS })
-    .groupBy('period')
-    .orderBy('period', 'ASC');
-
-  if (dto.from) qb.andWhere('txn.created_at >= :from', { from: new Date(dto.from) });
-  if (dto.to) qb.andWhere('txn.created_at <= :to', { to: new Date(dto.to) });
-
-  return qb.getRawMany();
-}
-
-export async function getTopDownloads(): Promise<TopDownloadResultDto[]> {
-  return AppDataSource.query(`
-    SELECT
-      t.id,
-      t.title,
-      t.slug,
-      COUNT(dh.id)::int AS download_count
-    FROM tenders t
-    LEFT JOIN download_history dh ON dh.tender_id = t.id
-    GROUP BY t.id, t.title, t.slug
-    ORDER BY download_count DESC
-    LIMIT 10
-  `);
-}
-
-export async function getUserGrowth(dto: AnalyticsQueryDto): Promise<UserGrowthResultDto[]> {
-  const format = dto.groupBy === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD';
-
-  const qb = userRepo
-    .createQueryBuilder('user')
-    .select(`TO_CHAR(user.created_at, '${format}')`, 'period')
-    .addSelect('COUNT(user.id)', 'count')
-    .groupBy('period')
-    .orderBy('period', 'ASC');
-
-  if (dto.from) qb.andWhere('user.created_at >= :from', { from: new Date(dto.from) });
-  if (dto.to) qb.andWhere('user.created_at <= :to', { to: new Date(dto.to) });
-
-  return qb.getRawMany();
-}
-
-// ─── Subscriptions ────────────────────────────────────────────────────────────
-
-export async function listAllSubscriptions(opts: {
-  page: number;
-  limit: number;
-}): Promise<{ subscriptions: Subscription[]; total: number }> {
-  const [subscriptions, total] = await subRepo.findAndCount({
-    relations: ['user', 'plan'],
-    order: { createdAt: 'DESC' },
-    skip: (opts.page - 1) * opts.limit,
-    take: opts.limit,
-  });
-  return { subscriptions, total };
-}
-
-// ─── Category Management ──────────────────────────────────────────────────────
-
-// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
-export async function listAllCategories(
-  query: Partial<CategoryQueryDto> = {},
-): Promise<{ categories: Category[]; total: number }> {
-  const page = Math.max(1, query.page ?? 1);
-  const limit = Math.min(100, Math.max(1, query.limit ?? 20));
-  const skip = (page - 1) * limit;
-
-  const qb = categoryRepo
-    .createQueryBuilder('category')
-    .leftJoinAndSelect('category.createdBy', 'creator')
-    .orderBy('category.code', 'ASC');
-
-  if (query.status === 'ARCHIVED') {
-    qb.withDeleted().andWhere('category.deleted_at IS NOT NULL');
-  } else {
-    qb.andWhere('category.deleted_at IS NULL');
-    if (query.status === 'ACTIVE') {
-      qb.andWhere('category.isActive = :isActive', { isActive: true });
-    } else if (query.status === 'INACTIVE') {
-      qb.andWhere('category.isActive = :isActive', { isActive: false });
-    }
-  }
-
-  if (query.code !== undefined && query.code !== '') {
-    qb.andWhere('category.code = :code', { code: query.code });
-  }
-
-  if (query.slug !== undefined && query.slug !== '') {
-    qb.andWhere('category.slug = :slug', { slug: query.slug });
-  }
-
-  if (query.createdBy !== undefined) {
-    qb.andWhere('category.createdBy = :createdBy', { createdBy: query.createdBy });
-  }
-
-  if (query.dateFrom !== undefined) {
-    qb.andWhere('category.createdAt >= :dateFrom', { dateFrom: new Date(query.dateFrom) });
-  }
-
-  if (query.dateTo !== undefined) {
-    qb.andWhere('category.createdAt <= :dateTo', {
-      dateTo: new Date(`${query.dateTo}T23:59:59.999Z`),
-    });
-  }
-
-  if (query.search !== undefined && query.search !== '') {
-    const searchPattern = `%${query.search}%`;
-    qb.andWhere('(category.name ILIKE :search OR category.code ILIKE :search)', {
-      search: searchPattern,
-    });
-  }
-
-  if (query.unusedOnly) {
-    qb.having('COALESCE(COUNT(tender.id), 0) = 0');
-  }
-
-  // Count subquery to match filters
-  const countQb = categoryRepo.createQueryBuilder('category');
-  if (query.status === 'ARCHIVED') {
-    countQb.withDeleted().andWhere('category.deleted_at IS NOT NULL');
-  } else {
-    countQb.andWhere('category.deleted_at IS NULL');
-    if (query.status === 'ACTIVE') {
-      countQb.andWhere('category.isActive = :isActive', { isActive: true });
-    } else if (query.status === 'INACTIVE') {
-      countQb.andWhere('category.isActive = :isActive', { isActive: false });
-    }
-  }
-  if (query.code) countQb.andWhere('category.code = :code', { code: query.code });
-  if (query.slug) countQb.andWhere('category.slug = :slug', { slug: query.slug });
-  if (query.createdBy)
-    countQb.andWhere('category.createdBy = :createdBy', { createdBy: query.createdBy });
-  if (query.dateFrom)
-    countQb.andWhere('category.createdAt >= :dateFrom', { dateFrom: new Date(query.dateFrom) });
-  if (query.dateTo)
-    countQb.andWhere('category.createdAt <= :dateTo', {
-      dateTo: new Date(`${query.dateTo}T23:59:59.999Z`),
-    });
-  if (query.search) {
-    const searchPattern = `%${query.search}%`;
-    countQb.andWhere('(category.name ILIKE :search OR category.code ILIKE :search)', {
-      search: searchPattern,
-    });
-  }
-  if (query.unusedOnly) {
-    countQb.andWhere((qb) => {
-      const subQuery = qb
-        .subQuery()
-        .select('tv.category_id')
-        .from('tender_versions', 'tv')
-        .getQuery();
-      return `category.id NOT IN ${subQuery}`;
-    });
-  }
-
-  const total = await countQb.getCount();
-
-  qb.offset(skip).limit(limit);
-  const categories = await qb.getMany();
-
-  return { categories, total };
-}
-
-export async function getCategoryStats(): Promise<CategoryStatsDto> {
-  const total = await categoryRepo.count({ withDeleted: true });
-  const active = await categoryRepo.count({ where: { isActive: true, isDeleted: false } });
-  const inactive = await categoryRepo.count({ where: { isActive: false, isDeleted: false } });
-  const archived = await categoryRepo.count({ where: { isDeleted: true }, withDeleted: true });
-
-  const tendersCountResult = await tenderRepo
-    .createQueryBuilder('tender')
-    .innerJoin('tender.activeVersion', 'activeVersion')
-    .select('COUNT(DISTINCT activeVersion.categoryId)', 'cnt')
-    .getRawOne();
-  const tendersCount = parseInt(tendersCountResult?.cnt ?? '0', 10);
-
-  return { total, active, inactive, archived, tendersCount };
-}
-
-export async function getCategoryHistory(id: string): Promise<AuditLog[]> {
-  return await auditRepo.find({
-    where: { entityType: 'category', entityId: id },
-    order: { createdAt: 'DESC' },
-  });
-}
-
-export async function getCategoryById(id: string): Promise<Category> {
-  const category = await categoryRepo.findOne({ where: { id } });
-  if (!category) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-  }
-  return category;
-}
-
-export async function generateUniqueSlug(name: string): Promise<string> {
-  const baseSlug = generateSlug(name);
-  let slug = baseSlug;
-  let counter = 1;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  while (true) {
-    const exists = await categoryRepo.findOne({ where: { slug } });
-    if (!exists) {
-      return slug;
-    }
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-}
-
-// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
-export async function createCategory(dto: CreateCategoryDto, adminId?: string): Promise<Category> {
-  let { code } = dto;
-  if (!code) {
-    const maxCategory = await categoryRepo.findOne({
-      where: {},
-      order: { code: 'DESC' },
-      withDeleted: true,
-    });
-    const maxVal = maxCategory ? parseInt(maxCategory.code, 10) : 0;
-    code = String(maxVal + 1).padStart(3, '0');
-  }
-
-  let { slug } = dto;
-  slug ??= await generateUniqueSlug(dto.name);
-
-  const existingCode = await categoryRepo.findOne({ where: { code }, withDeleted: true });
-  if (existingCode) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_CODE_EXISTS,
-      HttpStatusCode.CONFLICT,
-      AppErrorCode.CATEGORY_CODE_TAKEN,
-    );
-  }
-  const existingSlug = await categoryRepo.findOne({ where: { slug }, withDeleted: true });
-  if (existingSlug) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_SLUG_EXISTS,
-      HttpStatusCode.CONFLICT,
-      AppErrorCode.CATEGORY_SLUG_TAKEN,
-    );
-  }
-
-  const category = categoryRepo.create({
-    code,
-    name: dto.name,
-    slug,
-    description: dto.description ?? null,
-    isActive: dto.isActive ?? true,
-    createdBy: adminId as string,
-    updatedBy: adminId ?? null,
-    isDeleted: false,
-  });
-
-  let retries = 3;
-
-  while (retries > 0) {
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      return await categoryRepo.save(category);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      if (err.code === '23505') {
-        const detail = err.detail ?? '';
-        if (detail.includes('code')) {
-          throw new AppError(
-            AppErrorMessage.CATEGORY_CODE_EXISTS,
-            HttpStatusCode.CONFLICT,
-            AppErrorCode.CATEGORY_CODE_TAKEN,
-          );
-        }
-        if (detail.includes('slug')) {
-          if (dto.slug) {
-            throw new AppError(
-              AppErrorMessage.CATEGORY_SLUG_EXISTS,
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_SLUG_TAKEN,
-            );
-          }
-          category.slug = await generateUniqueSlug(dto.name);
-          retries--;
-          continue;
-        }
-      }
-      throw err;
-    }
-  }
-  throw new AppError(
-    AppErrorMessage.SLUG_GENERATION_FAILED,
-    HttpStatusCode.CONFLICT,
-    AppErrorCode.CATEGORY_SLUG_CONFLICT,
-  );
-}
-
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export async function updateCategory(
-  id: string,
-  dto: UpdateCategoryDto,
-  adminId?: string,
-): Promise<Category> {
-  const category = await categoryRepo.findOne({ where: { id } });
-  if (!category) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-  }
-
-  let { slug } = dto;
-  if (dto.name && !slug && dto.name !== category.name) {
-    slug = await generateUniqueSlug(dto.name);
-  }
-
-  const updates: Partial<Category> = {};
-  if (dto.code !== undefined) updates.code = dto.code;
-  if (dto.name !== undefined) updates.name = dto.name;
-  if (slug !== undefined) updates.slug = slug;
-  if (dto.description !== undefined) updates.description = dto.description;
-  if (dto.isActive !== undefined) updates.isActive = dto.isActive;
-  if (adminId !== undefined) updates.updatedBy = adminId;
-
-  if (updates.code && updates.code !== category.code) {
-    const existingCode = await categoryRepo.findOne({
-      where: { code: updates.code },
-      withDeleted: true,
-    });
-    if (existingCode) {
-      throw new AppError(
-        AppErrorMessage.CATEGORY_CODE_EXISTS,
-        HttpStatusCode.CONFLICT,
-        AppErrorCode.CATEGORY_CODE_TAKEN,
-      );
-    }
-  }
-  if (updates.slug && updates.slug !== category.slug) {
-    const existingSlug = await categoryRepo.findOne({
-      where: { slug: updates.slug },
-      withDeleted: true,
-    });
-    if (existingSlug) {
-      throw new AppError(
-        AppErrorMessage.CATEGORY_SLUG_EXISTS,
-        HttpStatusCode.CONFLICT,
-        AppErrorCode.CATEGORY_SLUG_TAKEN,
-      );
-    }
-  }
-
-  Object.assign(category, updates);
-
-  let retries = 3;
-  while (retries > 0) {
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      return await categoryRepo.save(category);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      if (err.code === '23505') {
-        const detail = err.detail ?? '';
-        if (detail.includes('code')) {
-          throw new AppError(
-            AppErrorMessage.CATEGORY_CODE_EXISTS,
-            HttpStatusCode.CONFLICT,
-            AppErrorCode.CATEGORY_CODE_TAKEN,
-          );
-        }
-        if (detail.includes('slug')) {
-          if (dto.slug) {
-            throw new AppError(
-              AppErrorMessage.CATEGORY_SLUG_EXISTS,
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_SLUG_TAKEN,
-            );
-          }
-          category.slug = await generateUniqueSlug(category.name);
-          retries--;
-          continue;
-        }
-      }
-      throw err;
-    }
-  }
-  throw new AppError(
-    AppErrorMessage.SLUG_GENERATION_FAILED,
-    HttpStatusCode.CONFLICT,
-    AppErrorCode.CATEGORY_SLUG_CONFLICT,
-  );
-}
-
-export async function deleteCategory(id: string, adminId?: string): Promise<void> {
-  const category = await categoryRepo.findOne({
-    where: { id },
-    relations: ['tenders', 'tenders.tender'],
-  });
-  if (!category) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-  }
-
-  const hasActiveTenders = category.tenders.some(
-    (tv) => tv.tender.status === TenderLifecycleStatus.ACTIVE,
-  );
-  if (hasActiveTenders) {
-    throw new AppError(
-      AppErrorMessage.CATEGORY_DELETE_ASSOCIATED_TENDERS,
-      HttpStatusCode.BAD_REQUEST,
-      AppErrorCode.CATEGORY_HAS_TENDERS,
-    );
-  }
-
-  category.isDeleted = true;
-  if (adminId) {
-    category.updatedBy = adminId;
-  }
-  await categoryRepo.softRemove(category);
-}
-
-export async function processBatchCategories(
-  items: BatchCategoryItemDto[],
-  adminId?: string,
-): Promise<BatchCategoriesResultDto> {
-  // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
-  return await AppDataSource.transaction(async (transactionalEntityManager) => {
-    const categoryTxRepo = transactionalEntityManager.getRepository(Category);
-    // const tenderTxRepo = transactionalEntityManager.getRepository(Tender);
-
-    // 1. Fetch all existing categories (including soft-deleted ones)
-    const allCategories = await categoryTxRepo.find({ withDeleted: true });
-
-    // 2. Build lookups
-    const codeMap = new Map<string, Category>(allCategories.map((c) => [c.code, c]));
-    const slugSet = new Set<string>(allCategories.map((c) => c.slug));
-
-    const categoriesToSave: Category[] = [];
-    const categoriesToDelete: Category[] = [];
-
-    let created = 0;
-    let updated = 0;
-    // let deleted = 0;
-
-    // 3. Process items in-memory
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (!item) {
-        continue;
-      }
-
-      if (item.action === 'delete') {
-        const category = codeMap.get(item.code);
-        if (category) {
-          category.isDeleted = true;
-          if (adminId) {
-            category.updatedBy = adminId;
-          }
-          categoriesToDelete.push(category);
-          // deleted++;
-        }
-        continue;
-      }
-
-      // Upsert action
-      const name = item.name!;
-      const category = codeMap.get(item.code);
-
-      if (category) {
-        // Update existing (including soft-deleted)
-        category.name = name;
-        category.isDeleted = false;
-        if (item.description !== undefined) category.description = item.description;
-        if (item.isActive !== undefined) category.isActive = item.isActive;
-        if (adminId) {
-          category.updatedBy = adminId;
-        }
-
-        if (item.slug) {
-          if (item.slug !== category.slug && slugSet.has(item.slug)) {
-            throw new AppError(
-              AppErrorMessage.SLUG_CONFLICT_BATCH(i + 1, item.code, item.slug),
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_SLUG_TAKEN,
-            );
-          }
-          slugSet.delete(category.slug);
-          category.slug = item.slug;
-          slugSet.add(item.slug);
-        } else {
-          // Regenerate slug from name if no explicit slug provided
-          slugSet.delete(category.slug);
-          const baseSlug = generateSlug(name);
-          let slug = baseSlug;
-          let counter = 1;
-          while (slugSet.has(slug)) {
-            slug = `${baseSlug}-${counter}`;
-            counter++;
-          }
-          category.slug = slug;
-          slugSet.add(slug);
-        }
-
-        // Restore if it was soft-deleted
-        if (category.deletedAt) {
-          category.deletedAt = null;
-        }
-
-        categoriesToSave.push(category);
-        updated++;
-      } else {
-        // Insert new category
-        const newCategory = new Category();
-        newCategory.code = item.code;
-        newCategory.name = name;
-        newCategory.description = item.description ?? null;
-        newCategory.isActive = item.isActive ?? true;
-        newCategory.isDeleted = false;
-        if (adminId) {
-          newCategory.createdBy = adminId;
-          newCategory.updatedBy = adminId;
-        }
-
-        if (item.slug) {
-          if (slugSet.has(item.slug)) {
-            throw new AppError(
-              AppErrorMessage.SLUG_CONFLICT_BATCH(i + 1, item.code, item.slug),
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_SLUG_TAKEN,
-            );
-          }
-          newCategory.slug = item.slug;
-          slugSet.add(item.slug);
-        } else {
-          const baseSlug = generateSlug(name);
-          let slug = baseSlug;
-          let counter = 1;
-          while (slugSet.has(slug)) {
-            slug = `${baseSlug}-${counter}`;
-            counter++;
-          }
-          newCategory.slug = slug;
-          slugSet.add(slug);
-        }
-
-        categoriesToSave.push(newCategory);
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        codeMap.set(item?.code, newCategory); // prevent internal duplicate code issue
-        created++;
-      }
-    }
-
-    // 4. Batch delete validations & actions
-    if (categoriesToDelete.length > 0) {
-      const deleteIds = categoriesToDelete.map((c) => c.id);
-
-      // Check for associated tenders
-      const tenderVersions = await transactionalEntityManager.getRepository(TenderVersion).find({
-        where: { categoryId: In(deleteIds) },
-        relations: ['category'],
-      });
-
-      if (tenderVersions.length > 0) {
-        const failedCodes = Array.from(
-          new Set(tenderVersions.map((t) => t.category.code).filter(Boolean)),
-        );
-        throw new AppError(
-          AppErrorMessage.CATEGORY_DELETE_TENDERS_ASSOCIATED(failedCodes.join(', ')),
-          HttpStatusCode.BAD_REQUEST,
-          AppErrorCode.CATEGORY_HAS_TENDERS,
-        );
-      }
-
-      // Bulk soft delete using softRemove
-      await categoryTxRepo.softRemove(categoriesToDelete);
-    }
-
-    // 5. Bulk save inserts & updates
-    if (categoriesToSave.length > 0) {
-      try {
-        await categoryTxRepo.save(categoriesToSave);
-      } catch (err: unknown) {
-        const error = err as { code: string; detail?: string };
-        if (error.code === '23505') {
-          const detail = error.detail ?? '';
-          if (detail.includes('code')) {
-            throw new AppError(
-              AppErrorMessage.CATEGORY_CODE_EXISTS,
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_CODE_TAKEN,
-            );
-          }
-          if (detail.includes('slug')) {
-            throw new AppError(
-              AppErrorMessage.CATEGORY_SLUG_EXISTS,
-              HttpStatusCode.CONFLICT,
-              AppErrorCode.CATEGORY_SLUG_TAKEN,
-            );
-          }
-        }
-        throw err;
-      }
-    }
-
-    return { created, updated, deleted: categoriesToDelete.length };
-  });
-}
-
-// ─── State Management ──────────────────────────────────────────────────────────
-
-export async function listAllStates(
-  query: Partial<StateQueryDto> = {},
-): Promise<{ states: State[]; total: number }> {
-  const page = Math.max(1, query.page ?? 1);
-  const limit = Math.min(100, Math.max(1, query.limit ?? 20));
-  const skip = (page - 1) * limit;
-
-  const qb = stateRepo.createQueryBuilder('state').leftJoinAndSelect('state.country', 'country');
-
-  if (query.code !== undefined && query.code !== '') {
-    qb.andWhere('state.code = :code', { code: query.code });
-  }
-
-  if (query.slug !== undefined && query.slug !== '') {
-    qb.andWhere('state.slug = :slug', { slug: query.slug });
-  }
-
-  if (query.type !== undefined) {
-    qb.andWhere('state.type = :type', { type: query.type });
-  }
-
-  if (query.countryId !== undefined) {
-    qb.andWhere('state.countryId = :countryId', { countryId: query.countryId });
-  }
-
-  if (query.countryCode !== undefined && query.countryCode !== '') {
-    qb.andWhere('country.code = :countryCode', { countryCode: query.countryCode.toUpperCase() });
-  }
-
-  if (query.search !== undefined && query.search !== '') {
-    const searchPattern = `%${query.search}%`;
-    qb.andWhere(
-      '(state.name ILike :pattern OR state.code ILike :pattern OR country.name ILike :pattern OR country.code ILike :pattern)',
-      { pattern: searchPattern },
-    );
-  }
-
-  qb.orderBy('state.code', 'ASC').skip(skip).take(limit);
-
-  const [states, total] = await qb.getManyAndCount();
-  return { states, total };
-}
-
-export async function listDistinctCountries(): Promise<string[]> {
-  const result = await countryRepo.find({
-    select: ['code'],
-    order: { code: 'ASC' },
-  });
-  return result.map((c) => c.code);
-}
-
-export async function getStateById(id: string): Promise<State> {
-  const state = await stateRepo.findOne({ where: { id }, relations: ['country'] });
-  if (!state) {
-    throw new AppError(
-      AppErrorMessage.STATE_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-  }
-  return state;
-}
-
-export async function getCountryById(id: string): Promise<Country> {
-  const country = await countryRepo.findOne({ where: { id } });
-  if (!country) {
-    throw new AppError(
-      AppErrorMessage.COUNTRY_NOT_FOUND,
-      HttpStatusCode.NOT_FOUND,
-      AppErrorCode.NOT_FOUND,
-    );
-  }
-  return country;
-}
-
-export async function updateState(
-  id: string,
-  dto: UpdateStateDto,
-  adminId?: string,
-): Promise<State> {
-  const state = await getStateById(id);
-  state.isActive = dto.isActive;
-  if (adminId) {
-    state.updatedById = adminId;
-  }
-  return await stateRepo.save(state);
-}
-
-export async function updateCountry(
-  id: string,
-  dto: UpdateCountryBodyDto,
-  adminId?: string,
-): Promise<Country> {
-  const country = await getCountryById(id);
-  country.isActive = dto.isActive;
-  if (adminId) {
-    country.updatedById = adminId;
-  }
-  return await countryRepo.save(country);
-}
-
 // ─── RBAC Admin User Role Assignment & Previews ───────────────────────────────
 
 export async function getUserRoles(userId: string): Promise<UserRolesDto> {
@@ -1663,14 +891,14 @@ export async function getUserRoles(userId: string): Promise<UserRolesDto> {
   return {
     assigned: assigned.map((ur) => ({
       id: ur.role.id,
-      name: ur.role.activeVersion?.name ?? 'Unnamed Role',
+      name: ur.role.activeVersion.name,
       key: ur.role.key,
       expiresAt: ur.expiresAt,
       isSystemRole: ur.role.isSystemRole,
     })),
     available: available.map((r) => ({
       id: r.id,
-      name: r.activeVersion?.name ?? 'Unnamed Role',
+      name: r.activeVersion.name,
       key: r.key,
       isSystemRole: r.isSystemRole,
     })),
@@ -1931,7 +1159,7 @@ export async function previewUserPermissions(userId: string) {
     return true;
   });
 
-  const roleNames = activeUserRoles.map((ur) => ur.role.activeVersion?.name ?? 'Unnamed Role');
+  const roleNames = activeUserRoles.map((ur) => ur.role.activeVersion.name);
   const isSuperAdmin = activeUserRoles.some((ur) => ur.role.isSystemRole === true);
 
   const permRepo = AppDataSource.getRepository(Permission);
@@ -1983,10 +1211,12 @@ export async function previewUserPermissions(userId: string) {
   };
 }
 
-export async function approveAdminUser(
+export async function submitUserApprovalRequest(
   userId: string,
-  approvedByUserId: string,
+  submittedByUserId: string,
   roleId: string,
+  description: string,
+  reviewerId: string,
 ): Promise<void> {
   const user = await userRepo.findOne({ where: { id: userId } });
   if (!user) {
@@ -1997,45 +1227,67 @@ export async function approveAdminUser(
     );
   }
 
-  if (user.accountType !== AccountType.ADMIN) {
+  const reviewer = await userRepo.findOne({ where: { id: reviewerId } });
+  if (!reviewer) {
     throw new AppError(
-      AppErrorMessage.ONLY_ADMIN_APPROVED,
-      HttpStatusCode.BAD_REQUEST,
-      AppErrorCode.INVALID_ACCOUNT_TYPE,
+      'Selected reviewer user not found',
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.USER_NOT_FOUND,
     );
   }
 
-  user.status = UserStatus.ACTIVE;
-  user.approvedBy = { id: approvedByUserId } as User;
-  user.approvedAt = new Date();
+  user.status = UserStatus.PENDING_REVIEW;
   await userRepo.save(user);
 
-  // Assign the specified role
-  const userRoleRepo = AppDataSource.getRepository(UserRole);
+  const approvalReqRepo = AppDataSource.getRepository(UserApprovalRequest);
 
-  // Clean up any existing roles first to avoid unique constraint violations
-  await userRoleRepo.delete({ userId: user.id });
+  // Cancel any previous pending approval request for this user
+  await approvalReqRepo.update(
+    { targetUser: { id: userId }, status: UserApprovalRequestStatus.PENDING },
+    { status: UserApprovalRequestStatus.CANCELLED },
+  );
 
-  const assignment = userRoleRepo.create({
-    userId: user.id,
-    roleId,
-    assignedBy: { id: approvedByUserId } as User,
-    assignedAt: new Date(),
+  // Create new UserApprovalRequest entity record
+  const newRequest = approvalReqRepo.create({
+    targetUser: { id: userId } as User,
+    requestedRole: { id: roleId } as Role,
+    requestedDescription: description,
+    submittedBy: { id: submittedByUserId } as User,
+    reviewer: { id: reviewerId } as User,
+    status: UserApprovalRequestStatus.PENDING,
   });
-  await userRoleRepo.save(assignment);
+  await approvalReqRepo.save(newRequest);
 
-  // Notify user
-  await sendAdminApprovalStatusEmail({
-    to: user.email,
-    name: user.name,
-    status: 'approved',
+  const submitter = await userRepo.findOne({ where: { id: submittedByUserId } });
+
+  // Create Audit Log entry
+  const audit = auditRepo.create({
+    eventId: uuidv4(),
+    actorId: submittedByUserId,
+    actorUserId: submittedByUserId,
+    actorEmail: submitter?.email ?? 'admin@nexusbid.com',
+    module: 'user',
+    entityType: 'user',
+    entityId: user.id,
+    action: 'admin.approval_submitted',
+    before: { status: user.status },
+    after: {
+      status: 'pending_review',
+      approvalRequestId: newRequest.id,
+      requestedRoleId: roleId,
+      requestedDescription: description,
+      reviewerId,
+      submittedById: submittedByUserId,
+    },
   });
+  await auditRepo.save(audit);
 }
 
-export async function rejectAdminUser(
+export async function reviewUserApprovalRequest(
   userId: string,
-  approvedByUserId: string,
-  reason: string,
+  reviewerUserId: string,
+  action: 'APPROVE' | 'REJECT',
+  comment?: string,
 ): Promise<void> {
   const user = await userRepo.findOne({ where: { id: userId } });
   if (!user) {
@@ -2046,25 +1298,131 @@ export async function rejectAdminUser(
     );
   }
 
-  if (user.accountType !== AccountType.ADMIN) {
+  const approvalReqRepo = AppDataSource.getRepository(UserApprovalRequest);
+  const pendingReq = await approvalReqRepo.findOne({
+    where: { targetUser: { id: userId }, status: UserApprovalRequestStatus.PENDING },
+    relations: ['submittedBy', 'reviewer', 'requestedRole'],
+  });
+
+  if (!pendingReq) {
     throw new AppError(
-      AppErrorMessage.ONLY_ADMIN_REJECTED,
-      HttpStatusCode.BAD_REQUEST,
-      AppErrorCode.INVALID_ACCOUNT_TYPE,
+      'No pending approval request found for this user',
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.BAD_REQUEST,
     );
   }
 
-  user.status = UserStatus.REJECTED;
-  user.rejectionReason = reason;
-  user.approvedBy = { id: approvedByUserId } as User;
-  user.approvedAt = new Date();
-  await userRepo.save(user);
+  // Reviewer authorization check
+  if (pendingReq.reviewerId && pendingReq.reviewerId !== reviewerUserId) {
+    throw new AppError(
+      'Only the assigned reviewer can evaluate or decide on this approval request.',
+      HttpStatusCode.FORBIDDEN,
+      AppErrorCode.FORBIDDEN,
+    );
+  }
 
-  // Notify user
-  await sendAdminApprovalStatusEmail({
-    to: user.email,
-    name: user.name,
-    status: 'rejected',
-    reason,
+  if (action === 'APPROVE') {
+    if (!pendingReq.requestedRoleId) {
+      throw new AppError(
+        'No role assigned to this approval request',
+        HttpStatusCode.BAD_REQUEST,
+        AppErrorCode.BAD_REQUEST,
+      );
+    }
+
+    user.status = UserStatus.ACTIVE;
+    await userRepo.save(user);
+
+    // Update approval request entity status
+    pendingReq.status = UserApprovalRequestStatus.APPROVED;
+    pendingReq.reviewerComment = comment ?? null;
+    pendingReq.decidedAt = new Date();
+    await approvalReqRepo.save(pendingReq);
+
+    // Assign requested role
+    const userRoleRepo = AppDataSource.getRepository(UserRole);
+    await userRoleRepo.delete({ userId: user.id });
+
+    const assignment = userRoleRepo.create({
+      userId: user.id,
+      roleId: pendingReq.requestedRoleId,
+      assignedBy: { id: reviewerUserId } as User,
+      assignedAt: new Date(),
+    });
+    await userRoleRepo.save(assignment);
+
+    const reviewerUser = await userRepo.findOne({ where: { id: reviewerUserId } });
+
+    // Audit log
+    const audit = auditRepo.create({
+      eventId: uuidv4(),
+      actorId: reviewerUserId,
+      actorUserId: reviewerUserId,
+      actorEmail: reviewerUser?.email ?? 'admin@nexusbid.com',
+      module: 'user',
+      entityType: 'user',
+      entityId: user.id,
+      action: 'admin.approve',
+      before: { status: 'pending_review' },
+      after: {
+        status: 'active',
+        approvalRequestId: pendingReq.id,
+        roleId: pendingReq.requestedRoleId,
+        comment: comment ?? null,
+      },
+    });
+    await auditRepo.save(audit);
+
+    await sendAdminApprovalStatusEmail({
+      to: user.email,
+      name: user.name,
+      status: 'approved',
+    });
+  } else {
+    user.status = UserStatus.REJECTED;
+    await userRepo.save(user);
+
+    // Update approval request entity status
+    pendingReq.status = UserApprovalRequestStatus.REJECTED;
+    pendingReq.reviewerComment = comment ?? null;
+    pendingReq.decidedAt = new Date();
+    await approvalReqRepo.save(pendingReq);
+
+    const reviewerUser = await userRepo.findOne({ where: { id: reviewerUserId } });
+
+    // Audit log
+    const audit = auditRepo.create({
+      eventId: uuidv4(),
+      actorId: reviewerUserId,
+      actorUserId: reviewerUserId,
+      actorEmail: reviewerUser?.email ?? 'admin@nexusbid.com',
+      module: 'user',
+      entityType: 'user',
+      entityId: user.id,
+      action: 'admin.reject',
+      before: { status: 'pending_review' },
+      after: {
+        status: 'rejected',
+        approvalRequestId: pendingReq.id,
+        comment: comment ?? null,
+      },
+    });
+    await auditRepo.save(audit);
+
+    await sendAdminApprovalStatusEmail({
+      to: user.email,
+      name: user.name,
+      status: 'rejected',
+      reason: comment ?? 'Request denied by reviewer',
+    });
+  }
+}
+
+export async function getUserApprovalRequest(userId: string): Promise<UserApprovalRequest | null> {
+  const approvalReqRepo = AppDataSource.getRepository(UserApprovalRequest);
+  return approvalReqRepo.findOne({
+    where: { targetUser: { id: userId } },
+    order: { createdAt: 'DESC' },
+    relations: ['submittedBy', 'reviewer', 'requestedRole'],
   });
 }

@@ -47,7 +47,7 @@ x509_extensions     = v3_req
 C=US
 ST=Local
 L=Localhost
-O=NexusBid Local Dev
+O=RFPNexa Local Dev
 CN=localhost
 
 [v3_req]

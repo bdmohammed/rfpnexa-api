@@ -60,8 +60,9 @@ export class Country {
   @Column({
     name: 'created_by',
     type: 'uuid',
+    nullable: true,
   })
-  createdById!: string;
+  createdById!: string | null;
 
   @ManyToOne(() => User, {
     nullable: true,

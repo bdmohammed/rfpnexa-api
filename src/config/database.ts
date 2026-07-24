@@ -8,6 +8,10 @@ import { AuditLog } from '../database/entities/AuditLog';
 import { AuditRetentionPolicy } from '../database/entities/AuditRetentionPolicy';
 import { Category } from '../database/entities/Category';
 import { Country } from '../database/entities/Country';
+import { CountryActivity } from '../database/entities/CountryActivity';
+import { CountryChangeRequest } from '../database/entities/CountryChangeRequest';
+import { CountryChangeRequestAssignment } from '../database/entities/CountryChangeRequestAssignment';
+import { CountryChangeRequestComment } from '../database/entities/CountryChangeRequestComment';
 import { Coupon } from '../database/entities/Coupon';
 import { DownloadHistory } from '../database/entities/DownloadHistory';
 import { EmailToken } from '../database/entities/EmailToken';
@@ -30,6 +34,7 @@ import { PlanReviewComment } from '../database/entities/PlanReviewComment';
 import { PlanVersion } from '../database/entities/PlanVersion';
 import { PurchasedTender } from '../database/entities/PurchasedTender';
 import { Role } from '../database/entities/Role';
+import { RoleActivity } from '../database/entities/RoleActivity';
 import { RoleReview } from '../database/entities/RoleReview';
 import { RoleReviewAssignment } from '../database/entities/RoleReviewAssignment';
 import { RoleReviewComment } from '../database/entities/RoleReviewComment';
@@ -65,6 +70,7 @@ import { TenderWatcher } from '../database/entities/TenderWatcher';
 import { TrafficDailyMetrics } from '../database/entities/TrafficDailyMetrics';
 import { Transaction } from '../database/entities/Transaction';
 import { User } from '../database/entities/User';
+import { UserApprovalRequest } from '../database/entities/UserApprovalRequest';
 import { UserDailyMetrics } from '../database/entities/UserDailyMetrics';
 import { UserDashboardLayout } from '../database/entities/UserDashboardLayout';
 import { UserDevice } from '../database/entities/UserDevice';
@@ -76,6 +82,13 @@ import { WebhookEvent } from '../database/entities/WebhookEvent';
 import { TypeOrmPinoLogger } from './databaseLogger';
 import { env } from './env';
 import { SnakeNamingStrategy } from './namingStrategy';
+
+import { CategoryActivity } from '@/database/entities/CategoryActivity';
+import { CategoryReview } from '@/database/entities/CategoryReview';
+import { CategoryReviewAssignment } from '@/database/entities/CategoryReviewAssignment';
+import { CategoryReviewComment } from '@/database/entities/CategoryReviewComment';
+import { CategoryVersion } from '@/database/entities/CategoryVersion';
+import { SeedHistory } from '@/database/entities/SeedHistory';
 
 import 'reflect-metadata';
 
@@ -104,6 +117,11 @@ export const AppDataSource = new DataSource({
     AlertPreference,
     AuditLog,
     Category,
+    CategoryReviewComment,
+    CategoryActivity,
+    CategoryReview,
+    CategoryReviewAssignment,
+    CategoryVersion,
     DownloadHistory,
     EmailToken,
     Notification,
@@ -111,6 +129,10 @@ export const AppDataSource = new DataSource({
     PurchasedTender,
     State,
     Country,
+    CountryChangeRequest,
+    CountryChangeRequestAssignment,
+    CountryChangeRequestComment,
+    CountryActivity,
     Subscription,
     SupportTicket,
     SupportTicketMessage,
@@ -144,6 +166,7 @@ export const AppDataSource = new DataSource({
     SubscriptionMigration,
     Transaction,
     User,
+    UserApprovalRequest,
     UserSession,
     WebhookEvent,
     AuditRetentionPolicy,
@@ -156,6 +179,7 @@ export const AppDataSource = new DataSource({
     RoleReview,
     RoleReviewAssignment,
     RoleReviewComment,
+    RoleActivity,
     PasswordHistory,
     UserDevice,
     SecurityLog,
@@ -172,6 +196,7 @@ export const AppDataSource = new DataSource({
     TrafficDailyMetrics,
     NotificationRecipient,
     NotificationAction,
+    SeedHistory,
   ],
 
   migrations: [

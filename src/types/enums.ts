@@ -22,16 +22,29 @@ export enum TenderVersionStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  ARCHIVED_VERSION = 'ARCHIVED_VERSION',
 }
 
 export enum TenderPublicationStatus {
+  UNPUBLISHED = 'UNPUBLISHED',
   SCHEDULED = 'SCHEDULED',
   PUBLISHED = 'PUBLISHED',
+  RETRACTED = 'RETRACTED',
+}
+
+export enum TenderBiddingStatus {
+  NOT_OPEN = 'NOT_OPEN',
   OPEN = 'OPEN',
-  CLOSING = 'CLOSING',
   CLOSED = 'CLOSED',
+}
+
+export enum TenderProcessStatus {
+  PRE_BIDDING = 'PRE_BIDDING',
+  IN_BIDDING = 'IN_BIDDING',
+  UNDER_EVALUATION = 'UNDER_EVALUATION',
   AWARDED = 'AWARDED',
   COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
 }
 
 /**
@@ -130,6 +143,14 @@ export enum PermissionKey {
   VIEW_TICKETS = 'ticket.view',
   REPLY_TICKETS = 'ticket.reply',
   EDIT_CMS = 'cms.edit',
+  COUNTRY_VIEW = 'country.view',
+  COUNTRY_ACTIVATE = 'country.activate',
+  COUNTRY_DEACTIVATE = 'country.deactivate',
+  COUNTRY_REVIEW = 'country.review',
+  COUNTRY_ASSIGN_REVIEWER = 'country.assignReviewer',
+  COUNTRY_AUDIT_VIEW = 'country.auditView',
+  COUNTRY_STATS_VIEW = 'country.statsView',
+  COUNTRY_CHANGE_REQUEST_VIEW = 'country.changeRequestView',
 }
 
 // ─── User Status ─────────────────────────────────────────────────────────────
@@ -137,6 +158,7 @@ export enum PermissionKey {
 export enum UserStatus {
   PENDING_EMAIL_VERIFICATION = 'pending_email_verification',
   PENDING_APPROVAL = 'pending_approval',
+  PENDING_REVIEW = 'pending_review',
   ACTIVE = 'active',
   REJECTED = 'rejected',
   SUSPENDED = 'suspended',
@@ -184,6 +206,25 @@ export enum RoleVersionStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   REOPENED = 'REOPENED',
+  SUPERSEDED = 'SUPERSEDED',
+}
+
+export enum CategoryStatus {
+  DRAFT = 'DRAFT',
+  IN_REVIEW = 'IN_REVIEW',
+  APPROVED = 'APPROVED',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum CategoryVersionStatus {
+  DRAFT = 'DRAFT',
+  IN_REVIEW = 'IN_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum ReviewStatus {
@@ -342,6 +383,7 @@ export enum NotificationSeverity {
   CRITICAL = 'CRITICAL',
   HIGH = 'HIGH',
   MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
 }
 
 export enum NotificationRecipientStatus {
@@ -524,4 +566,58 @@ export enum PlanType {
   COUNTRY = 'country',
   CATEGORY = 'category',
   BUNDLE = 'bundle',
+}
+
+// ─── Country & Master Data Governance Enums ─────────────────────────────────────
+
+export enum ActorType {
+  SYSTEM = 'SYSTEM',
+  USER = 'USER',
+  JOB = 'JOB',
+  API = 'API',
+}
+
+export enum CountryActivityType {
+  SEEDED = 'SEEDED',
+  ACTIVATED = 'ACTIVATED',
+  DEACTIVATED = 'DEACTIVATED',
+  REQUEST_CREATED = 'REQUEST_CREATED',
+  REVIEWER_ASSIGNED = 'REVIEWER_ASSIGNED',
+  COMMENT_ADDED = 'COMMENT_ADDED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CASCADE_EXECUTED = 'CASCADE_EXECUTED',
+}
+
+export enum CountryChangeRequestTargetType {
+  COUNTRY = 'COUNTRY',
+  STATE = 'STATE',
+}
+
+export enum CountryChangeRequestAction {
+  ACTIVATE = 'ACTIVATE',
+  DEACTIVATE = 'DEACTIVATE',
+}
+
+export enum CountryChangeRequestStatus {
+  DRAFT = 'DRAFT',
+  READY_FOR_REVIEW = 'READY_FOR_REVIEW',
+  IN_REVIEW = 'IN_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum CountryAssignmentStatus {
+  PENDING = 'PENDING',
+  CLAIMED = 'CLAIMED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum CountryCommentType {
+  GENERAL = 'GENERAL',
+  REVIEW = 'REVIEW',
+  SYSTEM = 'SYSTEM',
+  MENTION = 'MENTION',
 }

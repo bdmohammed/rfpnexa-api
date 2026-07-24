@@ -5,7 +5,7 @@ import { PermissionModule } from '../../entities/PermissionModule';
 
 import type { SeedInterface } from '../seed.interface';
 import type { User } from '@/database/entities/User';
-import { CategoryPermissions, tenderPermissionModule } from '@/constants/permissions';
+import { categoryPermissionModule, CategoryPermissions } from '@/constants/permissions';
 
 const categoryPermissions = Object.values(CategoryPermissions);
 
@@ -20,11 +20,11 @@ export default class AddedCategoryModueAndPermissions1720800010 implements SeedI
     const moduleRepo = dataSource.getRepository(PermissionModule);
 
     let module = await moduleRepo.findOne({
-      where: { key: tenderPermissionModule.key },
+      where: { key: categoryPermissionModule.key },
     });
     module ??= await moduleRepo.save(
       moduleRepo.create({
-        ...tenderPermissionModule,
+        ...categoryPermissionModule,
         createdById: systemUser.id,
         updatedById: systemUser.id,
       }),

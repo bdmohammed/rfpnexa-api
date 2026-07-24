@@ -137,6 +137,16 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   const pgError = err;
   if (pgError.code === '23505') {
+    let friendlyMessage = 'A record with this value already exists';
+    if (pgError.detail) {
+      const match = pgError.detail.match(/Key \(([^)]+)\)=\(([^)]+)\)/);
+      if (match) {
+        const [, field, value] = match as [string, string, string];
+        const cleanField = field.replace('_', ' ');
+        friendlyMessage = `A record with ${cleanField} "${value}" already exists. Please choose a different ${cleanField}.`;
+      }
+    }
+
     activeLogger.warn(
       {
         requestId,
@@ -152,7 +162,7 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
     );
     res.status(409).json({
       success: false,
-      message: 'A record with this value already exists',
+      message: friendlyMessage,
       error: 'CONFLICT',
       traceId,
       ...(['local', 'dev'].includes(env.NODE_ENV) ? { detail: pgError.detail } : {}),

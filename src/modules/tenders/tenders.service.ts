@@ -18,12 +18,15 @@ import { TenderReviewComment } from '../../database/entities/TenderReviewComment
 import { TenderTemplate } from '../../database/entities/TenderTemplate';
 import { TenderVersion } from '../../database/entities/TenderVersion';
 import { TenderWatcher } from '../../database/entities/TenderWatcher';
-import { generateDownloadUrl } from '../../services/s3.service';
+import { deleteFile, generateDownloadUrl } from '../../services/s3.service';
 import {
+  TenderBiddingStatus,
   TenderLifecycleStatus,
+  TenderProcessStatus,
   TenderPublicationStatus,
   TenderVersionStatus,
 } from '../../types/enums';
+import { TenderWorkflowService } from './TenderWorkflowService';
 import { hasAccessToTender } from '../../utils/access';
 import { domainEvents, TENDER_EVENTS } from '../../utils/domainEvents';
 
@@ -280,12 +283,8 @@ export async function listTenders(params: TenderSearchQueryDto) {
     .leftJoinAndSelect('activeVersion.category', 'category')
     .leftJoinAndSelect('activeVersion.state', 'state')
     .where('tender.status = :status', { status: TenderLifecycleStatus.ACTIVE })
-    .andWhere('tender.publicationStatus IN (:...pubStatuses)', {
-      pubStatuses: [
-        TenderPublicationStatus.PUBLISHED,
-        TenderPublicationStatus.OPEN,
-        TenderPublicationStatus.CLOSING,
-      ],
+    .andWhere('tender.publicationStatus = :pubStatus', {
+      pubStatus: TenderPublicationStatus.PUBLISHED,
     });
 
   applyTenderFilters(qb, params);
@@ -400,15 +399,27 @@ export async function getDownloadUrl(
 // ─── Admin: Create Tender ─────────────────────────────────────────────────────
 
 export async function createTender(dto: CreateTenderDto, createdById: string): Promise<Tender> {
-  // Generate sequence reference number
-  const [{ nextval }] = await AppDataSource.query("SELECT nextval('tender_ref_seq') as nextval");
-  const referenceNo = `TDR-${new Date().getFullYear()}-${String(nextval).padStart(6, '0')}`;
+  // Generate sequence reference number safely
+  let seqNumber = Math.floor(100000 + Math.random() * 900000);
+  try {
+    await AppDataSource.query('CREATE SEQUENCE IF NOT EXISTS tender_ref_seq START WITH 1000');
+    const seqRes = await AppDataSource.query("SELECT nextval('tender_ref_seq') as nextval");
+    if (seqRes[0].nextval) {
+      seqNumber = parseInt(seqRes[0].nextval, 10);
+    }
+  } catch (seqErr) {
+    logger.warn(
+      { err: seqErr },
+      'Could not query tender_ref_seq — using random reference sequence fallback',
+    );
+  }
+  const referenceNo = `TDR-${new Date().getFullYear()}-${String(seqNumber).padStart(6, '0')}`;
 
   const tender = tenderRepository.create({
     referenceNo,
     createdById,
     status: TenderLifecycleStatus.ACTIVE,
-    publicationStatus: TenderPublicationStatus.SCHEDULED,
+    publicationStatus: TenderPublicationStatus.UNPUBLISHED,
   });
 
   const savedTender = await tenderRepository.save(tender);
@@ -556,6 +567,79 @@ export async function updateTender(
   return tender;
 }
 
+export async function updateTenderBasicInfo(
+  id: string,
+  dto: Partial<UpdateTenderDto>,
+  actorId: string,
+): Promise<Tender> {
+  return updateTender(id, dto, actorId);
+}
+
+export async function updateTenderLocation(
+  id: string,
+  dto: Partial<UpdateTenderDto>,
+  actorId: string,
+): Promise<Tender> {
+  return updateTender(id, dto, actorId);
+}
+
+export async function updateTenderCommercial(
+  id: string,
+  dto: Partial<UpdateTenderDto>,
+  actorId: string,
+): Promise<Tender> {
+  return updateTender(id, dto, actorId);
+}
+
+export async function updateTenderSchedule(
+  id: string,
+  dto: Partial<UpdateTenderDto>,
+  actorId: string,
+): Promise<Tender> {
+  return updateTender(id, dto, actorId);
+}
+
+export async function getTenderCompletionStatus(id: string) {
+  const tender = await tenderRepository.findOne({
+    where: { id },
+    relations: ['activeVersion'],
+  });
+
+  if (!tender?.activeVersion) {
+    throw new AppError(
+      AppErrorMessage.TENDER_NOT_FOUND,
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.NOT_FOUND,
+    );
+  }
+
+  const docsCount = await tenderDocumentRepository.count({
+    where: { tenderVersionId: tender.activeVersion.id },
+  });
+
+  const ver = tender.activeVersion;
+  const basicInfo = Boolean(ver.title && ver.categoryId && ver.procurementType);
+  const location = Boolean(ver.placeId ?? ver.formattedAddress ?? ver.stateId);
+  const commercial = Boolean(ver.estimatedBudget && ver.paymentTerms);
+  const schedule = Boolean(ver.openingDate && ver.closingDate);
+  const documents = docsCount > 0;
+
+  const steps = [basicInfo, location, commercial, schedule, documents];
+  const completedCount = steps.filter(Boolean).length;
+  const percentage = Math.round((completedCount / steps.length) * 100);
+
+  return {
+    percentage,
+    completedSteps: {
+      basicInfo,
+      location,
+      commercial,
+      schedule,
+      documents,
+    },
+  };
+}
+
 // ─── Admin: Update Status ─────────────────────────────────────────────────────
 
 export async function updateTenderStatus(
@@ -576,13 +660,19 @@ export async function updateTenderStatus(
     );
   }
 
-  if (dto.status && tender.activeVersion) {
-    tender.activeVersion.status = dto.status;
-    await tenderVersionRepository.save(tender.activeVersion);
-  }
+  const computed = TenderWorkflowService.computeStateTransition(
+    tender,
+    dto.publicationStatus,
+    dto.status,
+  );
 
-  if (dto.publicationStatus) {
-    tender.publicationStatus = dto.publicationStatus;
+  tender.publicationStatus = computed.publicationStatus;
+  tender.biddingStatus = computed.biddingStatus;
+  tender.processStatus = computed.processStatus;
+
+  if (computed.versionStatus && tender.activeVersion) {
+    tender.activeVersion.status = computed.versionStatus;
+    await tenderVersionRepository.save(tender.activeVersion);
   }
 
   const savedTender = await tenderRepository.save(tender);
@@ -685,6 +775,39 @@ export async function registerDocument(
   return saved;
 }
 
+export async function getTenderDocuments(tenderId: string): Promise<TenderDocument[]> {
+  const tender = await tenderRepository.findOne({
+    where: { id: tenderId },
+    relations: ['activeVersion'],
+  });
+
+  if (!tender?.activeVersion) {
+    return [];
+  }
+
+  return tenderDocumentRepository.find({
+    where: { tenderVersionId: tender.activeVersion.id },
+    order: { uploadedAt: 'DESC' },
+  });
+}
+
+export async function deleteDocument(docId: string): Promise<void> {
+  const doc = await tenderDocumentRepository.findOne({ where: { id: docId } });
+  if (doc) {
+    if (doc.documentS3Key) {
+      try {
+        await deleteFile(doc.documentS3Key);
+      } catch (err) {
+        logger.warn(
+          { docId, s3Key: doc.documentS3Key, err },
+          'Failed to delete S3 file on document removal',
+        );
+      }
+    }
+    await tenderDocumentRepository.remove(doc);
+  }
+}
+
 // ─── Question & Answers ───────────────────────────────────────────────────────
 
 export async function askQuestion(
@@ -758,6 +881,25 @@ export async function createAmendment(
   return tenderAmendmentRepository.save(amend);
 }
 
+export async function getTenderVersionDiff(tenderId: string, v1Number: number, v2Number: number) {
+  const v1 = await tenderVersionRepository.findOne({
+    where: { tenderId, version: v1Number },
+  });
+  const v2 = await tenderVersionRepository.findOne({
+    where: { tenderId, version: v2Number },
+  });
+
+  if (!v1 || !v2) {
+    throw new AppError(
+      'One or both tender versions were not found for comparison',
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.NOT_FOUND,
+    );
+  }
+
+  return TenderWorkflowService.compareVersions(v1, v2);
+}
+
 // ─── Committee Assignments ───────────────────────────────────────────────────
 
 export async function assignCommitteeMember(
@@ -807,7 +949,53 @@ export async function submitEvaluation(
   return tenderEvaluationRepository.save(evalRow);
 }
 
-// ─── Review Assignments & Review comments ───────────────────────────────────
+export async function submitDraftForReview(
+  tenderId: string,
+  actorId: string,
+): Promise<TenderReview> {
+  const tender = await tenderRepository.findOne({
+    where: { id: tenderId },
+    relations: ['activeVersion'],
+  });
+
+  if (!tender?.activeVersion) {
+    throw new AppError(
+      AppErrorMessage.TENDER_ACTIVE_VERSION_NOT_FOUND,
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.NOT_FOUND,
+    );
+  }
+
+  tender.activeVersion.status = TenderVersionStatus.SUBMITTED;
+  await tenderVersionRepository.save(tender.activeVersion);
+
+  const review = tenderReviewRepository.create({
+    tenderVersionId: tender.activeVersion.id,
+    status: 'SUBMITTED',
+  });
+
+  const savedReview = await tenderReviewRepository.save(review);
+  domainEvents.dispatch(TENDER_EVENTS.SUBMITTED, { tender, actorId });
+
+  return savedReview;
+}
+
+export async function getTenderReviews(tenderId: string): Promise<TenderReview[]> {
+  const tender = await tenderRepository.findOne({
+    where: { id: tenderId },
+    relations: ['activeVersion'],
+  });
+
+  if (!tender?.activeVersion) {
+    return [];
+  }
+
+  return tenderReviewRepository.find({
+    where: { tenderVersionId: tender.activeVersion.id, status: 'REVIEW_ASSIGNED' },
+    relations: ['assignments', 'assignments.reviewer', 'comments', 'comments.author'],
+    order: { createdAt: 'DESC' },
+  });
+}
 
 export async function assignReviewers(
   tenderId: string,
@@ -826,27 +1014,41 @@ export async function assignReviewers(
     );
   }
 
-  // Create review session
-  const review = tenderReviewRepository.create({
-    tenderVersionId: tender.activeVersion.id,
-    status: 'assigned',
+  let review = await tenderReviewRepository.findOne({
+    where: { tenderVersionId: tender.activeVersion.id },
+    order: { createdAt: 'DESC' },
   });
 
-  const savedReview = await tenderReviewRepository.save(review);
-
-  for (const reviewerId of dto.reviewerIds) {
-    const assign = tenderReviewAssignmentRepository.create({
-      reviewId: savedReview.id,
-      reviewerId,
+  if (!review) {
+    review = tenderReviewRepository.create({
+      tenderVersionId: tender.activeVersion.id,
+      status: 'REVIEW_ASSIGNED',
     });
-    await tenderReviewAssignmentRepository.save(assign);
+    review = await tenderReviewRepository.save(review);
+  } else {
+    review.status = 'REVIEW_ASSIGNED';
+    await tenderReviewRepository.save(review);
   }
 
-  // Transition version status to REVIEW_ASSIGNED
+  for (const reviewerId of dto.reviewerIds) {
+    const existing = await tenderReviewAssignmentRepository.findOne({
+      where: { reviewId: review.id, reviewerId },
+    });
+
+    if (!existing) {
+      const assign = tenderReviewAssignmentRepository.create({
+        reviewId: review.id,
+        reviewerId,
+        decision: 'PENDING',
+      });
+      await tenderReviewAssignmentRepository.save(assign);
+    }
+  }
+
   tender.activeVersion.status = TenderVersionStatus.REVIEW_ASSIGNED;
   await tenderVersionRepository.save(tender.activeVersion);
 
-  return savedReview;
+  return review;
 }
 
 export async function submitReviewComment(
@@ -876,15 +1078,85 @@ export async function submitReviewComment(
   const savedComment = await tenderReviewCommentRepository.save(comment);
 
   if (dto.status) {
-    review.status = dto.status.toLowerCase();
+    review.status = dto.status;
     await tenderReviewRepository.save(review);
 
-    // Update version status
-    review.tenderVersion.status = dto.status;
+    review.tenderVersion.status = dto.status as TenderVersionStatus;
     await tenderVersionRepository.save(review.tenderVersion);
   }
 
   return savedComment;
+}
+
+export async function submitReviewDecision(
+  reviewId: string,
+  decision: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED',
+  commentText: string | undefined,
+  actorId: string,
+): Promise<TenderReview> {
+  const review = await tenderReviewRepository.findOne({
+    where: { id: reviewId },
+    relations: ['assignments', 'tenderVersion', 'tenderVersion.tender'],
+  });
+
+  if (!review) {
+    throw new AppError(
+      AppErrorMessage.REVIEW_SESSION_NOT_FOUND,
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.NOT_FOUND,
+    );
+  }
+
+  let assignment = await tenderReviewAssignmentRepository.findOne({
+    where: { reviewId, reviewerId: actorId },
+  });
+
+  if (!assignment) {
+    assignment = tenderReviewAssignmentRepository.create({
+      reviewId,
+      reviewerId: actorId,
+      decision,
+      completedAt: new Date(),
+    });
+  } else {
+    assignment.decision = decision;
+    assignment.completedAt = new Date();
+  }
+  await tenderReviewAssignmentRepository.save(assignment);
+
+  if (commentText) {
+    const comment = tenderReviewCommentRepository.create({
+      reviewId,
+      authorId: actorId,
+      commentText: `[Decision: ${decision}] ${commentText}`,
+    });
+    await tenderReviewCommentRepository.save(comment);
+  }
+
+  // Evaluate parallel conflict resolution precedence formula across all assigned reviewers
+  const allAssignments = await tenderReviewAssignmentRepository.find({ where: { reviewId } });
+  const decisions = allAssignments.map((a) => a.decision);
+
+  let finalStatus: TenderVersionStatus = TenderVersionStatus.UNDER_REVIEW;
+  if (decisions.includes('REJECTED')) {
+    finalStatus = TenderVersionStatus.REJECTED;
+  } else if (decisions.includes('CHANGES_REQUESTED')) {
+    finalStatus = TenderVersionStatus.CHANGES_REQUESTED;
+  } else if (decisions.length > 0 && decisions.every((d) => d === 'APPROVED')) {
+    finalStatus = TenderVersionStatus.APPROVED;
+  }
+
+  review.status = finalStatus;
+  await tenderReviewRepository.save(review);
+
+  review.tenderVersion.status = finalStatus;
+  await tenderVersionRepository.save(review.tenderVersion);
+
+  if (finalStatus === TenderVersionStatus.APPROVED) {
+    domainEvents.dispatch(TENDER_EVENTS.APPROVED, { tender: review.tenderVersion.tender, actorId });
+  }
+
+  return review;
 }
 
 // ─── Watchers ───────────────────────────────────────────────────────────────

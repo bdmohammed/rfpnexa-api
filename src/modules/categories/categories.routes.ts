@@ -4,13 +4,17 @@ import { auditLogger } from '../../middleware/auditLogger';
 import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
 import { AccountType, PermissionKey } from '../../types/enums';
-import * as controller from '../admin/admin.controller';
+
+import * as controller from './categories.controll';
 import {
+  AssignCategoryReviewerSchema,
+  CategoryDecisionSchema,
   CategoryQuerySchema,
   CreateCategorySchema,
   IdParamSchema,
+  SubmitCategoryReviewSchema,
   UpdateCategorySchema,
-} from '../admin/admin.dto';
+} from './categories.dto';
 
 import type { RequestHandler } from 'express';
 import { requirePermission } from '@/middleware/permissions';
@@ -149,6 +153,18 @@ const adminAuth = [authenticate, requireRole(AccountType.ADMIN)];
  *               traceId: "uuid"
  */
 router.get('/', validate(CategoryQuerySchema, 'query'), controller.listCategories);
+
+/**
+ * @swagger
+ * /api/v1/categories/analytics:
+ *   get:
+ *     summary: Get category analytics & stats
+ *     tags: [Categories]
+ *     responses:
+ *       200:
+ *         description: Category statistics overview
+ */
+router.get('/analytics', controller.getCategoryStats);
 
 /**
  * @swagger
@@ -472,6 +488,267 @@ router.get(
   requirePermission(PermissionKey.MANAGE_CATEGORIES),
   validate(IdParamSchema, 'params'),
   controller.getCategoryHistory,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/governance:
+ *   get:
+ *     summary: Get category governance details (Admin)
+ *     description: |
+ *       Retrieves the review lifecycle and workflow governance info for this category.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: getCategoryGovernance
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Governance information resolved successfully
+ */
+router.get(
+  '/:id/governance',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.getCategoryGovernance,
+);
+
+router.post(
+  '/:id/comments',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.addCategoryComment,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/submit:
+ *   post:
+ *     summary: Submit category for administrative review (Admin)
+ *     description: |
+ *       Submits the category version for approval.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: submitCategoryReview
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               comment: { type: string, maxLength: 1000, example: "Ready for review" }
+ *               reviewerIds:
+ *                 type: array
+ *                 items: { type: string, format: uuid }
+ *                 example: ["b2c3d4e5-f6a7-8901-bcde-23456789012a"]
+ *     responses:
+ *       200:
+ *         description: Category submitted for review successfully
+ */
+router.post(
+  '/:id/submit',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  validate(SubmitCategoryReviewSchema),
+  controller.submitCategoryReview,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/assign-reviewer:
+ *   post:
+ *     summary: Assign reviewers to category registration review (Admin)
+ *     description: |
+ *       Updates the list of designated reviewers for this category request.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: assignCategoryReviewer
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reviewerIds]
+ *             properties:
+ *               reviewerIds:
+ *                 type: array
+ *                 items: { type: string, format: uuid }
+ *                 minItems: 1
+ *                 example: ["b2c3d4e5-f6a7-8901-bcde-23456789012a"]
+ *     responses:
+ *       200:
+ *         description: Reviewers assigned successfully
+ */
+router.post(
+  '/:id/assign-reviewer',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  validate(AssignCategoryReviewerSchema),
+  controller.assignCategoryReviewer,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/review:
+ *   post:
+ *     summary: Record review decision for category request (Admin)
+ *     description: |
+ *       Approves, rejects, or requests changes to the category.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: reviewCategoryDecision
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [action]
+ *             properties:
+ *               action: { type: string, enum: [APPROVE, REJECT, REQUEST_CHANGES], example: "APPROVE" }
+ *               comment: { type: string, maxLength: 1000, example: "Valid category code and details." }
+ *               reason: { type: string, maxLength: 1000, example: "Documentation checked" }
+ *     responses:
+ *       200:
+ *         description: Decision logged successfully
+ */
+router.post(
+  '/:id/review',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  validate(CategoryDecisionSchema),
+  controller.reviewCategoryDecision,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/draft:
+ *   post:
+ *     summary: Create new draft version of category (Admin)
+ *     description: |
+ *       Initializes a new draft revision for an active category.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: createCategoryDraftVersion
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Draft version created successfully
+ */
+router.post(
+  '/:id/draft',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.createCategoryDraftVersion,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/archive:
+ *   post:
+ *     summary: Archive category (Admin)
+ *     description: |
+ *       Marks category as archived.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: archiveCategory
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Category archived successfully
+ */
+router.post(
+  '/:id/archive',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.archiveCategory,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/restore:
+ *   post:
+ *     summary: Restore archived category (Admin)
+ *     description: |
+ *       Re-activates a previously archived category.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: restoreCategory
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Category restored successfully
+ */
+router.post(
+  '/:id/restore',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.restoreCategory,
+);
+
+/**
+ * @swagger
+ * /api/v1/categories/{id}/usage:
+ *   get:
+ *     summary: Get category usage statistics (Admin)
+ *     description: |
+ *       Retrieves the count and list of active tenders or entities referencing this category.
+ *       **Required Permission:** `MANAGE_CATEGORIES` (Admin only)
+ *     operationId: getCategoryUsage
+ *     tags: [Categories]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Usage counts resolved successfully
+ */
+router.get(
+  '/:id/usage',
+  adminAuth,
+  requirePermission(PermissionKey.MANAGE_CATEGORIES),
+  validate(IdParamSchema, 'params'),
+  controller.getCategoryUsage,
 );
 
 export { router as categoriesRouter };

@@ -2,14 +2,18 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import * as bcrypt from 'bcryptjs';
+
 import { AppDataSource } from '../../config/database';
 import { logger } from '../../config/logger';
+import { Country } from '../entities/Country';
+import { CountryActivity } from '../entities/CountryActivity';
 import { SeedHistory } from '../entities/SeedHistory';
 import { User } from '../entities/User';
 
 import type { DataSource, EntityTarget, ObjectLiteral } from 'typeorm';
 import { env } from '@/config/env';
-import { SeedStatus } from '@/types/enums';
+import { AccountType, ActorType, CountryActivityType, SeedStatus, UserStatus } from '@/types/enums';
 
 import 'reflect-metadata';
 
@@ -126,6 +130,7 @@ async function applySeed(
   }
 }
 
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
 export async function runSeeds(dataSource: DataSource): Promise<void> {
   logger.info('🌱 Starting database seed runner...');
 
@@ -135,12 +140,36 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
     return;
   }
 
-  const files = fs
-    .readdirSync(definitionsDir)
-    .filter((file) => /^\d+-.*\.seed\.(ts|js)$/.test(file))
-    .sort();
+  const allFiles = fs.readdirSync(definitionsDir);
 
-  if (files.length === 0) {
+  const matchedFiles: string[] = [];
+  const unmatchedFiles: string[] = [];
+
+  const seedFileRegex = /^\d+[A-Z][A-Za-z0-9]*\.seed\.(ts|js)$/;
+
+  for (const file of allFiles) {
+    if (seedFileRegex.test(file)) {
+      matchedFiles.push(file);
+    } else {
+      unmatchedFiles.push(file);
+    }
+  }
+
+  matchedFiles.sort();
+
+  logger.info({ matchedFiles }, 'Matched seed files');
+
+  if (unmatchedFiles.length > 0) {
+    logger.warn(
+      {
+        unmatchedFiles,
+        expectedPattern: seedFileRegex.source,
+      },
+      'Ignoring files that do not match the seed naming convention',
+    );
+  }
+
+  if (matchedFiles.length === 0) {
     logger.info('No versioned seed files found. Seeding complete.');
     return;
   }
@@ -151,11 +180,80 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
   const skippedSeeds: string[] = [];
 
   const userRepo = dataSource.getRepository(User);
+  const countryRepo = dataSource.getRepository(Country);
   const email = env.NEXUSBID_SYSTEM_ADMIN_EMAIL;
-  let systemUser = await userRepo.findOne({ where: { email } });
 
-  for (const file of files) {
-    systemUser ??= await userRepo.findOne({ where: { email } });
+  let systemUser = await userRepo.findOne({ where: { email } });
+  if (!systemUser) {
+    let country = await countryRepo.findOne({ where: { code: 'US' } });
+    const isNewCountry = !country;
+    if (!country) {
+      const createdCountry = countryRepo.create({
+        code: 'US',
+        name: 'United States of America',
+        slug: 'united-states-of-america',
+        isActive: true,
+        createdById: null,
+        updatedById: null,
+      });
+      country = await countryRepo.save(createdCountry);
+    }
+
+    // Generate high-entropy password hash that nobody knows
+    const tempPassword = crypto.randomBytes(32).toString('hex');
+    const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+    systemUser = await userRepo.save(
+      userRepo.create({
+        name: 'System Service Account',
+        email,
+        passwordHash,
+        companyName: 'RFPNEXA',
+        accountType: AccountType.SYSTEM,
+        emailVerified: true,
+        isBlocked: false,
+        status: UserStatus.ACTIVE,
+        passwordChangedAt: new Date(),
+        countryId: country.id,
+      }),
+    );
+
+    // Back-patch the country row so created_by / updated_by point to the system user
+    if (isNewCountry) {
+      await countryRepo.update(country.id, {
+        createdById: systemUser.id,
+        updatedById: systemUser.id,
+      });
+      logger.info(
+        `✓ Back-patched country [${country.code}] created_by/updated_by → system user [${systemUser.id}]`,
+      );
+
+      const activityRepo = dataSource.getRepository(CountryActivity);
+      await activityRepo.save(
+        activityRepo.create({
+          countryId: country.id,
+          actorId: systemUser.id,
+          actorType: ActorType.SYSTEM,
+          eventType: CountryActivityType.SEEDED,
+          title: 'Country Seeded',
+          description: `Country "${country.name} (${country.code})" was created during the initial system data seeding.`,
+          oldValue: null,
+          newValue: {
+            name: country.name,
+            code: country.code,
+            isActive: country.isActive,
+          },
+          metadata: {
+            source: 'SYSTEM_SEEDER',
+            countryCode: country.code,
+            countryName: country.name,
+          },
+        }),
+      );
+    }
+  }
+
+  for await (const file of matchedFiles) {
     // eslint-disable-next-line no-await-in-loop
     const result = await applySeed(file, definitionsDir, dataSource, systemUser);
     if (result.status === SeedStatus.APPLIED && result.durationMs !== undefined) {

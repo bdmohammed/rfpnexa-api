@@ -37,7 +37,6 @@ export const validate =
       );
     }
 
-    req.validated = result.data;
     req[target] = result.data;
     next();
   };

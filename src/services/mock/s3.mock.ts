@@ -11,10 +11,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../../config/logger';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 
-function assertPdfExtension(fileName: string): void {
-  if (!fileName.toLowerCase().endsWith('.pdf')) {
+function assertAllowedExtension(fileName: string): void {
+  const allowed = [
+    'pdf',
+    'doc',
+    'docx',
+    'xls',
+    'xlsx',
+    'zip',
+    'png',
+    'jpg',
+    'jpeg',
+    'txt',
+    'csv',
+    'dwg',
+  ];
+  const ext = fileName.toLowerCase().split('.').pop();
+  if (!ext || !allowed.includes(ext)) {
     throw new AppError(
-      AppErrorMessage.ONLY_PDF_ALLOWED,
+      AppErrorMessage.INVALID_FILE_TYPE,
       HttpStatusCode.BAD_REQUEST,
       AppErrorCode.INVALID_FILE_TYPE,
     );
@@ -24,7 +39,7 @@ function assertPdfExtension(fileName: string): void {
 export async function generateUploadUrl(
   fileName: string,
 ): Promise<{ uploadUrl: string; documentKey: string; originalFileName: string }> {
-  assertPdfExtension(fileName);
+  assertAllowedExtension(fileName);
 
   const sanitized = fileName.replace(/\s+/g, '_').toLowerCase();
   const documentKey = `tenders/${uuidv4()}-${sanitized}`;

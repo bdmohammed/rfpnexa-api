@@ -7,7 +7,7 @@ import { AppDataSource } from './database';
 import { env } from './env';
 import { logger } from './logger';
 
-import { setupNotificationListeners } from '@/modules/notifications/services/notifications.service';
+import { setupNotificationListeners } from '@/modules/notifications/notifications.service';
 
 import 'reflect-metadata';
 
@@ -37,7 +37,8 @@ async function bootstrap(): Promise<void> {
   // ── Step 1: Connect to database ─────────────────────────────────────────────
   try {
     await AppDataSource.initialize();
-    logger.info('Database connected');
+    await AppDataSource.runMigrations();
+    logger.info('Database connected and migrations applied');
 
     // Initialize real-time notification listener bindings
     setupNotificationListeners();

@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { authenticate } from '../../middleware/authenticate';
 import { validate } from '../../middleware/validate';
-import { AccountType, PermissionKey } from '../../types/enums';
+import { AccountType } from '../../types/enums';
 
 import * as reportsController from './tenderReports.controller';
 import * as controller from './tenders.controller';
@@ -31,6 +31,7 @@ import {
   UploadUrlSchema,
 } from './tenders.dto';
 
+import { TenderPermissions } from '@/constants/permissions';
 import { requirePermission } from '@/middleware/permissions';
 import { requireRole } from '@/middleware/requireAccountType';
 
@@ -139,6 +140,10 @@ router.get('/', validate(TenderSearchQuerySchema, 'query'), controller.list);
  */
 router.get('/statistics', controller.getStatistics);
 
+// ─── Admin Router Declaration ──────────────────────────────────────────────────
+const adminRouter = Router();
+router.use('/admin', adminRouter);
+
 /**
  * @swagger
  * /api/v1/tenders/{slug}:
@@ -163,7 +168,7 @@ router.get('/statistics', controller.getStatistics);
  *               allOf:
  *                 - $ref: '#/components/schemas/SuccessResponse'
  *                 - type: object
- *                   properties:
+ *                 properties:
  *                     data:
  *                       $ref: '#/components/schemas/Tender'
  */
@@ -286,8 +291,6 @@ router.post(
 
 // ─── Admin routes ─────────────────────────────────────────────────────────────
 
-const adminRouter = Router();
-
 /**
  * @swagger
  * /api/v1/tenders/admin/upload-url:
@@ -375,6 +378,21 @@ adminRouter.post(
   controller.adminRegisterDocument,
 );
 
+adminRouter.get(
+  '/:id/documents',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  validate(TenderIdParamSchema, 'params'),
+  controller.adminGetDocuments,
+);
+
+adminRouter.delete(
+  '/documents/:docId',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.adminDeleteDocument,
+);
+
 /**
  * @swagger
  * /api/v1/tenders/admin:
@@ -415,7 +433,7 @@ adminRouter.get(
   '/',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.CREATE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   controller.adminList,
 );
 
@@ -423,7 +441,7 @@ adminRouter.post(
   '/',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.CREATE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(CreateTenderSchema),
   controller.adminCreate,
 );
@@ -488,7 +506,7 @@ adminRouter.get(
   '/:id',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.CREATE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.adminGetById,
 );
@@ -497,7 +515,7 @@ adminRouter.patch(
   '/:id',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.EDIT_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(UpdateTenderSchema),
   controller.adminUpdate,
@@ -507,7 +525,7 @@ adminRouter.delete(
   '/:id',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.DELETE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.adminDelete,
 );
@@ -543,7 +561,7 @@ adminRouter.patch(
   '/:id/status',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.APPROVE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(UpdateTenderStatusSchema),
   controller.adminUpdateStatus,
@@ -572,7 +590,7 @@ adminRouter.post(
   '/:id/cancel',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.DELETE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.cancelTender,
 );
@@ -600,7 +618,7 @@ adminRouter.post(
   '/:id/duplicate',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.CREATE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.duplicateTender,
 );
@@ -676,7 +694,7 @@ adminRouter.post(
   '/:id/schedule',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.APPROVE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.scheduleTender,
 );
@@ -717,7 +735,7 @@ adminRouter.post(
   '/questions/:qId/answer',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.EDIT_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(QuestionIdParamSchema, 'params'),
   validate(AnswerQuestionSchema),
   controller.postAnswer,
@@ -753,7 +771,7 @@ adminRouter.post(
   '/:id/clarifications',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.EDIT_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(CreateClarificationSchema),
   controller.postClarification,
@@ -788,7 +806,7 @@ adminRouter.post(
   '/:id/amendments',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.EDIT_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(CreateAmendmentSchema),
   controller.postAmendment,
@@ -824,7 +842,7 @@ adminRouter.post(
   '/:id/assign',
   authenticate,
   requireRole(AccountType.ADMIN),
-  requirePermission(PermissionKey.APPROVE_TENDER),
+  requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(AssignReviewerSchema),
   controller.assignReviewers,
@@ -1082,6 +1100,67 @@ adminRouter.get(
   reportsController.getPerformanceReport,
 );
 
-router.use('/admin', adminRouter);
+adminRouter.post(
+  '/:id/submit-review',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.submitDraftForReview,
+);
+
+adminRouter.get(
+  '/:id/reviews',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.getTenderReviews,
+);
+
+adminRouter.patch(
+  '/reviews/:reviewId/decisions',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.submitReviewDecision,
+);
+
+adminRouter.get(
+  '/:id/diff',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.getVersionDiff,
+);
+
+adminRouter.patch(
+  '/:id/basic-info',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.updateBasicInfo,
+);
+
+adminRouter.patch(
+  '/:id/location',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.updateLocation,
+);
+
+adminRouter.patch(
+  '/:id/commercial',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.updateCommercial,
+);
+
+adminRouter.patch(
+  '/:id/schedule',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.updateSchedule,
+);
+
+adminRouter.get(
+  '/:id/completion',
+  authenticate,
+  requireRole(AccountType.ADMIN),
+  controller.getCompletionStatus,
+);
 
 export { router as tendersRouter };

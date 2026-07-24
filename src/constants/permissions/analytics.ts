@@ -19,12 +19,19 @@ export const AnalyticsPermissions = {
     isActive: true,
   }),
 
-  EXPORT: definePermission(PermissionModules.ANALYTICS, PermissionActions.EXPORT, {
-    name: 'Export BI Data',
-    description: 'Initiate asynchronous data exports for reports.',
+  MANAGE: definePermission(PermissionModules.ANALYTICS, PermissionActions.MANAGE, {
+    name: 'Manage BI',
+    description: 'View dashboard overview, general tenders and categories distribution.',
     displayOrder: 2,
     isActive: true,
   }),
+
+  // EXPORT: definePermission(PermissionModules.ANALYTICS, PermissionActions.EXPORT, {
+  //   name: 'Export BI Data',
+  //   description: 'Initiate asynchronous data exports for reports.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
   // FINANCIAL: definePermission(PermissionModules.ANALYTICS, 'view_financial', {
   //   name: 'View Financial Analytics',

@@ -1,5 +1,3 @@
-// src/cache/CacheKeyFactory.ts
-
 export const PERMISSION_CACHE = {
   PREFIX: 'permissions',
   VERSION: '1',

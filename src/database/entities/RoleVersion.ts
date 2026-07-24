@@ -40,11 +40,17 @@ export class RoleVersion {
   @Column({ type: 'integer', default: 1 })
   version: number;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ name: 'version_number', type: 'varchar', length: 20, default: '0.1' })
+  versionNumber: string;
+
+  @Column({ type: 'integer', default: 1 })
+  revision: number;
+
+  @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
-  @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  @Column({ type: 'text', nullable: false })
+  description: string;
 
   @Column({ type: 'enum', enum: RoleVersionStatus })
   status: RoleVersionStatus;
@@ -88,4 +94,7 @@ export class RoleVersion {
 
   @OneToMany(() => RoleReview, (rr) => rr.roleVersion)
   reviews: RoleReview[];
+
+  @OneToMany(() => Role, (role) => role.activeVersion)
+  rolesUsingThisVersion: Role[];
 }

@@ -19,61 +19,68 @@ export const UserPermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.USER, PermissionActions.CREATE, {
-    name: 'Create Users',
-    description: 'Create new user accounts.',
-    displayOrder: 2,
+  MANAGE: definePermission(PermissionModules.USER, PermissionActions.MANAGE, {
+    name: 'Manage Users',
+    description: 'Manage users and user profiles.',
+    displayOrder: 1,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.USER, PermissionActions.UPDATE, {
-    name: 'Update Users',
-    description: 'Edit user information.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.USER, PermissionActions.CREATE, {
+  //   name: 'Create Users',
+  //   description: 'Create new user accounts.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.USER, PermissionActions.DELETE, {
-    name: 'Delete Users',
-    description: 'Soft delete user accounts.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.USER, PermissionActions.UPDATE, {
+  //   name: 'Update Users',
+  //   description: 'Edit user information.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
-  RESTORE: definePermission(PermissionModules.USER, PermissionActions.RESTORE, {
-    name: 'Restore Users',
-    description: 'Restore previously deleted user accounts.',
-    displayOrder: 5,
-    isActive: true,
-  }),
+  // DELETE: definePermission(PermissionModules.USER, PermissionActions.DELETE, {
+  //   name: 'Delete Users',
+  //   description: 'Soft delete user accounts.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
-  BLOCK: definePermission(PermissionModules.USER, PermissionActions.BLOCK, {
-    name: 'Block Users',
-    description: 'Block users from accessing the application.',
-    displayOrder: 6,
-    isActive: true,
-  }),
+  // RESTORE: definePermission(PermissionModules.USER, PermissionActions.RESTORE, {
+  //   name: 'Restore Users',
+  //   description: 'Restore previously deleted user accounts.',
+  //   displayOrder: 5,
+  //   isActive: true,
+  // }),
 
-  UNBLOCK: definePermission(PermissionModules.USER, PermissionActions.UNBLOCK, {
-    name: 'Unblock Users',
-    description: 'Unblock previously blocked users.',
-    displayOrder: 7,
-    isActive: true,
-  }),
+  // BLOCK: definePermission(PermissionModules.USER, PermissionActions.BLOCK, {
+  //   name: 'Block Users',
+  //   description: 'Block users from accessing the application.',
+  //   displayOrder: 6,
+  //   isActive: true,
+  // }),
 
-  ASSIGN_ROLE: definePermission(PermissionModules.USER, PermissionActions.ASSIGN, {
-    name: 'Assign Roles',
-    description: 'Assign one or more roles to admin users.',
-    displayOrder: 8,
-    isActive: true,
-  }),
+  // UNBLOCK: definePermission(PermissionModules.USER, PermissionActions.UNBLOCK, {
+  //   name: 'Unblock Users',
+  //   description: 'Unblock previously blocked users.',
+  //   displayOrder: 7,
+  //   isActive: true,
+  // }),
 
-  REMOVE_ROLE: definePermission(PermissionModules.USER, PermissionActions.REMOVE, {
-    name: 'Remove Roles',
-    description: 'Remove assigned roles from admin users.',
-    displayOrder: 9,
-    isActive: true,
-  }),
+  // ASSIGN_ROLE: definePermission(PermissionModules.USER, PermissionActions.ASSIGN, {
+  //   name: 'Assign Roles',
+  //   description: 'Assign one or more roles to admin users.',
+  //   displayOrder: 8,
+  //   isActive: true,
+  // }),
+
+  // REMOVE_ROLE: definePermission(PermissionModules.USER, PermissionActions.REMOVE, {
+  //   name: 'Remove Roles',
+  //   description: 'Remove assigned roles from admin users.',
+  //   displayOrder: 9,
+  //   isActive: true,
+  // }),
 
   // RESET_PASSWORD: definePermission(PermissionModules.USER, 'reset_password', {
   //   name: 'Reset Password',
@@ -90,10 +97,10 @@ export const UserPermissions = {
   //   customKey: 'user.impersonate',
   // }),
 
-  EXPORT: definePermission(PermissionModules.USER, PermissionActions.EXPORT, {
-    name: 'Export Users',
-    description: 'Export user information.',
-    displayOrder: 12,
-    isActive: true,
-  }),
+  // EXPORT: definePermission(PermissionModules.USER, PermissionActions.EXPORT, {
+  //   name: 'Export Users',
+  //   description: 'Export user information.',
+  //   displayOrder: 12,
+  //   isActive: true,
+  // }),
 } as const;

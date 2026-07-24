@@ -19,38 +19,45 @@ export const CategoryPermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.CATEGORY, PermissionActions.CREATE, {
-    name: 'Create Categories',
-    description: 'Create new categories.',
-    displayOrder: 2,
+  MANAGE: definePermission(PermissionModules.CATEGORY, PermissionActions.MANAGE, {
+    name: 'Manage Categories',
+    description: 'Manage category hierarchy.',
+    displayOrder: 1,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.CATEGORY, PermissionActions.UPDATE, {
-    name: 'Update Categories',
-    description: 'Update existing categories.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.CATEGORY, PermissionActions.CREATE, {
+  //   name: 'Create Categories',
+  //   description: 'Create new categories.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.CATEGORY, PermissionActions.DELETE, {
-    name: 'Delete Categories',
-    description: 'Delete categories.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.CATEGORY, PermissionActions.UPDATE, {
+  //   name: 'Update Categories',
+  //   description: 'Update existing categories.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
-  RESTORE: definePermission(PermissionModules.CATEGORY, PermissionActions.RESTORE, {
-    name: 'Restore Categories',
-    description: 'Restore deleted categories.',
-    displayOrder: 5,
-    isActive: true,
-  }),
+  // DELETE: definePermission(PermissionModules.CATEGORY, PermissionActions.DELETE, {
+  //   name: 'Delete Categories',
+  //   description: 'Delete categories.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
-  EXPORT: definePermission(PermissionModules.CATEGORY, PermissionActions.EXPORT, {
-    name: 'Export Categories',
-    description: 'Export category data.',
-    displayOrder: 6,
-    isActive: true,
-  }),
+  // RESTORE: definePermission(PermissionModules.CATEGORY, PermissionActions.RESTORE, {
+  //   name: 'Restore Categories',
+  //   description: 'Restore deleted categories.',
+  //   displayOrder: 5,
+  //   isActive: true,
+  // }),
+
+  // EXPORT: definePermission(PermissionModules.CATEGORY, PermissionActions.EXPORT, {
+  //   name: 'Export Categories',
+  //   description: 'Export category data.',
+  //   displayOrder: 6,
+  //   isActive: true,
+  // }),
 } as const;

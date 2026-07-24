@@ -1,6 +1,10 @@
+// import { env } from './env';
 import { logger } from './logger';
 
 import type { Logger as TypeOrmLogger, QueryRunner } from 'typeorm';
+
+// const shouldLogQueries =
+// logger.isLevelEnabled?.('debug') ?? ['local', 'dev'].includes(env.NODE_ENV);
 
 export class TypeOrmPinoLogger implements TypeOrmLogger {
   logQuery(query: string, parameters?: unknown[], _queryRunner?: QueryRunner) {
@@ -14,14 +18,14 @@ export class TypeOrmPinoLogger implements TypeOrmLogger {
     error: string | Error,
     query: string,
     parameters?: unknown[],
-    queryRunner?: QueryRunner,
+    _queryRunner?: QueryRunner,
   ) {
     logger.error(
       {
         err: error instanceof Error ? error : new Error(String(error)),
         query,
         parameters,
-        queryRunner,
+        // queryRunner,
       },
       'Database query failed',
     );

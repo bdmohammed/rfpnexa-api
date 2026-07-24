@@ -1,16 +1,9 @@
 import { z } from 'zod';
 
-import type { RoleStatus, RoleVersionStatus } from '@/types/enums';
+import { type RoleStatus, type RoleVersionStatus, UserStatus } from '@/types/enums';
 
 export const ListRolesQuerySchema = z.object({
-  deleted: z
-    .preprocess((val) => {
-      if (val === 'true' || val === '1' || val === true) return true;
-      if (val === 'false' || val === '0' || val === false) return false;
-      return val;
-    }, z.boolean())
-    .optional()
-    .default(false),
+  deleted: z.boolean().optional().default(false),
 });
 export type ListRolesQueryDto = z.infer<typeof ListRolesQuerySchema>;
 
@@ -27,14 +20,14 @@ export type RoleIdParamDto = z.infer<typeof RoleIdParamSchema>;
 export const CreateRoleSchema = z.object({
   name: z.string().min(1, 'Role name is required').max(100),
   description: z.string().nullable().optional().default(null),
-  permissionKeys: z.array(z.string()).min(1, 'At least one permission must be selected'),
+  permissionKeys: z.array(z.string()).optional().default([]),
 });
 export type CreateRoleDto = z.infer<typeof CreateRoleSchema>;
 
 export const UpdateRoleSchema = z.object({
   name: z.string().min(1, 'Role name is required').max(100),
   description: z.string().nullable().optional().default(null),
-  permissionKeys: z.array(z.string()).min(1, 'At least one permission must be selected'),
+  permissionKeys: z.array(z.string()).optional().default([]),
 });
 export type UpdateRoleDto = z.infer<typeof UpdateRoleSchema>;
 
@@ -46,9 +39,20 @@ export type DuplicateRoleBodyDto = z.infer<typeof DuplicateRoleBodySchema>;
 export const AssignRoleSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
   roleId: z.string().uuid('Invalid role ID'),
+  effectiveAt: z.string().nullable().optional().default(null),
   expiresAt: z.string().nullable().optional().default(null),
+  reason: z.string().optional(),
+  comment: z.string().optional(),
+  reviewerId: z.string().uuid().optional(),
+  status: z.string().optional().default('ACTIVE'),
 });
 export type AssignRoleDto = z.infer<typeof AssignRoleSchema>;
+
+export const UpdateAssignmentStatusSchema = z.object({
+  status: z.enum(UserStatus),
+  comment: z.string().optional(),
+});
+export type UpdateAssignmentStatusDto = z.infer<typeof UpdateAssignmentStatusSchema>;
 
 export const CompareVersionsParamsSchema = z.object({
   id: z.string().uuid('Invalid role ID'),
@@ -95,6 +99,8 @@ export interface RoleDetails {
   id: string;
   slug: string;
   status: RoleStatus;
+  versionStatus?: RoleVersionStatus;
+  versionId?: string;
   isSystemRole: boolean;
   isDefaultRole: boolean;
   activeVersionId: string | null;

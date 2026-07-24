@@ -1,11 +1,14 @@
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { asyncHandler } from '../../core/asyncHandler';
-import { sendCreated, sendOk } from '../../core/response';
+import { paginationMeta, sendCreated, sendOk } from '../../core/response';
 
 import * as service from './subscriptions.service';
 
+import type { ApiResponse } from '../../core/response';
 import type { JwtPayload } from '../../types/express';
+import type { ListSubscriptionsQueryDto } from '../admin/admin.dto';
 import type { CreateSubscriptionDto } from './subscriptions.dto';
+import type { Subscription } from '@/database/entities/Subscription';
 
 export const getPlans = asyncHandler(async (_req, res) => {
   const plans = await service.listPlans();
@@ -59,4 +62,15 @@ export const cancelMySubscription = asyncHandler(async (req, res) => {
     null,
     'Subscription cancelled. Access remains until the end of the billing period.',
   );
+});
+
+export const listSubscriptions = asyncHandler<
+  {},
+  ApiResponse<Subscription[]>,
+  {},
+  ListSubscriptionsQueryDto
+>(async (req, res) => {
+  const { page, limit } = req.query;
+  const { subscriptions, total } = await service.listAllSubscriptions({ page, limit });
+  return sendOk(res, subscriptions, 'OK', paginationMeta(total, page, limit));
 });

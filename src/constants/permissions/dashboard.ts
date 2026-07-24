@@ -19,10 +19,10 @@ export const DashboardPermissions = {
     isActive: true,
   }),
 
-  EXPORT: definePermission(PermissionModules.DASHBOARD, PermissionActions.EXPORT, {
-    name: 'Export Dashboard',
-    description: 'Export dashboard charts.',
-    displayOrder: 2,
-    isActive: true,
-  }),
+  // EXPORT: definePermission(PermissionModules.DASHBOARD, PermissionActions.EXPORT, {
+  //   name: 'Export Dashboard',
+  //   description: 'Export dashboard charts.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 } as const;

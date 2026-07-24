@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { auditLogger } from '../../middleware/auditLogger';
 import { authenticate } from '../../middleware/authenticate';
-import { requirePermission } from '../../middleware/permissions';
+import { requireAnyPermission, requirePermission } from '../../middleware/permissions';
 import { requireAccountType } from '../../middleware/requireAccountType';
 import { validate } from '../../middleware/validate';
 import { AccountType } from '../../types/enums';
@@ -18,33 +18,26 @@ import {
   VerifyBootstrapTokenSchema,
   VerifyEmailSchema,
 } from '../auth/auth.dto';
-import setupRouter from '../rbac/setup.routes';
 
 import * as controller from './admin.controller';
 import {
-  AnalyticsQuerySchema,
-  ApproveAdminBodySchema,
-  ApproveAdminParamsSchema,
   AssignUserRolesBodySchema,
   BlockUserSchema,
   CreateAdminSchema,
-  CreatePlanSchema,
   CreateUserNoteSchema,
   IdParamSchema,
   ImpersonateUserSchema,
-  ListSubscriptionsQuerySchema,
   ListUsersQuerySchema,
   PaginationQuerySchema,
-  PlanParamSchema,
-  RejectAdminBodySchema,
-  RejectAdminParamsSchema,
+  ReviewApprovalBodySchema,
   RoleParamSchema,
   SessionParamSchema,
-  UpdatePlanSchema,
+  SubmitApprovalBodySchema,
   UpdateUserDetailSchema,
 } from './admin.dto';
+import setupRouter from './setup.routes';
 
-import { UserPermissions } from '@/constants/permissions';
+import { TenderPermissions, UserPermissions } from '@/constants/permissions';
 import { PermissionModules } from '@/types/types';
 
 const router = Router();
@@ -69,8 +62,8 @@ const router = Router();
  *             type: object
  *             required: [email, password, firstName, lastName]
  *             properties:
- *               email: { type: string, format: email, example: "admin@example.com" }
- *               password: { type: string, example: "SecretP@ss123" }
+ *               email: { type: string, format: email, example: "superadmin@gmail.com" }
+ *               password: { type: string, example: "1234@Admin#" }
  *               firstName: { type: string, example: "John" }
  *               lastName: { type: string, example: "Smith" }
  *     responses:
@@ -97,8 +90,8 @@ router.post('/auth/register', validate(RegisterSchema), authController.registerA
  *             type: object
  *             required: [email, password]
  *             properties:
- *               email: { type: string, format: email, example: "admin@example.com" }
- *               password: { type: string, example: "SecretP@ss123" }
+ *               email: { type: string, format: email, example: "superadmin@gmail.com" }
+ *               password: { type: string, example: "1234@Admin#" }
  *     responses:
  *       200:
  *         description: Login successful
@@ -217,7 +210,26 @@ router.post(
   validate(ResetPasswordSchema),
   authController.resetAdminPassword,
 );
-
+/**
+ * @swagger
+ * /api/v1/admin/auth/owner-review:
+ *   get:
+ *     summary: Review admin requests for Owner (Public)
+ *     description: Returns a list of pending admin registrations.
+ *     operationId: ownerReview
+ *     tags: [Admin Auth]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Owner token to authorize action
+ *     responses:
+ *       200:
+ *         description: Admin registration requests resolved successfully
+ */
 router.get('/auth/owner-review', validate(OwnerReviewSchema, 'query'), authController.ownerReview);
 
 /**
@@ -229,6 +241,13 @@ router.get('/auth/owner-review', validate(OwnerReviewSchema, 'query'), authContr
  *     operationId: verifyBootstrapToken
  *     tags: [Admin Auth]
  *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Bootstrap token to verify
  *     responses:
  *       200:
  *         description: Token is valid
@@ -240,8 +259,21 @@ router.get('/auth/owner-review', validate(OwnerReviewSchema, 'query'), authContr
  *     tags: [Admin Auth]
  *     security:
  *       - csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token]
+ *             properties:
+ *               token: { type: string }
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *                 default: approve
  *     responses:
- *       201:
+ *       200:
  *         description: Platform bootstrapped successfully
  */
 router.get(
@@ -314,6 +346,10 @@ router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controll
  *         in: query
  *         required: false
  *         schema: { type: string }
+ *       - name: permission
+ *         in: query
+ *         required: false
+ *         schema: { type: string }
  *       - $ref: '#/components/parameters/PageParam'
  *       - $ref: '#/components/parameters/LimitParam'
  *     responses:
@@ -322,7 +358,7 @@ router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controll
  */
 router.get(
   '/users',
-  requirePermission(UserPermissions.VIEW.key),
+  requireAnyPermission([UserPermissions.VIEW.key, TenderPermissions.MANAGE.key]),
   validate(ListUsersQuerySchema, 'query'),
   controller.listUsers,
 );
@@ -382,10 +418,10 @@ router.get(
  */
 router.patch(
   '/users/:id/block',
-  requirePermission(UserPermissions.BLOCK.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   validate(BlockUserSchema),
-  auditLogger(UserPermissions.BLOCK.key, PermissionModules.USER),
+  auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
   controller.blockUser,
 );
 
@@ -415,84 +451,10 @@ router.patch(
  */
 router.post(
   '/users/admin',
-  requirePermission(UserPermissions.CREATE.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(CreateAdminSchema),
-  auditLogger(UserPermissions.CREATE.key, PermissionModules.USER),
+  auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
   controller.createAdmin,
-);
-
-/**
- * @swagger
- * /api/v1/admin/users/{id}/approve:
- *   post:
- *     summary: Approve pending admin registration request
- *     description: |
- *       Authorizes a registered admin request and assigns them a starting role.
- *       **Required Permission:** `rbac.manage`
- *     operationId: approveAdmin
- *     tags: [Admin Users]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     parameters:
- *       - $ref: '#/components/parameters/IdPathParam'
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [roleId]
- *             properties:
- *               roleId: { type: string, format: uuid }
- *     responses:
- *       200:
- *         description: Admin request approved
- */
-router.post(
-  '/users/:id/approve',
-  requirePermission('rbac.manage'),
-  validate(ApproveAdminParamsSchema, 'params'),
-  validate(ApproveAdminBodySchema, 'body'),
-  auditLogger('admin.approve', 'user'),
-  controller.approveAdmin,
-);
-
-/**
- * @swagger
- * /api/v1/admin/users/{id}/reject:
- *   post:
- *     summary: Reject pending admin registration request
- *     description: |
- *       Denies an admin request, detailing the reason.
- *       **Required Permission:** `rbac.manage`
- *     operationId: rejectAdmin
- *     tags: [Admin Users]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     parameters:
- *       - $ref: '#/components/parameters/IdPathParam'
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [reason]
- *             properties:
- *               reason: { type: string }
- *     responses:
- *       200:
- *         description: Admin request rejected
- */
-router.post(
-  '/users/:id/reject',
-  requirePermission('rbac.manage'),
-  validate(RejectAdminParamsSchema, 'params'),
-  validate(RejectAdminBodySchema, 'body'),
-  auditLogger('admin.reject', 'user'),
-  controller.rejectAdmin,
 );
 
 // Detailed user administration sub-resource endpoints
@@ -811,7 +773,7 @@ router.patch(
  */
 router.post(
   '/users/:id/suspend',
-  requirePermission(UserPermissions.BLOCK.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   auditLogger('user.suspend', 'user'),
   controller.suspendUser,
@@ -838,7 +800,7 @@ router.post(
  */
 router.post(
   '/users/:id/activate',
-  requirePermission(UserPermissions.BLOCK.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   auditLogger('user.activate', 'user'),
   controller.activateUser,
@@ -865,7 +827,7 @@ router.post(
  */
 router.post(
   '/users/:id/archive',
-  requirePermission(UserPermissions.BLOCK.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   auditLogger('user.archive', 'user'),
   controller.archiveUser,
@@ -892,7 +854,7 @@ router.post(
  */
 router.post(
   '/users/:id/unarchive',
-  requirePermission(UserPermissions.BLOCK.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   auditLogger('user.unarchive', 'user'),
   controller.unarchiveUser,
@@ -977,6 +939,107 @@ router.post(
   validate(IdParamSchema, 'params'),
   auditLogger('user.send_verification', 'user'),
   controller.sendUserVerification,
+);
+
+/**
+ * @swagger
+ * /api/v1/admin/users/{id}/submit-approval:
+ *   post:
+ *     summary: Submit a user request for review/approval
+ *     description: |
+ *       Creates an approval request for the specified user record.
+ *       **Required Permission:** `user.view`
+ *     operationId: submitApproval
+ *     tags: [Admin Users]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reviewerId, notes]
+ *             properties:
+ *               reviewerId: { type: string, format: uuid, example: "b2c3d4e5-f6a7-8901-bcde-23456789012a" }
+ *               notes: { type: string, example: "Profile details checked, needs final sign-off." }
+ *     responses:
+ *       200:
+ *         description: Approval request submitted successfully
+ */
+router.post(
+  '/users/:id/submit-approval',
+  requirePermission(UserPermissions.VIEW.key),
+  validate(IdParamSchema, 'params'),
+  validate(SubmitApprovalBodySchema),
+  auditLogger('user.submit_approval', 'user'),
+  controller.submitApproval,
+);
+
+/**
+ * @swagger
+ * /api/v1/admin/users/{id}/review-approval:
+ *   post:
+ *     summary: Review and process approval request
+ *     description: |
+ *       Approves or rejects a pending user registration review.
+ *       **Required Permission:** `user.view`
+ *     operationId: reviewApproval
+ *     tags: [Admin Users]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [action]
+ *             properties:
+ *               action: { type: string, enum: [approve, reject], example: "approve" }
+ *               reason: { type: string, example: "User credentials are valid." }
+ *     responses:
+ *       200:
+ *         description: Approval request reviewed successfully
+ */
+router.post(
+  '/users/:id/review-approval',
+  requirePermission(UserPermissions.VIEW.key),
+  validate(IdParamSchema, 'params'),
+  validate(ReviewApprovalBodySchema),
+  auditLogger('user.review_approval', 'user'),
+  controller.reviewApproval,
+);
+
+/**
+ * @swagger
+ * /api/v1/admin/users/{id}/approval-request:
+ *   get:
+ *     summary: Get user registration approval request details
+ *     description: |
+ *       Retrieves the pending approval request details for the specified user.
+ *       **Required Permission:** `user.view`
+ *     operationId: getApprovalRequest
+ *     tags: [Admin Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     responses:
+ *       200:
+ *         description: Approval request details resolved
+ */
+router.get(
+  '/users/:id/approval-request',
+  requirePermission(UserPermissions.VIEW.key),
+  validate(IdParamSchema, 'params'),
+  controller.getApprovalRequest,
 );
 
 /**
@@ -1119,13 +1182,13 @@ router.post(
  */
 router.get(
   '/users/:id/roles',
-  requirePermission('rbac.manage'),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   controller.getUserRoles,
 );
 router.put(
   '/users/:id/roles',
-  requirePermission('rbac.manage'),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   validate(AssignUserRolesBodySchema),
   auditLogger('user.assign_roles', 'user'),
@@ -1157,7 +1220,7 @@ router.put(
  */
 router.delete(
   '/users/:id/roles/:roleId',
-  requirePermission('rbac.manage'),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(RoleParamSchema, 'params'),
   auditLogger('user.revoke_role', 'user'),
   controller.revokeUserRole,
@@ -1183,179 +1246,9 @@ router.delete(
  */
 router.get(
   '/users/:id/permissions',
-  requirePermission('rbac.manage'),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   controller.previewUserPermissions,
-);
-
-// ─── Plans ────────────────────────────────────────────────────────────────────
-
-/**
- * @swagger
- * /api/v1/admin/plans:
- *   get:
- *     summary: List all plans (Legacy Admin API)
- *     description: |
- *       Lists all subscription plans.
- *       **Required Permission:** `plan.manage`
- *     operationId: adminListPlans
- *     tags: [Plans Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Plans list
- *
- *   post:
- *     summary: Create new plan (Legacy Admin API)
- *     description: |
- *       Creates a new legacy plan.
- *       **Required Permission:** `plan.manage`
- *     operationId: adminCreatePlan
- *     tags: [Plans Admin]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       201:
- *         description: Plan created
- */
-router.get('/plans', requirePermission('plan.manage'), controller.listPlans);
-router.post(
-  '/plans',
-  requirePermission('plan.manage'),
-  validate(CreatePlanSchema),
-  controller.createPlan,
-);
-
-/**
- * @swagger
- * /api/v1/admin/plans/{id}:
- *   patch:
- *     summary: Update legacy plan details
- *     description: |
- *       Updates plan fields directly.
- *       **Required Permission:** `plan.manage`
- *     operationId: adminUpdatePlan
- *     tags: [Plans Admin]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     parameters:
- *       - $ref: '#/components/parameters/IdPathParam'
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: Plan updated
- */
-router.patch(
-  '/plans/:id',
-  requirePermission('plan.manage'),
-  validate(PlanParamSchema, 'params'),
-  validate(UpdatePlanSchema),
-  controller.updatePlan,
-);
-
-// ─── Subscriptions ────────────────────────────────────────────────────────────
-
-/**
- * @swagger
- * /api/v1/admin/subscriptions:
- *   get:
- *     summary: List all user subscriptions
- *     description: |
- *       Returns a paginated list of all subscriptions in the platform.
- *       **Required Permission:** `subscription.view`
- *     operationId: adminListSubscriptions
- *     tags: [Subscriptions Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Subscriptions list resolved
- */
-router.get(
-  '/subscriptions',
-  requirePermission('subscription.view'),
-  validate(ListSubscriptionsQuerySchema, 'query'),
-  controller.listSubscriptions,
-);
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
-
-/**
- * @swagger
- * /api/v1/admin/analytics/revenue:
- *   get:
- *     summary: Get revenue analytics (Legacy Admin API)
- *     description: |
- *       Resolves revenue graphs.
- *       **Required Permission:** `analytics.view`
- *     operationId: adminGetRevenue
- *     tags: [Analytics Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Revenue stats
- */
-router.get(
-  '/analytics/revenue',
-  requirePermission('analytics.view'),
-  validate(AnalyticsQuerySchema, 'query'),
-  controller.getRevenue,
-);
-
-/**
- * @swagger
- * /api/v1/admin/analytics/downloads:
- *   get:
- *     summary: Get top downloaded tenders metrics
- *     description: |
- *       Lists tenders with the highest number of document downloads.
- *       **Required Permission:** `analytics.view`
- *     operationId: adminGetTopDownloads
- *     tags: [Analytics Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: Download metrics list
- */
-router.get('/analytics/downloads', requirePermission('analytics.view'), controller.getTopDownloads);
-
-/**
- * @swagger
- * /api/v1/admin/analytics/user-growth:
- *   get:
- *     summary: Get user growth analytics metrics
- *     description: |
- *       Resolves new registration curves.
- *       **Required Permission:** `analytics.view`
- *     operationId: adminGetUserGrowth
- *     tags: [Analytics Admin]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: User growth resolved
- */
-router.get(
-  '/analytics/user-growth',
-  requirePermission('analytics.view'),
-  validate(AnalyticsQuerySchema, 'query'),
-  controller.getUserGrowth,
 );
 
 export { router as adminRouter };

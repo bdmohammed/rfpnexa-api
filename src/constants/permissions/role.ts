@@ -19,87 +19,129 @@ export const RolePermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.ROLE, PermissionActions.CREATE, {
-    name: 'Create Roles',
-    description: 'Create new role drafts and versions.',
+  MANAGE: definePermission(PermissionModules.ROLE, PermissionActions.MANAGE, {
+    name: 'Manage Roles',
+    description: 'Full administrative control over roles.',
     displayOrder: 2,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.ROLE, PermissionActions.UPDATE, {
-    name: 'Update Roles',
-    description: 'Modify role drafts and metadata.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.ROLE, PermissionActions.CREATE, {
+  //   name: 'Create Roles',
+  //   description: 'Create new role drafts and versions.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.ROLE, PermissionActions.DELETE, {
-    name: 'Delete Roles',
-    description: 'Delete custom roles.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.ROLE, PermissionActions.UPDATE, {
+  //   name: 'Update Roles',
+  //   description: 'Modify role drafts and metadata.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
-  REVIEW: definePermission(PermissionModules.ROLE, PermissionActions.REVIEW, {
-    name: 'Review Roles',
-    description: 'Access the role review queue.',
-    displayOrder: 5,
-    isActive: true,
-  }),
+  // DELETE: definePermission(PermissionModules.ROLE, PermissionActions.DELETE, {
+  //   name: 'Delete Roles',
+  //   description: 'Delete custom roles.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
-  APPROVE: definePermission(PermissionModules.ROLE, PermissionActions.APPROVE, {
-    name: 'Approve Roles',
-    description: 'Approve pending role versions.',
-    displayOrder: 6,
-    isActive: true,
-  }),
+  // REVIEW: definePermission(PermissionModules.ROLE, PermissionActions.REVIEW, {
+  //   name: 'Review Roles',
+  //   description: 'Access the role review queue.',
+  //   displayOrder: 5,
+  //   isActive: true,
+  // }),
 
-  REJECT: definePermission(PermissionModules.ROLE, PermissionActions.REJECT, {
-    name: 'Reject Roles',
-    description: 'Reject pending role versions.',
-    displayOrder: 7,
-    isActive: true,
-  }),
+  // APPROVE: definePermission(PermissionModules.ROLE, PermissionActions.APPROVE, {
+  //   name: 'Approve Roles',
+  //   description: 'Approve pending role versions.',
+  //   displayOrder: 6,
+  //   isActive: true,
+  // }),
 
-  ASSIGN: definePermission(PermissionModules.ROLE, PermissionActions.ASSIGN, {
-    name: 'Assign Roles',
-    description: 'Assign or revoke roles from users.',
-    displayOrder: 8,
-    isActive: true,
-  }),
+  // REJECT: definePermission(PermissionModules.ROLE, PermissionActions.REJECT, {
+  //   name: 'Reject Roles',
+  //   description: 'Reject pending role versions.',
+  //   displayOrder: 7,
+  //   isActive: true,
+  // }),
 
-  EXPORT: definePermission(PermissionModules.ROLE, PermissionActions.EXPORT, {
-    name: 'Export Roles',
-    description: 'Export roles and permissions.',
-    displayOrder: 9,
-    isActive: true,
-  }),
+  // ASSIGN: definePermission(PermissionModules.ROLE, PermissionActions.ASSIGN, {
+  //   name: 'Assign Roles',
+  //   description: 'Assign or revoke roles from users.',
+  //   displayOrder: 8,
+  //   isActive: true,
+  // }),
 
-  RESTORE: definePermission(PermissionModules.ROLE, PermissionActions.RESTORE, {
-    name: 'Restore Roles',
-    description: 'Restore archived roles.',
-    displayOrder: 10,
-    isActive: true,
-  }),
+  // EXPORT: definePermission(PermissionModules.ROLE, PermissionActions.EXPORT, {
+  //   name: 'Export Roles',
+  //   description: 'Export roles and permissions.',
+  //   displayOrder: 9,
+  //   isActive: true,
+  // }),
 
-  ARCHIVE: definePermission(PermissionModules.ROLE, PermissionActions.ARCHIVE, {
-    name: 'Archive Roles',
-    description: 'Soft-delete roles by archiving them.',
-    displayOrder: 11,
-    isActive: true,
-  }),
+  // RESTORE: definePermission(PermissionModules.ROLE, PermissionActions.RESTORE, {
+  //   name: 'Restore Roles',
+  //   description: 'Restore archived roles.',
+  //   displayOrder: 10,
+  //   isActive: true,
+  // }),
 
-  COMPARE: definePermission(PermissionModules.ROLE, PermissionActions.COMPARE, {
-    name: 'Compare Roles',
-    description: 'Compare different versions of a role.',
-    displayOrder: 12,
-    isActive: true,
-  }),
+  // ARCHIVE: definePermission(PermissionModules.ROLE, PermissionActions.ARCHIVE, {
+  //   name: 'Archive Roles',
+  //   description: 'Soft-delete roles by archiving them.',
+  //   displayOrder: 11,
+  //   isActive: true,
+  // }),
 
-  AUDIT_VIEW: definePermission(PermissionModules.ROLE, PermissionActions.AUDIT_VIEW, {
-    name: 'View Audit Logs',
-    description: 'View RBAC security audit logs.',
-    displayOrder: 13,
-    isActive: true,
-  }),
+  // COMPARE: definePermission(PermissionModules.ROLE, PermissionActions.COMPARE, {
+  //   name: 'Compare Roles',
+  //   description: 'Compare different versions of a role.',
+  //   displayOrder: 12,
+  //   isActive: true,
+  // }),
+
+  // AUDIT_VIEW: definePermission(PermissionModules.ROLE, PermissionActions.AUDIT_VIEW, {
+  //   name: 'View Audit Logs',
+  //   description: 'View RBAC security audit logs.',
+  //   displayOrder: 13,
+  //   isActive: true,
+  // }),
+
+  // REMOVE: definePermission(PermissionModules.ROLE, PermissionActions.REMOVE, {
+  //   name: 'Remove Role Assignment',
+  //   description: 'Revoke assigned roles from users.',
+  //   displayOrder: 15,
+  //   isActive: true,
+  // }),
+
+  // PUBLISH: definePermission(PermissionModules.ROLE, PermissionActions.PUBLISH, {
+  //   name: 'Publish Roles',
+  //   description: 'Publish draft role versions to active registry.',
+  //   displayOrder: 16,
+  //   isActive: true,
+  // }),
+
+  // UNPUBLISH: definePermission(PermissionModules.ROLE, PermissionActions.UNPUBLISH, {
+  //   name: 'Unpublish Roles',
+  //   description: 'Unpublish active role versions back to draft state.',
+  //   displayOrder: 17,
+  //   isActive: true,
+  // }),
+
+  // ACTIVATE: definePermission(PermissionModules.ROLE, PermissionActions.ACTIVATE, {
+  //   name: 'Activate Roles',
+  //   description: 'Activate inactive or draft roles.',
+  //   displayOrder: 18,
+  //   isActive: true,
+  // }),
+
+  // DEACTIVATE: definePermission(PermissionModules.ROLE, PermissionActions.DEACTIVATE, {
+  //   name: 'Deactivate Roles',
+  //   description: 'Deactivate active roles.',
+  //   displayOrder: 19,
+  //   isActive: true,
+  // }),
 } as const;

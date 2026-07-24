@@ -73,7 +73,7 @@ export async function hasAccessToTender(userId: string, tenderId: string): Promi
   // Check active subscriptions first (most common case)
   const activeSubscriptions = await subscriptionRepository.find({
     where: { userId, status: SubscriptionStatus.ACTIVE },
-    relations: ['plan', 'planVersion', 'plan.activeVersion'],
+    relations: ['planVersion', 'planVersion.plan'],
   });
 
   const now = new Date();

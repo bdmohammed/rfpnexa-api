@@ -73,6 +73,7 @@ export enum HttpStatusCode {
 }
 
 export enum AppErrorCode {
+  ALREADY_EXISTS = 'ALREADY_EXISTS',
   ACCESS_DENIED = 'ACCESS_DENIED',
   ACCOUNT_BLOCKED = 'ACCOUNT_BLOCKED',
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',

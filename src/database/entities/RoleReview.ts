@@ -45,6 +45,15 @@ export class RoleReview {
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
   status: ReviewStatus;
 
+  @Column({ name: 'submitted_by', type: 'uuid', nullable: true, default: null })
+  submittedByUserId: string | null;
+
+  @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true, default: null })
+  submittedAt: Date | null;
+
+  @Column({ name: 'decision_comment', type: 'text', nullable: true, default: null })
+  decisionComment: string | null;
+
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
   completedAt: Date | null;
 

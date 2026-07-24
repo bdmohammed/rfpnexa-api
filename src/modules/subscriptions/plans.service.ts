@@ -17,6 +17,7 @@ import { Transaction } from '../../database/entities/Transaction';
 import {
   PlanStatus,
   PlanVersionStatus,
+  ReviewAction,
   ReviewAssignmentStatus,
   ReviewStatus,
   SubscriptionMigrationStatus,
@@ -25,6 +26,7 @@ import {
 } from '../../types/enums';
 
 import type { PlanType } from '../../types/enums';
+import type { UpdatePlanDto } from '../admin/admin.dto';
 import type { DeepPartial } from 'typeorm';
 
 const planRepository = AppDataSource.getRepository(Plan);
@@ -398,11 +400,22 @@ export async function submitPlanReviewAction(
     );
   }
 
+  const reviewActionEnum =
+    action === 'APPROVE'
+      ? ReviewAction.APPROVED
+      : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        action === 'REQUEST_CHANGES'
+        ? ReviewAction.CHANGES_REQUESTED
+        : action === 'REJECT'
+          ? ReviewAction.REJECTED
+          : ReviewAction.SUBMIT;
+
   return AppDataSource.transaction(async (manager) => {
     const comment = manager.create(PlanReviewComment, {
       planReviewId: reviewId,
+      action: reviewActionEnum,
       authorId,
-      commentText,
+      commentText: commentText || '',
     });
     await manager.save(PlanReviewComment, comment);
 
@@ -597,4 +610,36 @@ export async function getSubscriptionsDashboardStats(): Promise<SubscriptionsDas
       where: { status: TransactionStatus.FAILED },
     }),
   };
+}
+
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+export async function updatePlan(id: string, dto: UpdatePlanDto): Promise<Plan> {
+  const plan = await planRepository.findOne({ where: { id }, relations: ['activeVersion'] });
+  if (!plan)
+    throw new AppError(
+      AppErrorMessage.PLAN_NOT_FOUND,
+      HttpStatusCode.NOT_FOUND,
+      AppErrorCode.NOT_FOUND,
+    );
+
+  if (plan.activeVersion) {
+    const activeVer = plan.activeVersion;
+    if (dto.name !== undefined) activeVer.name = dto.name;
+    if (dto.priceCents !== undefined) activeVer.priceCents = dto.priceCents;
+    if (dto.durationDays !== undefined) activeVer.durationDays = dto.durationDays;
+    if (dto.trialDays !== undefined) activeVer.trialDays = dto.trialDays;
+    if (dto.isRecurring !== undefined) activeVer.isRecurring = dto.isRecurring;
+    if (dto.planType !== undefined) activeVer.planType = dto.planType;
+    if (dto.targetStateId !== undefined) activeVer.targetStateId = dto.targetStateId ?? null;
+    if (dto.targetCountry !== undefined) activeVer.targetCountry = dto.targetCountry ?? null;
+    if (dto.targetCategoryId !== undefined)
+      activeVer.targetCategoryId = dto.targetCategoryId ?? null;
+    if (dto.bundleSize !== undefined) activeVer.bundleSize = dto.bundleSize ?? null;
+    await AppDataSource.getRepository(PlanVersion).save(activeVer);
+  }
+
+  if (dto.isActive !== undefined) {
+    plan.status = dto.isActive ? PlanStatus.ACTIVE : PlanStatus.ARCHIVED;
+  }
+  return planRepository.save(plan);
 }

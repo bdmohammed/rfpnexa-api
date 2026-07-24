@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# docker-compose.prod.yml — NexusBid Production Stack
+# docker-compose.prod.yml — RFPNexa Production Stack
 #
 # Services: API + Nginx
 # Database: Amazon RDS (external — not managed by this compose file)

@@ -1,8 +1,9 @@
 import { Router } from 'express';
 
 import { authenticate } from '../../middleware/authenticate';
-import { requireSuperAdmin } from '../../middleware/permissions';
+import { requirePermission, requireSuperAdmin } from '../../middleware/permissions';
 import { validate } from '../../middleware/validate';
+import { PlanParamSchema, UpdatePlanSchema } from '../admin/admin.dto';
 
 import * as controller from './plans.controller';
 import {
@@ -16,6 +17,8 @@ import {
   SubmitReviewActionBodySchema,
   VersionIdParamSchema,
 } from './plans.dto';
+
+import { BillingPermissions } from '@/constants/permissions';
 
 const router = Router();
 
@@ -306,6 +309,20 @@ router.post(
  */
 router.get('/', authenticate, controller.listAllPlans);
 
+router.get(
+  '/plans',
+  authenticate,
+  requirePermission(BillingPermissions.MANAGE.key),
+  controller.listPlans,
+);
+router.post(
+  '/plans',
+  authenticate,
+  requirePermission(BillingPermissions.MANAGE.key),
+  validate(CreatePlanSchema),
+  controller.createPlan,
+);
+
 /**
  * @swagger
  * /api/v1/plans/{id}:
@@ -515,6 +532,76 @@ router.post(
   requireSuperAdmin(),
   validate(VersionIdParamSchema, 'params'),
   controller.publishPlanVersion,
+);
+
+/**
+ * @swagger
+ * /api/v1/plans/plans:
+ *   get:
+ *     summary: List all plans (Legacy Admin API)
+ *     description: |
+ *       Lists all subscription plans.
+ *       **Required Permission:** `plan.manage`
+ *     operationId: adminListPlans
+ *     tags: [Plans Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Plans list
+ *
+ *   post:
+ *     summary: Create new plan (Legacy Admin API)
+ *     description: |
+ *       Creates a new legacy plan.
+ *       **Required Permission:** `plan.manage`
+ *     operationId: adminCreatePlan
+ *     tags: [Plans Admin]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       201:
+ *         description: Plan created
+ */
+/**
+ * @swagger
+ * /api/v1/plans/plans/{id}:
+ *   patch:
+ *     summary: Update legacy plan details
+ *     description: |
+ *       Updates plan fields directly.
+ *       **Required Permission:** `plan.manage`
+ *     operationId: adminUpdatePlan
+ *     tags: [Plans Admin]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/IdPathParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Plan updated
+ */
+router.patch(
+  '/plans/:id',
+  authenticate,
+  requirePermission(BillingPermissions.MANAGE.key),
+  validate(PlanParamSchema, 'params'),
+  validate(UpdatePlanSchema),
+  controller.updatePlan,
 );
 
 export { router as plansRouter };

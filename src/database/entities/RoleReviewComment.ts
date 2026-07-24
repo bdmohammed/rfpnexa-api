@@ -41,6 +41,19 @@ export class RoleReviewComment {
   @Column({ type: 'text' })
   comment: string;
 
+  @Column({ name: 'is_internal', type: 'boolean', default: false })
+  isInternal: boolean;
+
+  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true, default: null })
+  editedAt: Date | null;
+
+  @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true, default: null })
+  parentCommentId: string | null;
+
+  @ManyToOne(() => RoleReviewComment, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'parent_comment_id' })
+  parentComment: RoleReviewComment | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }

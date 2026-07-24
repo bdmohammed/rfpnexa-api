@@ -166,7 +166,7 @@ export async function verifyCallbackAndGetUser(
       const userRes = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
-          'User-Agent': 'NexusBid',
+          'User-Agent': 'RFPNexa',
         },
       });
 
@@ -179,7 +179,7 @@ export async function verifyCallbackAndGetUser(
       const emailsRes = await fetch('https://api.github.com/user/emails', {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
-          'User-Agent': 'NexusBid',
+          'User-Agent': 'RFPNexa',
         },
       });
 

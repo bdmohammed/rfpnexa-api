@@ -19,40 +19,47 @@ export const PermissionPermissions = {
     isActive: true,
   }),
 
-  CREATE: definePermission(PermissionModules.PERMISSION, PermissionActions.CREATE, {
-    name: 'Create Permissions',
-    description: 'Create new custom permissions.',
-    displayOrder: 2,
+  MANAGE: definePermission(PermissionModules.PERMISSION, PermissionActions.MANAGE, {
+    name: 'Manage Permission Modules',
+    description: 'Manage permission modules.',
+    displayOrder: 9,
     isActive: true,
   }),
 
-  UPDATE: definePermission(PermissionModules.PERMISSION, PermissionActions.UPDATE, {
-    name: 'Update Permissions',
-    description: 'Modify existing permissions.',
-    displayOrder: 3,
-    isActive: true,
-  }),
+  // CREATE: definePermission(PermissionModules.PERMISSION, PermissionActions.CREATE, {
+  //   name: 'Create Permissions',
+  //   description: 'Create new custom permissions.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
-  DELETE: definePermission(PermissionModules.PERMISSION, PermissionActions.DELETE, {
-    name: 'Delete Permissions',
-    description: 'Delete custom permissions.',
-    displayOrder: 4,
-    isActive: true,
-  }),
+  // UPDATE: definePermission(PermissionModules.PERMISSION, PermissionActions.UPDATE, {
+  //   name: 'Update Permissions',
+  //   description: 'Modify existing permissions.',
+  //   displayOrder: 3,
+  //   isActive: true,
+  // }),
 
-  RESTORE: definePermission(PermissionModules.PERMISSION, PermissionActions.RESTORE, {
-    name: 'Restore Permissions',
-    description: 'Restore previously deleted permissions.',
-    displayOrder: 5,
-    isActive: true,
-  }),
+  // DELETE: definePermission(PermissionModules.PERMISSION, PermissionActions.DELETE, {
+  //   name: 'Delete Permissions',
+  //   description: 'Delete custom permissions.',
+  //   displayOrder: 4,
+  //   isActive: true,
+  // }),
 
-  EXPORT: definePermission(PermissionModules.PERMISSION, PermissionActions.EXPORT, {
-    name: 'Export Permissions',
-    description: 'Export permission definitions.',
-    displayOrder: 6,
-    isActive: true,
-  }),
+  // RESTORE: definePermission(PermissionModules.PERMISSION, PermissionActions.RESTORE, {
+  //   name: 'Restore Permissions',
+  //   description: 'Restore previously deleted permissions.',
+  //   displayOrder: 5,
+  //   isActive: true,
+  // }),
+
+  // EXPORT: definePermission(PermissionModules.PERMISSION, PermissionActions.EXPORT, {
+  //   name: 'Export Permissions',
+  //   description: 'Export permission definitions.',
+  //   displayOrder: 6,
+  //   isActive: true,
+  // }),
 
   // SYNC: definePermission(PermissionModules.PERMISSION, 'sync', {
   //   name: 'Synchronize Permissions',
@@ -67,13 +74,6 @@ export const PermissionPermissions = {
   //   displayOrder: 8,
   //   isActive: true,
   // }),
-
-  MODULE_MANAGE: definePermission(PermissionModules.PERMISSION, PermissionActions.MANAGE, {
-    name: 'Manage Permission Modules',
-    description: 'Manage permission modules.',
-    displayOrder: 9,
-    isActive: true,
-  }),
 
   // AUDIT: definePermission(PermissionModules.PERMISSION, 'audit', {
   //   name: 'View Permission Audit',

@@ -1,19 +1,18 @@
 import { asyncHandler } from '../../../core/asyncHandler';
+import { AccountType } from '../../../types/enums';
 import { RbacService } from '../rbac.service';
 
-import type { PermissionModule } from '../../../database/entities/PermissionModule';
 import type { Role } from '../../../database/entities/Role';
-import type { UserRole } from '../../../database/entities/UserRole';
 import type {
   AssignRoleDto,
   CreateRoleDto,
   CreateRoleResult,
   DuplicateRoleBodyDto,
-  // GroupedPermissionModule,
   IdParamDto,
   ListRolesQueryDto,
   RoleDetails,
   SuccessResponse,
+  UpdateAssignmentStatusDto,
   UpdateRoleDto,
   UpdateRoleResult,
 } from '../rbac.dto';
@@ -21,8 +20,18 @@ import type {
 export class RbacRoleController {
   public static getRoles = asyncHandler<{}, {}, {}, ListRolesQueryDto>(async (req, res) => {
     const includeDeleted = req.query.deleted;
-    const roles = await RbacService.getRoles(includeDeleted);
+    const userId = req.user?.userId;
+    const isSuperAdmin = req.user?.accountType === AccountType.ADMIN;
+
+    const roles = await RbacService.getRoles(includeDeleted, userId, isSuperAdmin);
     res.json({ success: true, data: roles });
+  });
+
+  public static getCategorizedRoles = asyncHandler(async (req, res) => {
+    const { userId } = req.user!;
+
+    const data = await RbacService.getCategorizedRoles(userId);
+    res.json({ success: true, data });
   });
 
   public static getRoleById = asyncHandler<IdParamDto, SuccessResponse<RoleDetails>>(
@@ -77,13 +86,53 @@ export class RbacRoleController {
   public static deleteRole = asyncHandler<IdParamDto, SuccessResponse<null>>(async (req, res) => {
     const { id } = req.params;
     await RbacService.deleteRole(id, req.user!.userId);
-    res.json({ success: true, message: 'Role archived successfully' });
+    res.json({ success: true, data: null });
   });
 
   public static restoreRole = asyncHandler<IdParamDto, SuccessResponse<Role>>(async (req, res) => {
     const { id } = req.params;
-    const role = await RbacService.restoreRole(id, req.user!.userId);
-    res.json({ success: true, message: 'Role restored successfully', data: role });
+    const restoredRole = await RbacService.restoreRole(id, req.user!.userId);
+    res.json({ success: true, data: restoredRole });
+  });
+
+  public static getAssignments = asyncHandler(async (_req, res) => {
+    const assignments = await RbacService.getAssignments();
+    res.json({ success: true, data: assignments });
+  });
+
+  public static assignRole = asyncHandler<{}, SuccessResponse<null>, AssignRoleDto>(
+    async (req, res) => {
+      const { userId, roleId, expiresAt } = req.body;
+      await RbacService.assignRole(userId, roleId, expiresAt, req.user!.userId);
+      res.status(201).json({ success: true, data: null });
+    },
+  );
+
+  public static removeRoleAssignment = asyncHandler<{ id: string }, SuccessResponse<null>>(
+    async (req, res) => {
+      const { id } = req.params;
+      await RbacService.restoreRole(id, req.user!.userId);
+      res.json({ success: true, data: null });
+    },
+  );
+
+  public static revokeAssignment = asyncHandler<{ id: string }, SuccessResponse<null>>(
+    async (req, res) => {
+      const { id } = req.params;
+      await RbacService.revokeAssignment(id, req.user!.userId);
+      res.json({ success: true, data: null });
+    },
+  );
+
+  public static updateAssignmentStatus = asyncHandler<
+    IdParamDto,
+    SuccessResponse<null>,
+    UpdateAssignmentStatusDto
+  >(async (req, res) => {
+    const { id } = req.params;
+    const { status, comment } = req.body;
+    await RbacService.updateAssignmentStatus(id, status, comment, req.user!.userId);
+    res.json({ success: true, data: null });
   });
 
   public static getPermissions = asyncHandler(async (_req, res) => {
@@ -91,33 +140,8 @@ export class RbacRoleController {
     res.json({ success: true, data: permissions });
   });
 
-  public static getModules = asyncHandler<{}, SuccessResponse<PermissionModule[]>>(
-    async (_req, res) => {
-      const modules = await RbacService.getModules();
-      res.json({ success: true, data: modules });
-    },
-  );
-
-  public static getAssignments = asyncHandler<{}, SuccessResponse<UserRole[]>>(
-    async (_req, res) => {
-      const assignments = await RbacService.getAssignments();
-      res.json({ success: true, data: assignments });
-    },
-  );
-
-  public static assignRole = asyncHandler<{}, SuccessResponse<null>, AssignRoleDto>(
-    async (req, res) => {
-      const { body } = req;
-      await RbacService.assignRole(body.userId, body.roleId, body.expiresAt, req.user!.userId);
-      res.status(201).json({ success: true, message: 'Role assigned successfully' });
-    },
-  );
-
-  public static revokeAssignment = asyncHandler<IdParamDto, SuccessResponse<null>>(
-    async (req, res) => {
-      const { id } = req.params;
-      await RbacService.revokeAssignment(id, req.user!.userId);
-      res.json({ success: true, message: 'Role assignment revoked successfully' });
-    },
-  );
+  public static getModules = asyncHandler(async (_req, res) => {
+    const modules = await RbacService.getModules();
+    res.json({ success: true, data: modules });
+  });
 }

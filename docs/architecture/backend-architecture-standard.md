@@ -1,15 +1,15 @@
 # Backend Architecture Standard v1.0
 
-This document defines the official, mandatory backend architecture standards for the NexusBid project. It serves as the primary engineering reference for all developers, reviewers, and AI coding agents contributing to this codebase. 
+This document defines the official, mandatory backend architecture standards for the RFPNexa project. It serves as the primary engineering reference for all developers, reviewers, and AI coding agents contributing to this codebase. 
 
 ---
 
 ## 1. Executive Summary
 
-This architecture review evaluates the NexusBid backend codebase, identifying structural patterns, architectural drift, design strengths, critical weaknesses, and operational risks. 
+This architecture review evaluates the RFPNexa backend codebase, identifying structural patterns, architectural drift, design strengths, critical weaknesses, and operational risks. 
 
 ### Current Architecture Overview
-The NexusBid backend is structured as a **Hybrid Modular Monolith** written in TypeScript. It is built on Express for routing/HTTP delivery and TypeORM for database persistence (PostgreSQL). Core business logic is contained within feature modules in `src/modules/`, supported by shared utility layers (`src/utils/`), global cross-cutting services (`src/services/`), config layers (`src/config/`), and domain entities (`src/entities/`).
+The RFPNexa backend is structured as a **Hybrid Modular Monolith** written in TypeScript. It is built on Express for routing/HTTP delivery and TypeORM for database persistence (PostgreSQL). Core business logic is contained within feature modules in `src/modules/`, supported by shared utility layers (`src/utils/`), global cross-cutting services (`src/services/`), config layers (`src/config/`), and domain entities (`src/entities/`).
 
 ### Architecture Maturity Assessment
 The codebase is currently at **Level 2 (Structured but Drifting)** on the architectural maturity scale. While it separates concerns through distinct routing, controller, service, and database entity layers, it suffers from inconsistencies in folder structuring, redundant sources of truth, and fragmented implementation of cross-cutting concerns (specifically caching and RBAC).
@@ -33,7 +33,7 @@ The codebase is currently at **Level 2 (Structured but Drifting)** on the archit
 
 ## 2. Architecture Style
 
-The NexusBid backend is a **Hybrid Modular Monolith**. It exhibits the following architectural styles:
+The RFPNexa backend is a **Hybrid Modular Monolith**. It exhibits the following architectural styles:
 
 ```
 [ HTTP/Express Clients ]
@@ -201,7 +201,7 @@ graph TD
 
 ## 7. Dependency Rules
 
-To prevent architectural regression, the NexusBid backend enforces strict unidirectional dependency flow.
+To prevent architectural regression, the RFPNexa backend enforces strict unidirectional dependency flow.
 
 ```
 [Express Routes] 
@@ -299,7 +299,7 @@ To reside in `src/utils/`, a file must:
 
 ## 11. Test Strategy
 
-The NexusBid project adopts a **Centralized Testing Architecture** (under `tests/`).
+The RFPNexa project adopts a **Centralized Testing Architecture** (under `tests/`).
 
 ### Recommended Standard: Centralized Test Directory
 ```
@@ -431,7 +431,7 @@ The project architecture has been rated across the following categories (1-10 sc
 
 ## 16. Migration Strategy
 
-This roadmap details the phased cleanup of the NexusBid backend architecture. Each phase can be executed independently.
+This roadmap details the phased cleanup of the RFPNexa backend architecture. Each phase can be executed independently.
 
 ```
 ┌─────────────────────────────────┐

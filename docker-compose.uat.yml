@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# docker-compose.uat.yml — NexusBid UAT (Staging) Stack
+# docker-compose.uat.yml — RFPNexa UAT (Staging) Stack
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:

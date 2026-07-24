@@ -24,7 +24,7 @@ export async function processScheduledReports(): Promise<void> {
       const tendersCount = await AppDataSource.query('SELECT COUNT(*) FROM tenders');
 
       const reportContent = `
-        NexusBid BI Report Summary: ${report.reportName}
+        RFPNexa BI Report Summary: ${report.reportName}
         ----------------------------------------------
         Timezone: ${report.timezone}
         Total Active Users: ${usersCount[0]?.count ?? 0}

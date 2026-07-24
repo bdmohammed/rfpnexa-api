@@ -16,10 +16,10 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.1.0',
     info: {
-      title: 'NexusBid API',
+      title: 'RFPNexa API',
       version: '1.0.0',
       description: `
-# NexusBid — USA Government RFP/Tender Marketplace REST API
+# RFPNexa — USA Government RFP/Tender Marketplace REST API
 
 A production-ready REST API for browsing, purchasing, and managing USA government RFP/Tender notices.
 
@@ -79,7 +79,7 @@ All responses use a consistent envelope:
 | prod | Real live services | ❌ |
       `.trim(),
       contact: {
-        name: 'NexusBid Engineering',
+        name: 'RFPNexa Engineering',
         email: 'engineering@nexusbid.com',
       },
     },
@@ -252,11 +252,11 @@ All responses use a consistent envelope:
           required: ['name', 'email', 'password'],
           properties: {
             name: { type: 'string', minLength: 2, maxLength: 120, example: 'Admin User' },
-            email: { type: 'string', format: 'email', example: 'admin@example.com' },
+            email: { type: 'string', format: 'email', example: 'superadmin@gmail.com' },
             password: {
               type: 'string',
               minLength: 8,
-              example: 'SecureAdmin1!',
+              example: '1234@Admin#',
               pattern: '^(?=.*[A-Z])(?=.*[0-9]).{8,}$',
             },
             companyName: { type: 'string', maxLength: 160, nullable: true },
@@ -268,10 +268,10 @@ All responses use a consistent envelope:
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email: { type: 'string', format: 'email', example: 'jane@example.com' },
+            email: { type: 'string', format: 'email', example: 'superadmin@gmail.com' },
             password: {
               type: 'string',
-              example: 'SecurePass123!',
+              example: '1234@Admin#',
               description:
                 'Minimum 1 character (validation is intentionally permissive to avoid enumeration)',
             },
@@ -746,7 +746,7 @@ export const swaggerSpec = swaggerJsdoc(options);
 export const swaggerMiddleware: RequestHandler[] = [
   swaggerUi.serve as unknown as RequestHandler,
   swaggerUi.setup(swaggerSpec, {
-    customSiteTitle: 'NexusBid API Docs',
+    customSiteTitle: 'RFPNexa API Docs',
     swaggerOptions: {
       persistAuthorization: true,
       // Cookie auth cannot be set via Swagger UI — document the flow instead
@@ -759,7 +759,7 @@ export const swaggerMiddleware: RequestHandler[] = [
       .swagger-ui .topbar { background-color: #1e293b; }
       .swagger-ui .topbar-wrapper img { display: none; }
       .swagger-ui .topbar-wrapper::before {
-        content: '🏛️  NexusBid API';
+        content: '🏛️  RFPNexa API';
         color: white;
         font-size: 18px;
         font-weight: 700;

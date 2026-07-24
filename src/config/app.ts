@@ -11,16 +11,16 @@ import { globalLimiter } from '../middleware/rateLimits';
 import { requestLogger } from '../middleware/requestLogger';
 import { traceContext } from '../middleware/traceContext';
 import { adminRouter } from '../modules/admin/admin.routes';
-import { analyticsRouter } from '../modules/analytics/api/analytics.routes';
-import { auditRouter } from '../modules/audit/api/audit.routes';
+import { analyticsRouter } from '../modules/analytics/analytics.routes';
+import { auditRouter } from '../modules/audit/audit.routes';
 // ─── Route imports ────────────────────────────────────────────────────────────
 import { authRouter } from '../modules/auth/auth.routes';
 import { categoriesRouter } from '../modules/categories/categories.routes';
-import { dashboardRouter } from '../modules/dashboard/api/dashboard.routes';
-import { notificationsRouter } from '../modules/notifications/api/notifications.routes';
+import { countriesRouter } from '../modules/countries/countries.routes';
+import { dashboardRouter } from '../modules/dashboard/dashboard.routes';
+import { notificationsRouter } from '../modules/notifications/notifications.routes';
 import { profileRouter } from '../modules/profile/profile.routes';
 import rbacRouter from '../modules/rbac/rbac.routes';
-import { statesRouter } from '../modules/states/states.routes';
 import { plansRouter } from '../modules/subscriptions/plans.routes';
 import { subscriptionsRouter } from '../modules/subscriptions/subscriptions.routes';
 import { supportRouter } from '../modules/support/support.routes';
@@ -194,6 +194,14 @@ if (env.SWAGGER_ENABLED) {
   logger.info('Swagger UI available at /api/v1/docs');
 }
 
+// ── Dummy S3 Upload/Download (Local Mock) ────────────────────────────────────
+app.put('/dummy-s3-upload/*', (_req: Request, res: Response) => {
+  res.status(200).send('OK');
+});
+app.get('/dummy-s3-download/*', (_req: Request, res: Response) => {
+  res.status(200).send('Dummy File Content');
+});
+
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/tenders', tendersRouter);
@@ -201,7 +209,7 @@ app.use('/api/v1/subscriptions', subscriptionsRouter);
 app.use('/api/v1/plans', plansRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/categories', categoriesRouter);
-app.use('/api/v1/states', statesRouter);
+app.use('/api/v1/countries', countriesRouter);
 app.use('/api/v1/webhooks', webhooksRouter);
 app.use('/api/v1/support', supportRouter);
 app.use('/api/v1/rbac', rbacRouter);

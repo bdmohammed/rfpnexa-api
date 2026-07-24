@@ -25,8 +25,6 @@ declare global {
       permissions?: string[];
       /** Roles assigned to the authenticated admin user */
       roles?: string[];
-      /** Attached by validate middleware after Zod parsing */
-      validated?: unknown;
     }
   }
 }

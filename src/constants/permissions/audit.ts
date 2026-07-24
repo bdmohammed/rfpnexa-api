@@ -19,12 +19,19 @@ export const AuditPermissions = {
     isActive: true,
   }),
 
-  EXPORT: definePermission(PermissionModules.AUDIT, PermissionActions.EXPORT, {
-    name: 'Export Audit Logs',
-    description: 'Export audit logs for compliance and reporting.',
+  MANAGE: definePermission(PermissionModules.AUDIT, PermissionActions.MANAGE, {
+    name: 'MANAGE Audit Logs',
+    description: 'MANAGE audit logs for compliance and reporting.',
     displayOrder: 2,
     isActive: true,
   }),
+
+  // EXPORT: definePermission(PermissionModules.AUDIT, PermissionActions.EXPORT, {
+  //   name: 'Export Audit Logs',
+  //   description: 'Export audit logs for compliance and reporting.',
+  //   displayOrder: 2,
+  //   isActive: true,
+  // }),
 
   // SEARCH: definePermission(PermissionModules.AUDIT, 'search', {
   //   name: 'Search Audit Logs',
@@ -75,10 +82,10 @@ export const AuditPermissions = {
   //   isActive: true,
   // }),
 
-  RETENTION_MANAGE: definePermission(PermissionModules.AUDIT, PermissionActions.MANAGE, {
-    name: 'Manage Audit Retention',
-    description: 'Configure audit log retention policies.',
-    displayOrder: 10,
-    isActive: true,
-  }),
+  // RETENTION_MANAGE: definePermission(PermissionModules.AUDIT, PermissionActions.MANAGE, {
+  //   name: 'Manage Audit Retention',
+  //   description: 'Configure audit log retention policies.',
+  //   displayOrder: 10,
+  //   isActive: true,
+  // }),
 } as const;
