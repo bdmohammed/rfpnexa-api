@@ -57,6 +57,7 @@ export const changePassword = asyncHandler<{}, {}, ChangePasswordDto>(async (req
     httpOnly: true,
     secure: env.NODE_ENV !== 'local',
     sameSite: 'lax',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   return sendOk(res, null, 'Password changed successfully. Please log in again.');
@@ -82,6 +83,7 @@ export const revokeAllSessions = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: env.NODE_ENV !== 'local',
     sameSite: 'lax',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   return sendOk(res, null, 'All sessions revoked successfully');
@@ -144,6 +146,7 @@ export const deactivateAccount = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: env.NODE_ENV !== 'local',
     sameSite: 'lax',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   return sendOk(res, null, 'Account deactivated successfully');

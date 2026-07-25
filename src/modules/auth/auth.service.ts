@@ -536,6 +536,7 @@ export async function logoutUser(
     httpOnly: true,
     secure: ['prod', 'uat'].includes(env.NODE_ENV),
     sameSite: 'lax',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   res.clearCookie(REFRESH_COOKIE_NAME, {
@@ -543,6 +544,7 @@ export async function logoutUser(
     secure: ['prod', 'uat'].includes(env.NODE_ENV),
     sameSite: 'lax',
     path: '/api/v1/auth',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   if (userId ?? email) {

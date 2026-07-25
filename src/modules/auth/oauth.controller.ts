@@ -21,6 +21,7 @@ export const redirectToProvider = asyncHandler<OAuthProviderDto, void>(async (re
     secure: ['prod', 'uat'].includes(env.NODE_ENV),
     sameSite: 'lax',
     maxAge: 15 * 60 * 1000,
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   const authUrl = oauthService.getAuthorizationUrl(provider, state);
