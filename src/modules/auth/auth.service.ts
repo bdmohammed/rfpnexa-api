@@ -136,6 +136,7 @@ async function generateAndSetTokens(
     secure: ['prod', 'uat'].includes(env.NODE_ENV),
     sameSite: 'lax',
     maxAge: ACCESS_COOKIE_MAX_AGE,
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 
   // 5. Set Refresh Token Cookie (scoped to /api/v1/auth)
@@ -145,6 +146,7 @@ async function generateAndSetTokens(
     sameSite: 'lax',
     maxAge: refreshTtl,
     path: '/api/v1/auth',
+    domain: env.NODE_ENV === 'prod' || env.NODE_ENV === 'uat' ? '.rfpnexa.com' : undefined,
   });
 }
 
