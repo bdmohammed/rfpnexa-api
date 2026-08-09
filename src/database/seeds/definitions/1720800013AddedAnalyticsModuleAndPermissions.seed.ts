@@ -32,7 +32,9 @@ export default class AddedAnalyticsModuleAndPermissions1720800013 implements See
 
     const existingPermissions = await permRepo.find({
       where: { key: In(analyticsPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

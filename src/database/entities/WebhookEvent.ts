@@ -11,18 +11,18 @@ import { WebhookEventStatus, WebhookEventType, WebhookProvider } from '../../typ
 @Index('idx_webhook_provider_event', ['provider', 'eventId'], { unique: true })
 export class WebhookEvent {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   /** e.g. 'paypal' */
   @Column({
     type: 'enum',
     enum: WebhookProvider,
   })
-  provider: WebhookProvider;
+  provider!: WebhookProvider;
 
   /** PayPal transmission ID — used as idempotency key */
-  @Column({ name: 'event_id' })
-  eventId: string;
+  @Column({ type: 'varchar', name: 'event_id' })
+  eventId!: string;
 
   /** e.g. 'PAYMENT.CAPTURE.COMPLETED' */
   @Column({
@@ -31,22 +31,22 @@ export class WebhookEvent {
     enum: WebhookEventType,
     default: WebhookEventType.UNKNOWN,
   })
-  eventType: WebhookEventType;
+  eventType!: WebhookEventType;
 
   /** Full raw webhook body — stored for replay capability */
   @Column({ type: 'jsonb' })
-  payload: Record<string, unknown>;
+  payload!: Record<string, unknown>;
 
   @Column({ type: 'enum', enum: WebhookEventStatus, default: WebhookEventStatus.RECEIVED })
-  status: WebhookEventStatus;
+  status!: WebhookEventStatus;
 
   /** Error message if status is FAILED */
   @Column({ type: 'text', nullable: true, default: null })
-  error: string | null;
+  error!: string | null;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  processedAt: Date | null;
+  processedAt!: Date | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  receivedAt: Date;
+  receivedAt!: Date;
 }

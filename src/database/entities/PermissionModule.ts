@@ -21,29 +21,29 @@ export class PermissionModule {
   id!: number;
 
   @Column({ type: 'varchar', length: 100 })
-  name: string;
+  name!: string;
 
   @Index(['permission_modules_key_idx'])
   @Column({ type: 'varchar', length: 100, unique: true })
-  key: string;
+  key!: string;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'is_system_module', type: 'boolean', default: false })
-  isSystemModule: boolean;
+  isSystemModule!: boolean;
 
   @Column({ name: 'is_active', type: 'boolean', default: false })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({
     name: 'created_by',
@@ -76,5 +76,5 @@ export class PermissionModule {
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => Permission, (p) => p.module)
-  permissions: Permission[];
+  permissions!: Permission[];
 }

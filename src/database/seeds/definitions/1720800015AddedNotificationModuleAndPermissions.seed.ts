@@ -32,7 +32,9 @@ export default class AddedNotificationModuleAndPermissions1720800015 implements 
 
     const existingPermissions = await permRepo.find({
       where: { key: In(notificationPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

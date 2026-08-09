@@ -21,22 +21,22 @@ import { User } from './User';
 @Check('"slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'')
 export class FeatureCatalog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'feature_key', type: 'varchar', length: 100, unique: true })
-  featureKey: string;
+  featureKey!: string;
 
-  @Column({ length: 150, unique: true })
-  slug: string;
+  @Column({ type: 'varchar', length: 150, unique: true })
+  slug!: string;
 
-  @Column({ name: 'display_name', length: 150 })
-  displayName: string;
+  @Column({ name: 'display_name', type: 'varchar', length: 150 })
+  displayName!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
-  @Column({ length: 100 })
-  category: string;
+  @Column({ type: 'varchar', length: 100 })
+  category!: string;
 
   @Column({
     name: 'value_type',
@@ -44,39 +44,39 @@ export class FeatureCatalog {
     enum: FeatureValueType,
     default: FeatureValueType.BOOLEAN,
   })
-  valueType: FeatureValueType;
+  valueType!: FeatureValueType;
 
   @Column({ name: 'default_value', type: 'varchar', length: 100, nullable: true })
-  defaultValue: string | null;
+  defaultValue!: string | null;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({ name: 'is_system', type: 'boolean', default: false })
-  isSystem: boolean;
+  isSystem!: boolean;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  createdByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedByUserId: string | null;
+  updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser: User | null;
+  updatedByUser!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Hooks ─────────────────────────────────────────────────────────────────
 

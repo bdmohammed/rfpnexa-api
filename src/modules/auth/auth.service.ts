@@ -158,7 +158,9 @@ export async function registerUser(
 ): Promise<void> {
   const exists = await userRepository.findOne({
     where: { email: dto.email },
-    select: ['id'],
+    select: {
+      id: true,
+    },
   });
   if (exists) {
     throw new AppError(
@@ -455,7 +457,9 @@ export async function refreshSession(
   // Find the session
   const session = await userSessionRepository.findOne({
     where: { tokenHash },
-    relations: ['user'],
+    relations: {
+      user: true,
+    },
   });
 
   if (!session) {
@@ -521,7 +525,9 @@ export async function logoutUser(
     const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
     const session = await userSessionRepository.findOne({
       where: { tokenHash },
-      relations: ['user'],
+      relations: {
+        user: true,
+      },
     });
     if (session) {
       await userSessionRepository.update(session.id, { isRevoked: true });
@@ -570,7 +576,14 @@ export async function getProfile(userId: string): Promise<ReturnType<typeof sani
 }
 
 export async function forgotPassword(email: string): Promise<void> {
-  const user = await userRepository.findOne({ where: { email }, select: ['id', 'name', 'email'] });
+  const user = await userRepository.findOne({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
   if (!user) return; // Silent — don't reveal if email exists
 
   const rawToken = await createEmailToken(user.id, EmailTokenType.PASSWORD_RESET);
@@ -606,7 +619,12 @@ export async function resetPassword(
     .where('id = :id', { id: userId })
     .execute();
 
-  const user = await userRepository.findOne({ where: { id: userId }, select: ['email'] });
+  const user = await userRepository.findOne({
+    where: { id: userId },
+    select: {
+      email: true,
+    },
+  });
   if (user) {
     await logSecurityEvent({
       userId,
@@ -758,7 +776,12 @@ export async function requestEmailChange(
   }
 
   // Check if the new email is already taken
-  const exists = await userRepository.findOne({ where: { email: newEmail }, select: ['id'] });
+  const exists = await userRepository.findOne({
+    where: { email: newEmail },
+    select: {
+      id: true,
+    },
+  });
   if (exists) {
     throw new AppError(
       AppErrorMessage.EMAIL_REGISTERED,
@@ -828,7 +851,9 @@ export async function verifyEmailChange(
   // Final check to make sure pending email wasn't registered in the meantime
   const exists = await userRepository.findOne({
     where: { email: user.pendingEmail },
-    select: ['id'],
+    select: {
+      id: true,
+    },
   });
   if (exists) {
     throw new AppError(
@@ -939,7 +964,9 @@ export async function registerAdmin(
 ): Promise<void> {
   const exists = await userRepository.findOne({
     where: { email: dto.email },
-    select: ['id'],
+    select: {
+      id: true,
+    },
   });
   if (exists) {
     throw new AppError(
@@ -1029,7 +1056,9 @@ export async function verifyAdminEmail(
         key: 'super-admin',
       },
     },
-    relations: ['role'],
+    relations: {
+      role: true,
+    },
   });
 
   const superAdminExists = superAdminCount > 0;
@@ -1042,7 +1071,10 @@ export async function verifyAdminEmail(
           key: 'super-admin',
         },
       },
-      relations: ['user', 'role'],
+      relations: {
+        user: true,
+        role: true,
+      },
     });
 
     for await (const sa of superAdmins) {
@@ -1080,7 +1112,9 @@ export async function verifyBootstrapToken(
     where: {
       role: { key: 'super-admin' },
     },
-    relations: ['role'],
+    relations: {
+      role: true,
+    },
   });
 
   if (superAdminCount > 0) {
@@ -1152,7 +1186,11 @@ async function ensureSuperAdminRoleAndPermissions(
 
   if (existingPermCount === 0) {
     const permissionRepo = transactionManager.getRepository(Permission);
-    const allPermissions = await permissionRepo.find({ relations: ['module'] });
+    const allPermissions = await permissionRepo.find({
+      relations: {
+        module: true,
+      },
+    });
     const roleVersionPerms = allPermissions.map((p) =>
       roleVersionPermissionRepo.create({
         roleVersionId: superAdminVersion.id,
@@ -1181,7 +1219,9 @@ export async function approveBootstrapAdmin(
     where: {
       role: { key: 'super-admin' },
     },
-    relations: ['role'],
+    relations: {
+      role: true,
+    },
   });
 
   if (superAdminCount > 0) {

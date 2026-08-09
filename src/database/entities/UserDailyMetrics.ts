@@ -17,47 +17,47 @@ import { User } from './User';
 @Index(['date', 'countryId'])
 export class UserDailyMetrics {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'timestamptz' })
-  date: Date;
+  date!: Date;
 
   @Column({ name: 'country_id', type: 'smallint', nullable: true, default: null })
-  countryId: number | null;
+  countryId!: number | null;
 
   @ManyToOne(() => Country, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'country_id' })
-  country: Country | null;
+  country!: Country | null;
 
   @Column({ name: 'new_users', type: 'integer', default: 0 })
-  newUsers: number;
+  newUsers!: number;
 
   @Column({ name: 'active_users', type: 'integer', default: 0 })
-  activeUsers: number;
+  activeUsers!: number;
 
   @Column({ name: 'verified_users', type: 'integer', default: 0 })
-  verifiedUsers: number;
+  verifiedUsers!: number;
 
   @Column({ name: 'blocked_users', type: 'integer', default: 0 })
-  blockedUsers: number;
+  blockedUsers!: number;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdById: string | null;
+  createdById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy: User | null;
+  createdBy!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedById: string | null;
+  updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy: User | null;
+  updatedBy!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

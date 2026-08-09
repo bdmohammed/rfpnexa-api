@@ -19,21 +19,21 @@ import { User } from './User';
 @Index(['roleId'])
 export class UserRole {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, (u) => u.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ name: 'role_id', type: 'uuid' })
-  roleId: string;
+  roleId!: string;
 
   @ManyToOne(() => Role, (r) => r.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role!: Role;
 
   @ManyToOne(() => User, (u) => u.assignedRoles, {
     nullable: true,
@@ -43,19 +43,19 @@ export class UserRole {
   assignedBy?: User | null;
 
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
-  assignedAt: Date;
+  assignedAt!: Date;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true, default: null })
-  expiresAt: Date | null;
+  expiresAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({ name: 'status', type: 'varchar', length: 50, default: 'ACTIVE' })
-  status: string;
+  status!: string;
 
   @Column({ name: 'reviewer_id', type: 'uuid', nullable: true })
   reviewerId?: string | null;

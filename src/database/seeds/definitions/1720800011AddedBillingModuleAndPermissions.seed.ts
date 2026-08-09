@@ -32,7 +32,9 @@ export default class AddedBillingModuleAndPermissions1720800011 implements SeedI
 
     const existingPermissions = await permRepo.find({
       where: { key: In(billingPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

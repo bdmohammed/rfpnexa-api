@@ -17,43 +17,43 @@ import { User } from './User';
 @Index('idx_role_review_comments_review_id', ['reviewId', 'createdAt'])
 export class RoleReviewComment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'review_id', type: 'uuid' })
-  reviewId: string;
+  reviewId!: string;
 
   @ManyToOne(() => RoleReview, (roleReview) => roleReview.roleReviewComments, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'review_id' })
-  roleReview: RoleReview;
+  roleReview!: RoleReview;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId: string | null;
+  userId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'enum', enum: ReviewAction })
-  action: ReviewAction;
+  action!: ReviewAction;
 
   @Column({ type: 'text' })
-  comment: string;
+  comment!: string;
 
   @Column({ name: 'is_internal', type: 'boolean', default: false })
-  isInternal: boolean;
+  isInternal!: boolean;
 
   @Column({ name: 'edited_at', type: 'timestamptz', nullable: true, default: null })
-  editedAt: Date | null;
+  editedAt!: Date | null;
 
   @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true, default: null })
-  parentCommentId: string | null;
+  parentCommentId!: string | null;
 
   @ManyToOne(() => RoleReviewComment, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'parent_comment_id' })
-  parentComment: RoleReviewComment | null;
+  parentComment!: RoleReviewComment | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

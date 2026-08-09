@@ -13,41 +13,41 @@ import { User } from './User';
 @Entity('tender_questions')
 export class TenderQuestion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'tender_id', type: 'uuid' })
-  tenderId: string;
+  tenderId!: string;
 
   @ManyToOne(() => Tender, (tender) => tender.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender: Tender;
+  tender!: Tender;
 
   @Column({ name: 'vendor_id', type: 'uuid' })
-  vendorId: string;
+  vendorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vendor_id' })
-  vendor: User;
+  vendor!: User;
 
   @Column({ name: 'question_text', type: 'text' })
-  questionText: string;
+  questionText!: string;
 
   @Column({ name: 'answer_text', type: 'text', nullable: true })
-  answerText: string | null;
+  answerText!: string | null;
 
-  @Column({ name: 'is_public', default: false })
-  isPublic: boolean;
+  @Column({ type: 'boolean', name: 'is_public', default: false })
+  isPublic!: boolean;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'answered_by_id' })
-  answeredBy: User | null;
+  answeredBy!: User | null;
 
   @Column({ name: 'answered_by_id', type: 'uuid', nullable: true })
-  answeredById: string | null;
+  answeredById!: string | null;
 
   @Column({ name: 'answered_at', type: 'timestamptz', nullable: true })
-  answeredAt: Date | null;
+  answeredAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

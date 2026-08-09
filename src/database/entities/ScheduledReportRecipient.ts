@@ -28,27 +28,27 @@ import { RecipientType } from '@/types/enums';
 })
 export class ScheduledReportRecipient {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'report_id', type: 'uuid' })
-  reportId: string;
+  reportId!: string;
 
   @ManyToOne(() => ScheduledReport, (report) => report.recipients, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'report_id' })
-  report: ScheduledReport;
+  report!: ScheduledReport;
 
   @Column({ name: 'recipient_type', type: 'enum', enum: RecipientType })
-  recipientType: RecipientType;
+  recipientType!: RecipientType;
 
   @Column({ name: 'recipient_id', type: 'uuid', nullable: true, default: null })
-  recipientId: string | null;
+  recipientId!: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true, default: null })
-  email: string | null;
+  email!: string | null;
 
   @Column({ type: 'text', nullable: true, default: null })
-  webhook: string | null;
+  webhook!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

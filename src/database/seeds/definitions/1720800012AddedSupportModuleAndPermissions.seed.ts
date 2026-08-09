@@ -32,7 +32,9 @@ export default class AddedSupportModuleAndPermissions1720800012 implements SeedI
 
     const existingPermissions = await permRepo.find({
       where: { key: In(supportPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

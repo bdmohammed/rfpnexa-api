@@ -57,7 +57,10 @@ export async function broadcastNotification(notificationId: string) {
 
   const notif = await notifRepo.findOne({
     where: { id: notificationId },
-    relations: ['recipients', 'actions'],
+    relations: {
+      recipients: true,
+      actions: true,
+    },
   });
 
   if (!notif) return;

@@ -28,73 +28,73 @@ import { RoleVersionStatus } from '@/types/enums';
 })
 export class RoleVersion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'role_id', type: 'uuid' })
-  roleId: string;
+  roleId!: string;
 
   @ManyToOne(() => Role, (role) => role.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role!: Role;
 
   @Column({ type: 'integer', default: 1 })
-  version: number;
+  version!: number;
 
   @Column({ name: 'version_number', type: 'varchar', length: 20, default: '0.1' })
-  versionNumber: string;
+  versionNumber!: string;
 
   @Column({ type: 'integer', default: 1 })
-  revision: number;
+  revision!: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: false })
-  description: string;
+  description!: string;
 
   @Column({ type: 'enum', enum: RoleVersionStatus })
-  status: RoleVersionStatus;
+  status!: RoleVersionStatus;
 
   @Column({ name: 'locked_by', type: 'uuid', nullable: true, default: null })
-  lockedByUserId: string | null;
+  lockedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
-  lockedByUser: User | null;
+  lockedByUser!: User | null;
 
   @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
-  lockedAt: Date | null;
+  lockedAt!: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
-  approvedByUserId: string | null;
+  approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser: User | null;
+  approvedByUser!: User | null;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
-  approvedAt: Date | null;
+  approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => RoleVersionPermission, (rvp) => rvp.roleVersion)
-  roleVersionPermissions: RoleVersionPermission[];
+  roleVersionPermissions!: RoleVersionPermission[];
 
   @OneToMany(() => RoleReview, (rr) => rr.roleVersion)
-  reviews: RoleReview[];
+  reviews!: RoleReview[];
 
   @OneToMany(() => Role, (role) => role.activeVersion)
-  rolesUsingThisVersion: Role[];
+  rolesUsingThisVersion!: Role[];
 }

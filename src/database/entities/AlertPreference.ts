@@ -25,51 +25,52 @@ import { User } from './User';
 @Unique(['userId', 'categoryId', 'stateId', 'keyword'])
 export class AlertPreference {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   /** Match tenders in this category. Null = any category. */
   @Column({ type: 'uuid', nullable: true, default: null })
-  categoryId: string | null;
+  categoryId!: string | null;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
-  category: Category | null;
+  category!: Category | null;
 
   /** Match tenders in this state. Null = any state. */
   @Column({ type: 'smallint', nullable: true, default: null })
-  stateId: number | null;
+  stateId!: number | null;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
-  state: State | null;
+  state!: State | null;
 
   /** Optional keyword filter applied to title/description */
   @Column({ type: 'varchar', length: 150, nullable: true, default: null })
-  keyword: string | null;
+  keyword!: string | null;
 
   @Column({
+    type: 'boolean',
     name: 'is_active',
     default: true,
   })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ type: 'enum', enum: AlertFrequency, default: AlertFrequency.DAILY })
-  frequency: AlertFrequency;
+  frequency!: AlertFrequency;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true, default: null })
-  lastSentAt: Date | null;
+  lastSentAt!: Date | null;
 
   @Column({ name: 'email_sent_count', type: 'int', default: 0 })
-  emailSentCount: number;
+  emailSentCount!: number;
 }

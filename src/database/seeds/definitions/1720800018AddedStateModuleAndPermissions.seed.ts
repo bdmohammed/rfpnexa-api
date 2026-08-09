@@ -32,7 +32,9 @@ export default class AddedStateModuleAndPermissions1720800018 implements SeedInt
 
     const existingPermissions = await permRepo.find({
       where: { key: In(statePermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

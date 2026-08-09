@@ -28,82 +28,82 @@ import { CouponDiscountType } from '@/types/enums';
 @Index('idx_coupons_active', ['isActive'])
 export class Coupon {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'varchar',
     length: 150,
   })
-  name: string;
+  name!: string;
 
   @Column({
     type: 'text',
     nullable: true,
     default: null,
   })
-  description: string | null;
+  description!: string | null;
 
   @Column({ type: 'varchar', length: 50, unique: true })
-  code: string;
+  code!: string;
 
   @Column({ name: 'discount_type', type: 'enum', enum: CouponDiscountType })
-  discountType: CouponDiscountType;
+  discountType!: CouponDiscountType;
 
   @Column({ name: 'discount_value', type: 'int' })
-  discountValue: number;
+  discountValue!: number;
 
-  @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive!: boolean;
 
   @Column({ name: 'max_redemptions', type: 'int', nullable: true, default: null })
-  maxRedemptions: number | null;
+  maxRedemptions!: number | null;
 
   @Column({ name: 'redemption_count', type: 'int', default: 0 })
-  redemptionCount: number;
+  redemptionCount!: number;
 
   @Column({ name: 'max_redemptions_per_user', type: 'int', nullable: true, default: null })
-  maxRedemptionsPerUser: number | null;
+  maxRedemptionsPerUser!: number | null;
 
   @Column({ name: 'min_purchase_cents', type: 'int', nullable: true, default: null })
-  minPurchaseCents: number | null;
+  minPurchaseCents!: number | null;
 
   @Column({ name: 'max_discount_cents', type: 'int', nullable: true, default: null })
-  maxDiscountCents: number | null;
+  maxDiscountCents!: number | null;
 
   @Column({ name: 'first_purchase_only', type: 'boolean', default: false })
-  firstPurchaseOnly: boolean;
+  firstPurchaseOnly!: boolean;
 
   @Column({ name: 'is_recurring', type: 'boolean', default: false })
-  isRecurring: boolean;
+  isRecurring!: boolean;
 
   @Column({ name: 'valid_from', type: 'timestamptz', nullable: true, default: null })
-  validFrom: Date | null;
+  validFrom!: Date | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true, default: null })
-  expiresAt: Date | null;
+  expiresAt!: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedByUserId: string | null;
+  updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser: User | null;
+  updatedByUser!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true, default: null })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @ManyToMany(() => Plan)
@@ -112,5 +112,5 @@ export class Coupon {
     joinColumn: { name: 'coupon_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'plan_id', referencedColumnName: 'id' },
   })
-  restrictedPlans: Plan[];
+  restrictedPlans!: Plan[];
 }

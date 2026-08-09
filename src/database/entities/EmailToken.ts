@@ -17,7 +17,7 @@ import { User } from './User';
 @Index('idx_email_tokens_unused', ['userId', 'type'], { where: '"used_at" IS NULL' })
 export class EmailToken {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
@@ -37,12 +37,12 @@ export class EmailToken {
   type!: EmailTokenType;
 
   @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   /** Set when token is consumed — single-use enforcement */
   @Column({ name: 'used_at', type: 'timestamptz', nullable: true, default: null })
-  usedAt: Date | null;
+  usedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

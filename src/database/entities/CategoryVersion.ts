@@ -23,82 +23,82 @@ import { CategoryVersionStatus } from '@/types/enums';
 @Index('idx_category_versions_status', ['status'])
 export class CategoryVersion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'category_id', type: 'uuid' })
-  categoryId: string;
+  categoryId!: string;
 
   @ManyToOne(() => Category, (cat) => cat.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_id' })
-  category: Category;
+  category!: Category;
 
   @Column({ type: 'integer', default: 0 })
-  majorVersion: number;
+  majorVersion!: number;
 
   @Column({ type: 'integer', default: 1 })
-  minorVersion: number;
+  minorVersion!: number;
 
   @Column({ type: 'integer', default: 1 })
-  version: number;
+  version!: number;
 
   @Column({ name: 'version_number', type: 'varchar', length: 20, default: '0.1' })
-  versionNumber: string;
+  versionNumber!: string;
 
   @Column({ type: 'varchar', length: 200, nullable: false })
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar', length: 200, nullable: false })
-  slug: string;
+  slug!: string;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'parent_category_id', type: 'uuid', nullable: true, default: null })
-  parentCategoryId: string | null;
+  parentCategoryId!: string | null;
 
   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'parent_category_id' })
-  parentCategory: Category | null;
+  parentCategory!: Category | null;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({ type: 'varchar', length: 50, nullable: true, default: null })
-  icon: string | null;
+  icon!: string | null;
 
   @Column({ type: 'varchar', length: 50, nullable: true, default: null })
-  color: string | null;
+  color!: string | null;
 
   @Column({ type: 'enum', enum: CategoryVersionStatus, default: CategoryVersionStatus.DRAFT })
-  status: CategoryVersionStatus;
+  status!: CategoryVersionStatus;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
-  approvedByUserId: string | null;
+  approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser: User | null;
+  approvedByUser!: User | null;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
-  approvedAt: Date | null;
+  approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => CategoryReview, (review) => review.categoryVersion)
-  reviews: CategoryReview[];
+  reviews!: CategoryReview[];
 
   @OneToMany(() => Category, (cat) => cat.activeVersion)
-  categoriesUsingThisVersion: Category[];
+  categoriesUsingThisVersion!: Category[];
 }

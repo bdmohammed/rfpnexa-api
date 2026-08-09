@@ -47,12 +47,13 @@ const transactionRepository = AppDataSource.getRepository(Transaction);
 
 export async function listAllPlans(): Promise<Plan[]> {
   return planRepository.find({
-    relations: [
-      'activeVersion',
-      'activeVersion.features',
-      'activeVersion.countryPricing',
-      'activeVersion.categoryPricing',
-    ],
+    relations: {
+      activeVersion: {
+        features: true,
+        countryPricing: true,
+        categoryPricing: true,
+      },
+    },
     order: { createdAt: 'DESC' },
   });
 }
@@ -60,19 +61,25 @@ export async function listAllPlans(): Promise<Plan[]> {
 export async function getPlanById(id: string): Promise<Plan> {
   const plan = await planRepository.findOne({
     where: { id },
-    relations: [
-      'versions',
-      'versions.features',
-      'versions.countryPricing',
-      'versions.categoryPricing',
-      'versions.reviews',
-      'versions.reviews.comments',
-      'versions.reviews.comments.author',
-      'activeVersion',
-      'activeVersion.features',
-      'activeVersion.countryPricing',
-      'activeVersion.categoryPricing',
-    ],
+    relations: {
+      versions: {
+        features: true,
+        countryPricing: true,
+        categoryPricing: true,
+
+        reviews: {
+          comments: {
+            author: true,
+          },
+        },
+      },
+
+      activeVersion: {
+        features: true,
+        countryPricing: true,
+        categoryPricing: true,
+      },
+    },
   });
   if (!plan)
     throw new AppError(
@@ -190,7 +197,10 @@ export async function createPlanVersionDraft(
 ): Promise<PlanVersion> {
   const plan = await planRepository.findOne({
     where: { id: planId },
-    relations: ['versions', 'activeVersion'],
+    relations: {
+      versions: true,
+      activeVersion: true,
+    },
   });
   if (!plan)
     throw new AppError(
@@ -330,7 +340,9 @@ export async function assignPlanReviewer(
 ): Promise<PlanReview> {
   const review = await planReviewRepository.findOne({
     where: { id: reviewId },
-    relations: ['planVersion'],
+    relations: {
+      planVersion: true,
+    },
   });
   if (!review)
     throw new AppError(
@@ -380,7 +392,9 @@ export async function submitPlanReviewAction(
 ): Promise<PlanReview> {
   const review = await planReviewRepository.findOne({
     where: { id: reviewId },
-    relations: ['planVersion'],
+    relations: {
+      planVersion: true,
+    },
   });
   if (!review)
     throw new AppError(
@@ -444,7 +458,9 @@ export async function submitPlanReviewAction(
 export async function publishPlanVersion(versionId: string): Promise<Plan> {
   const version = await planVersionRepository.findOne({
     where: { id: versionId },
-    relations: ['plan'],
+    relations: {
+      plan: true,
+    },
   });
   if (!version)
     throw new AppError(
@@ -614,7 +630,12 @@ export async function getSubscriptionsDashboardStats(): Promise<SubscriptionsDas
 
 // eslint-disable-next-line complexity, sonarjs/cognitive-complexity
 export async function updatePlan(id: string, dto: UpdatePlanDto): Promise<Plan> {
-  const plan = await planRepository.findOne({ where: { id }, relations: ['activeVersion'] });
+  const plan = await planRepository.findOne({
+    where: { id },
+    relations: {
+      activeVersion: true,
+    },
+  });
   if (!plan)
     throw new AppError(
       AppErrorMessage.PLAN_NOT_FOUND,

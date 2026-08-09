@@ -33,7 +33,9 @@ export default class AddedDashboardModuleAndPermissions1720800005 implements See
 
     const existingPermissions = await permRepo.find({
       where: { key: In(dashboardPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

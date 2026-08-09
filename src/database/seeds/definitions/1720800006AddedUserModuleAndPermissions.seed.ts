@@ -32,7 +32,9 @@ export default class AddedUserModuleAndPermissions1720800006 implements SeedInte
 
     const existingPermissions = await permRepo.find({
       where: { key: In(userPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

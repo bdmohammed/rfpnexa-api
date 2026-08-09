@@ -31,14 +31,14 @@ export class State {
   id!: string;
 
   /** State/region code within the country: 'CA', 'TX', 'ON', 'MP' */
-  @Column({ length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   code!: string;
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   name!: string;
 
   @Index('idx_states_slug', { unique: true })
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   slug!: string;
 
   /** 'state' | 'territory' | 'federal' */
@@ -59,7 +59,7 @@ export class State {
   country!: Country;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({
     name: 'created_by',

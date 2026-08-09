@@ -212,18 +212,18 @@ export async function listUsers(opts: ListUsersQueryDto) {
 export async function getUserById(id: string): Promise<User> {
   const user = await userRepo.findOne({
     where: { id },
-    select: [
-      'id',
-      'name',
-      'email',
-      'accountType',
-      'companyName',
-      'country',
-      'emailVerified',
-      'isBlocked',
-      'createdAt',
-      'updatedAt',
-    ],
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      accountType: true,
+      companyName: true,
+      country: true,
+      emailVerified: true,
+      isBlocked: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   if (!user)
     throw new AppError(
@@ -536,7 +536,9 @@ export async function getUserStats(): Promise<UserStatsDto> {
 export async function getUserOverview(id: string) {
   const user = await userRepo.findOne({
     where: { id },
-    relations: ['country'],
+    relations: {
+      country: true,
+    },
   });
   if (!user)
     throw new AppError(
@@ -548,7 +550,9 @@ export async function getUserOverview(id: string) {
   const approvalReq = await AppDataSource.getRepository(UserApprovalRequest).findOne({
     where: { targetUser: { id } },
     order: { createdAt: 'DESC' },
-    relations: ['reviewer'],
+    relations: {
+      reviewer: true,
+    },
   });
 
   const notesCount = await AppDataSource.getRepository(UserNote).count({ where: { userId: id } });
@@ -702,7 +706,9 @@ export async function getUserTimeline(id: string): Promise<UserTimelineEvent[]> 
 
   const subs = await subRepo.find({
     where: { userId: id },
-    relations: ['plan', 'planVersion'],
+    relations: {
+      planVersion: true,
+    },
     order: { createdAt: 'ASC' },
   });
   for (const sub of subs) {
@@ -751,7 +757,9 @@ export async function getUserAuditLogs(
 export async function getUserSubscription(id: string): Promise<UserSubscriptionOverviewDto> {
   const activeSub = await subRepo.findOne({
     where: { userId: id, status: SubscriptionStatus.ACTIVE },
-    relations: ['plan', 'planVersion'],
+    relations: {
+      planVersion: true,
+    },
     order: { createdAt: 'DESC' },
   });
 
@@ -783,7 +791,9 @@ export async function getUserSubscription(id: string): Promise<UserSubscriptionO
 export async function getUserNotes(id: string): Promise<UserNoteDetailDto[]> {
   const notes = await AppDataSource.getRepository(UserNote).find({
     where: { userId: id },
-    relations: ['admin'],
+    relations: {
+      admin: true,
+    },
     order: { createdAt: 'DESC' },
   });
   return notes.map((n) => ({
@@ -880,12 +890,18 @@ export async function getUserRoles(userId: string): Promise<UserRolesDto> {
 
   const assigned = await userRoleRepo.find({
     where: { userId },
-    relations: ['role', 'role.activeVersion'],
+    relations: {
+      role: {
+        activeVersion: true,
+      },
+    },
   });
 
   const available = await roleRepo.find({
     where: { status: RoleStatus.ACTIVE },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   return {
@@ -979,7 +995,9 @@ export async function assignUserRoles(
 
   const targetUserRoles = await userRoleRepo.find({
     where: { userId },
-    relations: ['role'],
+    relations: {
+      role: true,
+    },
   });
   // for (const ur of targetUserRoles) {
   //   if (ur.role && ur.role.priority > currentMaxPriority) {
@@ -1003,7 +1021,9 @@ export async function assignUserRoles(
             await userRepo
               .find({
                 where: { accountType: AccountType.ADMIN, isBlocked: false },
-                select: ['id'],
+                select: {
+                  id: true,
+                },
               })
               .then((users) => users.map((u) => u.id).filter((id) => id !== userId)),
           ),
@@ -1116,7 +1136,9 @@ export async function revokeUserRole(
           await userRepo
             .find({
               where: { accountType: AccountType.ADMIN, isBlocked: false },
-              select: ['id'],
+              select: {
+                id: true,
+              },
             })
             .then((users) => users.map((u) => u.id).filter((id) => id !== userId)),
         ),
@@ -1150,7 +1172,11 @@ export async function previewUserPermissions(userId: string) {
   const userRoleRepo = AppDataSource.getRepository(UserRole);
   const userRoles = await userRoleRepo.find({
     where: { userId },
-    relations: ['role', 'role.activeVersion'],
+    relations: {
+      role: {
+        activeVersion: true,
+      },
+    },
   });
 
   const activeUserRoles = userRoles.filter((ur) => {
@@ -1169,7 +1195,11 @@ export async function previewUserPermissions(userId: string) {
   let effectiveKeys = new Set<string>();
 
   if (isSuperAdmin) {
-    const allPerms = await permRepo.find({ select: ['key'] });
+    const allPerms = await permRepo.find({
+      select: {
+        key: true,
+      },
+    });
     effectiveKeys = new Set(allPerms.map((p) => p.key));
   } else if (activeUserRoles.length > 0) {
     const activeVersionIds = activeUserRoles
@@ -1180,14 +1210,20 @@ export async function previewUserPermissions(userId: string) {
       const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
       const rvpList = await rvpRepo.find({
         where: { roleVersionId: In(activeVersionIds) },
-        select: ['permissionKey'],
+        select: {
+          permissionKey: true,
+        },
       });
       effectiveKeys = new Set(rvpList.map((p) => p.permissionKey));
     }
   }
 
   // Group all registry permissions and mark whether user has them
-  const allPermissions = await permRepo.find({ relations: ['module'] });
+  const allPermissions = await permRepo.find({
+    relations: {
+      module: true,
+    },
+  });
 
   const preview = modules.map((mod) => {
     const modPerms = allPermissions.filter((p) => p.moduleId === mod.id);
@@ -1301,7 +1337,11 @@ export async function reviewUserApprovalRequest(
   const approvalReqRepo = AppDataSource.getRepository(UserApprovalRequest);
   const pendingReq = await approvalReqRepo.findOne({
     where: { targetUser: { id: userId }, status: UserApprovalRequestStatus.PENDING },
-    relations: ['submittedBy', 'reviewer', 'requestedRole'],
+    relations: {
+      submittedBy: true,
+      reviewer: true,
+      requestedRole: true,
+    },
   });
 
   if (!pendingReq) {
@@ -1423,6 +1463,10 @@ export async function getUserApprovalRequest(userId: string): Promise<UserApprov
   return approvalReqRepo.findOne({
     where: { targetUser: { id: userId } },
     order: { createdAt: 'DESC' },
-    relations: ['submittedBy', 'reviewer', 'requestedRole'],
+    relations: {
+      submittedBy: true,
+      reviewer: true,
+      requestedRole: true,
+    },
   });
 }

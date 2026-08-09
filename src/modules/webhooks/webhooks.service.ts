@@ -100,7 +100,9 @@ async function handleSaleCompleted(resource: Record<string, unknown>): Promise<v
   // Find the subscription
   const subscription = await subscriptionRepository.findOne({
     where: { paypalSubscriptionId: billingAgreementId },
-    relations: ['plan', 'planVersion'],
+    relations: {
+      planVersion: true,
+    },
   });
 
   if (!subscription) {

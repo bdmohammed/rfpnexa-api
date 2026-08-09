@@ -165,17 +165,17 @@ export const authenticate = async (
   try {
     const user = await userRepository.findOne({
       where: { id: decodedTokenPayload.sub },
-      select: [
-        'id',
-        'status',
-        'accountType',
-        'tokenVersion',
-        'isBlocked',
-        'emailVerified',
-        'mustResetPassword',
-        'passwordChangedAt',
-        'createdAt',
-      ],
+      select: {
+        id: true,
+        status: true,
+        accountType: true,
+        tokenVersion: true,
+        isBlocked: true,
+        emailVerified: true,
+        mustResetPassword: true,
+        passwordChangedAt: true,
+        createdAt: true,
+      },
     });
 
     const path = req.originalUrl.split('?')[0] ?? '';
@@ -216,7 +216,11 @@ export const optionalAuthenticate = async (
     const decodedTokenPayload = verifyToken(token);
     const user = await userRepository.findOne({
       where: { id: decodedTokenPayload.sub },
-      select: ['id', 'tokenVersion', 'isBlocked'],
+      select: {
+        id: true,
+        tokenVersion: true,
+        isBlocked: true,
+      },
     });
     if (user && !user.isBlocked && user.tokenVersion === decodedTokenPayload.tokenVersion) {
       req.user = {

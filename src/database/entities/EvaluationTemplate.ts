@@ -24,19 +24,19 @@ import { User } from './User';
 @Check('"code" ~ \'^[A-Z0-9_-]+$\'')
 export class EvaluationTemplate {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @Column({ length: 30, unique: true })
-  code: string;
+  @Column({ type: 'varchar', length: 30, unique: true })
+  code!: string;
 
-  @Column({ length: 100, unique: true })
-  slug: string;
+  @Column({ type: 'varchar', length: 100, unique: true })
+  slug!: string;
 
-  @Column({ unique: true, length: 100 })
-  name: string;
+  @Column({ type: 'varchar', length: 100, unique: true })
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({
     name: 'default_weight',
@@ -49,41 +49,41 @@ export class EvaluationTemplate {
       from: (val: string) => parseFloat(val),
     },
   })
-  defaultWeight: number;
+  defaultWeight!: number;
 
   @Column({ name: 'max_score', type: 'int', default: 100 })
-  maxScore: number;
+  maxScore!: number;
 
   @Column({ name: 'display_order', type: 'int', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ name: 'created_by', type: 'uuid' })
-  createdByUserId: string;
+  createdByUserId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User;
+  createdByUser!: User;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedByUserId: string | null;
+  updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser: User | null;
+  updatedByUser!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ─────────────────────────────────────────────────────────────
 
   @OneToMany(() => TenderEvaluation, (evaluation) => evaluation.evaluationTemplate)
-  evaluations: TenderEvaluation[];
+  evaluations!: TenderEvaluation[];
 
   // ─── Hooks ─────────────────────────────────────────────────────────────────
 

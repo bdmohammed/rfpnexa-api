@@ -25,47 +25,47 @@ import { ReviewStatus } from '@/types/enums';
 })
 export class RoleReview {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'role_id', type: 'uuid' })
-  roleId: string;
+  roleId!: string;
 
   @ManyToOne(() => Role, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role!: Role;
 
   @Column({ name: 'role_version_id', type: 'uuid' })
-  roleVersionId: string;
+  roleVersionId!: string;
 
   @ManyToOne(() => RoleVersion, (roleVersion) => roleVersion.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion: RoleVersion;
+  roleVersion!: RoleVersion;
 
   @Index('idx_role_reviews_status')
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
-  status: ReviewStatus;
+  status!: ReviewStatus;
 
   @Column({ name: 'submitted_by', type: 'uuid', nullable: true, default: null })
-  submittedByUserId: string | null;
+  submittedByUserId!: string | null;
 
   @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true, default: null })
-  submittedAt: Date | null;
+  submittedAt!: Date | null;
 
   @Column({ name: 'decision_comment', type: 'text', nullable: true, default: null })
-  decisionComment: string | null;
+  decisionComment!: string | null;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
-  completedAt: Date | null;
+  completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => RoleReviewAssignment, (roleReviewAssignment) => roleReviewAssignment.review)
-  roleReviewAssignments: RoleReviewAssignment[];
+  roleReviewAssignments!: RoleReviewAssignment[];
 
   @OneToMany(() => RoleReviewComment, (roleReviewComment) => roleReviewComment.roleReview)
-  roleReviewComments: RoleReviewComment[];
+  roleReviewComments!: RoleReviewComment[];
 }

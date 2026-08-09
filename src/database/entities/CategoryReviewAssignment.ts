@@ -18,48 +18,48 @@ import { ReviewAssignmentStatus } from '@/types/enums';
 @Index(['reviewId', 'reviewerId'])
 export class CategoryReviewAssignment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'review_id', type: 'uuid' })
-  reviewId: string;
+  reviewId!: string;
 
   @ManyToOne(() => CategoryReview, (review) => review.assignments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
-  review: CategoryReview;
+  review!: CategoryReview;
 
   @Column({ name: 'reviewer_id', type: 'uuid' })
-  reviewerId: string;
+  reviewerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer: User;
+  reviewer!: User;
 
   @Column({
     type: 'enum',
     enum: ReviewAssignmentStatus,
     default: ReviewAssignmentStatus.PENDING,
   })
-  status: ReviewAssignmentStatus;
+  status!: ReviewAssignmentStatus;
 
   @Column({ name: 'assigned_by', type: 'uuid', nullable: true, default: null })
-  assignedByUserId: string | null;
+  assignedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'assigned_by' })
-  assignedByUser: User | null;
+  assignedByUser!: User | null;
 
   @Column({ name: 'assigned_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  assignedAt: Date;
+  assignedAt!: Date;
 
   @Column({ name: 'responded_at', type: 'timestamptz', nullable: true, default: null })
-  respondedAt: Date | null;
+  respondedAt!: Date | null;
 
   @Column({ name: 'response_comment', type: 'text', nullable: true, default: null })
-  responseComment: string | null;
+  responseComment!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

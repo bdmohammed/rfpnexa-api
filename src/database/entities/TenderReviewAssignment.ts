@@ -13,28 +13,28 @@ import { User } from './User';
 @Entity('tender_review_assignments')
 export class TenderReviewAssignment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'review_id', type: 'uuid' })
-  reviewId: string;
+  reviewId!: string;
 
   @ManyToOne(() => TenderReview, (review) => review.assignments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
-  review: TenderReview;
+  review!: TenderReview;
 
   @Column({ name: 'reviewer_id', type: 'uuid' })
-  reviewerId: string;
+  reviewerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer: User;
+  reviewer!: User;
 
-  @Column({ length: 50, default: 'PENDING' })
-  decision: string;
+  @Column({ type: 'varchar', length: 50, default: 'PENDING' })
+  decision!: string;
 
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
-  assignedAt: Date;
+  assignedAt!: Date;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt: Date | null;
+  @Column({ type: 'timestamptz', name: 'completed_at', nullable: true })
+  completedAt!: Date | null;
 }

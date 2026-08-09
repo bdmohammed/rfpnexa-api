@@ -49,7 +49,11 @@ export const loadPermissions = async (
     // Find all active, non-expired role assignments for user
     const userRoles = await userRoleRepo.find({
       where: { userId },
-      relations: ['role', 'role.activeVersion'],
+      relations: {
+        role: {
+          activeVersion: true,
+        },
+      },
     });
 
     const activeUserRoles = userRoles.filter((ur) => {
@@ -83,7 +87,11 @@ export const loadPermissions = async (
 
     if (hasSuperAdmin) {
       const permissionRepo = AppDataSource.getRepository(Permission);
-      const allPermissions = await permissionRepo.find({ select: ['key'] });
+      const allPermissions = await permissionRepo.find({
+        select: {
+          key: true,
+        },
+      });
       permissionKeys = allPermissions.map((p) => p.key);
     } else if (activeUserRoles.length > 0) {
       const activeVersionIds = activeUserRoles
@@ -94,7 +102,9 @@ export const loadPermissions = async (
         const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
         const rvpList = await rvpRepo.find({
           where: { roleVersionId: In(activeVersionIds) },
-          select: ['permissionKey'],
+          select: {
+            permissionKey: true,
+          },
         });
         permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
       }

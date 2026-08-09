@@ -14,44 +14,44 @@ import { User } from './User';
 @Entity('tender_amendments')
 export class TenderAmendment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'tender_id', type: 'uuid' })
-  tenderId: string;
+  tenderId!: string;
 
   @ManyToOne(() => Tender, (tender) => tender.amendments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender: Tender;
+  tender!: Tender;
 
   @Column({ name: 'tender_version_id', type: 'uuid', nullable: true })
-  tenderVersionId: string | null;
+  tenderVersionId!: string | null;
 
   @ManyToOne(() => TenderVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion: TenderVersion | null;
+  tenderVersion!: TenderVersion | null;
 
   @Column({ name: 'amendment_number', type: 'int' })
-  amendmentNumber: number;
+  amendmentNumber!: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  title: string | null;
+  title!: string | null;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'changed_fields', type: 'jsonb', nullable: true })
-  changedFields: Record<string, unknown> | null;
+  changedFields!: Record<string, unknown> | null;
 
   @Column({ name: 'effective_at', type: 'timestamptz', nullable: true })
-  effectiveAt: Date | null;
+  effectiveAt!: Date | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'published_by_id' })
-  publishedBy: User | null;
+  publishedBy!: User | null;
 
   @Column({ name: 'published_by_id', type: 'uuid', nullable: true })
-  publishedById: string | null;
+  publishedById!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

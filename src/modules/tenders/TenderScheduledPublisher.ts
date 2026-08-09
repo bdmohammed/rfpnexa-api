@@ -1,9 +1,11 @@
+import { LessThanOrEqual } from 'typeorm';
+
 import { AppDataSource } from '../../config/database';
 import { logger } from '../../config/logger';
 import { Tender } from '../../database/entities/Tender';
 import { TenderPublicationStatus } from '../../types/enums';
+
 import { TenderWorkflowService } from './TenderWorkflowService';
-import { LessThanOrEqual } from 'typeorm';
 
 export class TenderScheduledPublisher {
   /**
@@ -17,7 +19,9 @@ export class TenderScheduledPublisher {
         publicationStatus: TenderPublicationStatus.SCHEDULED,
         publishAt: LessThanOrEqual(new Date()),
       },
-      relations: ['activeVersion'],
+      relations: {
+        activeVersion: true,
+      },
     });
 
     if (dueTenders.length === 0) {

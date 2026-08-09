@@ -15,24 +15,24 @@ import { RoleVersion } from './RoleVersion';
 @Index(['roleVersionId'])
 export class RoleVersionPermission {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'role_version_id', type: 'uuid' })
-  roleVersionId: string;
+  roleVersionId!: string;
 
   @ManyToOne(() => RoleVersion, (rv) => rv.roleVersionPermissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion: RoleVersion;
+  roleVersion!: RoleVersion;
 
   @Column({ name: 'permission_key', type: 'varchar', length: 100 })
-  permissionKey: string;
+  permissionKey!: string;
 
   @Column({ name: 'permission_name', type: 'varchar', length: 100 })
-  permissionName: string;
+  permissionName!: string;
 
   @Column({ name: 'module_slug', type: 'varchar', length: 100 })
-  moduleSlug: string;
+  moduleSlug!: string;
 
   @Column({ name: 'module_name', type: 'varchar', length: 100 })
-  moduleName: string;
+  moduleName!: string;
 }

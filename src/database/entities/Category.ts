@@ -32,42 +32,42 @@ import { CategoryStatus } from '@/types/enums';
 @Check('"code" ~ \'^[0-9]{3}$\'')
 export class Category {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   /** 3-digit NAICS-style code e.g. '001'..'084' */
   @Column({ type: 'varchar', length: 10 })
-  code: string;
+  code!: string;
 
   @Column({ type: 'varchar', length: 200 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar', length: 200, unique: true })
-  slug: string;
+  slug!: string;
 
   @Column({ type: 'enum', enum: CategoryStatus, default: CategoryStatus.PUBLISHED })
-  status: CategoryStatus;
+  status!: CategoryStatus;
 
   @Column({ name: 'active_version_id', type: 'uuid', nullable: true, default: null })
-  activeVersionId: string | null;
+  activeVersionId!: string | null;
 
   @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion: CategoryVersion | null;
+  activeVersion!: CategoryVersion | null;
 
   @Column({ name: 'is_deleted', type: 'boolean', default: false })
-  isDeleted: boolean;
+  isDeleted!: boolean;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt?: Date | null;
@@ -76,7 +76,7 @@ export class Category {
     name: 'created_by',
     type: 'uuid',
   })
-  createdBy: string;
+  createdBy!: string;
 
   @ManyToOne(() => User, {
     nullable: true,
@@ -101,19 +101,19 @@ export class Category {
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => TenderVersion, (t) => t.category)
-  tenders: TenderVersion[];
+  tenders!: TenderVersion[];
 
   @OneToMany(() => AlertPreference, (alertPreference) => alertPreference.categoryId)
-  alertPreference: AlertPreference[];
+  alertPreference!: AlertPreference[];
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.category)
-  tenderMetrics: TenderDailyMetrics[];
+  tenderMetrics!: TenderDailyMetrics[];
 
   @OneToMany(() => CategoryVersion, (v) => v.category)
-  versions: CategoryVersion[];
+  versions!: CategoryVersion[];
 
   @OneToMany(() => CategoryActivity, (a) => a.category)
-  activities: CategoryActivity[];
+  activities!: CategoryActivity[];
 
   // ─── Hooks ───────────────────────────────────────────────────────────────
   @BeforeInsert()

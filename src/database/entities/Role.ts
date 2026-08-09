@@ -28,23 +28,23 @@ import { RoleStatus } from '@/types/enums';
 })
 export class Role {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index('roles_key_idx', { unique: true })
   @Column({ type: 'varchar', length: 100, unique: true })
-  key: string;
+  key!: string;
 
   @Column({ type: 'enum', enum: RoleStatus, default: RoleStatus.DISABLED })
-  status: RoleStatus;
+  status!: RoleStatus;
 
   @Column({ name: 'is_system_role', type: 'boolean', default: false })
-  isSystemRole: boolean;
+  isSystemRole!: boolean;
 
   @Column({ name: 'is_default_role', type: 'boolean', default: false })
-  isDefaultRole: boolean;
+  isDefaultRole!: boolean;
 
   @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
-  activeVersionId: string | null;
+  activeVersionId!: string | null;
 
   @Column({
     name: 'published_version_number',
@@ -53,7 +53,7 @@ export class Role {
     nullable: true,
     default: null,
   })
-  publishedVersionNumber: string | null;
+  publishedVersionNumber!: string | null;
 
   @Column({
     name: 'latest_draft_version_number',
@@ -62,16 +62,16 @@ export class Role {
     nullable: true,
     default: null,
   })
-  latestDraftVersionNumber: string | null;
+  latestDraftVersionNumber!: string | null;
 
   @ManyToOne(() => RoleVersion, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion: RoleVersion;
+  activeVersion!: RoleVersion;
 
   @Column({ name: 'created_by', type: 'uuid' })
-  createdBy: string;
+  createdBy!: string;
 
   @ManyToOne(() => User, {
     onDelete: 'RESTRICT',
@@ -79,10 +79,10 @@ export class Role {
   @JoinColumn({
     name: 'created_by',
   })
-  createdByUser: User;
+  createdByUser!: User;
 
   @Column({ name: 'updated_by', type: 'uuid' })
-  updatedBy: string;
+  updatedBy!: string;
 
   @ManyToOne(() => User, {
     onDelete: 'RESTRICT',
@@ -90,21 +90,21 @@ export class Role {
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedByUser: User;
+  updatedByUser!: User;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => UserRole, (userRole) => userRole.role)
-  userRoles: UserRole[];
+  userRoles!: UserRole[];
 
   @OneToMany(() => RoleVersion, (roleVersion) => roleVersion.role)
-  versions: RoleVersion[];
+  versions!: RoleVersion[];
 
   @OneToMany(() => NotificationRecipient, (recipient) => recipient.role)
-  receivedNotifications: NotificationRecipient[];
+  receivedNotifications!: NotificationRecipient[];
 }

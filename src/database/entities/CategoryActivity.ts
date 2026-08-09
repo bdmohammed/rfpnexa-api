@@ -16,35 +16,35 @@ import { User } from './User';
 @Index(['categoryId'])
 export class CategoryActivity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'category_id', type: 'uuid' })
-  categoryId: string;
+  categoryId!: string;
 
   @ManyToOne(() => Category, (cat) => cat.activities, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_id' })
-  category: Category;
+  category!: Category;
 
   @Column({ name: 'category_version_id', type: 'uuid', nullable: true, default: null })
-  categoryVersionId: string | null;
+  categoryVersionId!: string | null;
 
   @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_version_id' })
-  categoryVersion: CategoryVersion | null;
+  categoryVersion!: CategoryVersion | null;
 
   @Column({ name: 'actor_id', type: 'uuid' })
-  actorId: string;
+  actorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'actor_id' })
-  actor: User;
+  actor!: User;
 
   @Column({ type: 'varchar', length: 50 })
-  event: string;
+  event!: string;
 
   @Column({ type: 'jsonb', nullable: true, default: null })
-  details: Record<string, unknown> | null;
+  details!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

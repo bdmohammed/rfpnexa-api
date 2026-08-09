@@ -32,7 +32,9 @@ export default class AddedCategoryModueAndPermissions1720800010 implements SeedI
 
     const existingPermissions = await permRepo.find({
       where: { key: In(categoryPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

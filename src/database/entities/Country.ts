@@ -38,17 +38,19 @@ export class Country {
 
   @Index('idx_country_slug', { unique: true })
   @Column({
+    type: 'varchar',
     length: 100,
   })
   slug!: string;
 
   @Column({
+    type: 'varchar',
     length: 100,
   })
   name!: string;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({
     name: 'is_active',

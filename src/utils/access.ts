@@ -64,7 +64,9 @@ function checkPlanAccess(
 async function checkPurchaseFallback(userId: string, tenderId: string): Promise<boolean> {
   const purchase = await purchasedTenderRepository.findOne({
     where: { userId, tenderId },
-    select: ['id'],
+    select: {
+      id: true,
+    },
   });
   return purchase !== null;
 }
@@ -73,7 +75,11 @@ export async function hasAccessToTender(userId: string, tenderId: string): Promi
   // Check active subscriptions first (most common case)
   const activeSubscriptions = await subscriptionRepository.find({
     where: { userId, status: SubscriptionStatus.ACTIVE },
-    relations: ['planVersion', 'planVersion.plan'],
+    relations: {
+      planVersion: {
+        plan: true,
+      },
+    },
   });
 
   const now = new Date();
@@ -88,12 +94,15 @@ export async function hasAccessToTender(userId: string, tenderId: string): Promi
   // Fetch the tender details (category, state, state.country) to verify access
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: [
-      'activeVersion',
-      'activeVersion.state',
-      'activeVersion.state.country',
-      'activeVersion.category',
-    ],
+    relations: {
+      activeVersion: {
+        state: {
+          country: true,
+        },
+
+        category: true,
+      },
+    },
   });
 
   const version = tender?.activeVersion;

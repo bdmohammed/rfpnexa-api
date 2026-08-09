@@ -21,12 +21,13 @@ const subRepo = AppDataSource.getRepository(Subscription);
 export async function listPlans(): Promise<Plan[]> {
   return planRepository.find({
     where: { status: PlanStatus.ACTIVE },
-    relations: [
-      'activeVersion',
-      'activeVersion.features',
-      'activeVersion.countryPricing',
-      'activeVersion.categoryPricing',
-    ],
+    relations: {
+      activeVersion: {
+        features: true,
+        countryPricing: true,
+        categoryPricing: true,
+      },
+    },
   });
 }
 
@@ -42,12 +43,15 @@ export async function createSubscription(
   // Verify plan exists and is active
   const plan = await planRepository.findOne({
     where: { id: dto.planId, status: PlanStatus.ACTIVE },
-    relations: [
-      'activeVersion',
-      'activeVersion.countryPricing',
-      'activeVersion.countryPricing.country',
-      'activeVersion.categoryPricing',
-    ],
+    relations: {
+      activeVersion: {
+        countryPricing: {
+          country: true,
+        },
+
+        categoryPricing: true,
+      },
+    },
   });
   if (!plan?.activeVersionId || !plan.activeVersion) {
     throw new AppError(
@@ -148,7 +152,9 @@ export async function createSubscription(
   if (dto.couponCode) {
     const coupon = await couponRepository.findOne({
       where: { code: dto.couponCode, isActive: true },
-      relations: ['restrictedPlans'],
+      relations: {
+        restrictedPlans: true,
+      },
     });
     if (!coupon)
       throw new AppError(
@@ -295,7 +301,11 @@ export async function getMySubscription(userId: string): Promise<{
 }> {
   const subscription = await subscriptionRepository.findOne({
     where: { userId, status: SubscriptionStatus.ACTIVE },
-    relations: ['planVersion', 'planVersion.plan'],
+    relations: {
+      planVersion: {
+        plan: true,
+      },
+    },
     order: { createdAt: 'DESC' },
   });
 
@@ -309,7 +319,11 @@ export async function cancelMySubscription(userId: string): Promise<void> {
   const start = performance.now();
   const subscription = await subscriptionRepository.findOne({
     where: { userId, status: SubscriptionStatus.ACTIVE },
-    relations: ['planVersion', 'planVersion.plan'],
+    relations: {
+      planVersion: {
+        plan: true,
+      },
+    },
   });
 
   if (!subscription)
@@ -341,7 +355,13 @@ export async function listAllSubscriptions(opts: {
   limit: number;
 }): Promise<{ subscriptions: Subscription[]; total: number }> {
   const [subscriptions, total] = await subRepo.findAndCount({
-    relations: ['user', 'planVersion', 'planVersion.plan'],
+    relations: {
+      user: true,
+
+      planVersion: {
+        plan: true,
+      },
+    },
     order: { createdAt: 'DESC' },
     skip: (opts.page - 1) * opts.limit,
     take: opts.limit,

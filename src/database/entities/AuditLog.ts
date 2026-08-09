@@ -28,87 +28,87 @@ import { AuditSeverity, AuditStatus, LogSource } from '@/types/enums';
 @Index('idx_audit_logs_entity_id', ['entityId'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'enum', enum: LogSource, default: LogSource.API })
-  source: LogSource;
+  source!: LogSource;
 
   @Column({ name: 'endpoint', type: 'varchar', nullable: true, default: null })
-  endpoint: string | null;
+  endpoint!: string | null;
 
   @Column({ type: 'uuid', name: 'event_id' })
-  eventId: string;
+  eventId!: string;
 
   @Column({ type: 'uuid', name: 'correlation_id', nullable: true, default: null })
-  correlationId: string | null;
+  correlationId!: string | null;
 
   @Column({ type: 'uuid', nullable: true, default: null })
-  actorId: string | null;
+  actorId!: string | null;
 
   @Column({ type: 'uuid', name: 'actor_user_id', nullable: true, default: null })
-  actorUserId: string | null;
+  actorUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'actor_user_id' })
-  actorUser: User | null;
+  actorUser!: User | null;
 
   @Column({ type: 'uuid', name: 'target_user_id', nullable: true, default: null })
-  targetUserId: string | null;
+  targetUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'target_user_id' })
-  targetUser: User | null;
+  targetUser!: User | null;
 
   /** Denormalized — preserved even if user is deleted */
-  @Column()
-  actorEmail: string;
+  @Column({ type: 'varchar', name: 'actor_email' })
+  actorEmail!: string;
 
   // PermissionModules eg: dashboard, role, permission etc.
   @Column({ type: 'varchar' })
-  module: string;
+  module!: string;
 
   // PermissionActions eg: view, create, update, delete, etc.
   @Column({ type: 'varchar' })
-  action: string;
+  action!: string;
 
   @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true, default: null })
-  entityType: string | null;
+  entityType!: string | null;
 
   @Column({ name: 'entity_id', type: 'varchar', nullable: true, default: null })
-  entityId: string | null;
+  entityId!: string | null;
 
   @Column({ type: 'enum', enum: AuditSeverity, default: AuditSeverity.INFO })
-  severity: AuditSeverity;
+  severity!: AuditSeverity;
 
   @Column({ type: 'enum', enum: AuditStatus, default: AuditStatus.SUCCESS })
-  status: AuditStatus;
+  status!: AuditStatus;
 
   /** State before the action (alias/source of oldValues) */
   @Column({ type: 'jsonb', nullable: true, default: null })
-  before: Record<string, unknown> | null;
+  before!: Record<string, unknown> | null;
 
   /** State after the action (alias/source of newValues) */
   @Column({ type: 'jsonb', nullable: true, default: null })
-  after: Record<string, unknown> | null;
+  after!: Record<string, unknown> | null;
 
   @Column({ type: 'jsonb', nullable: true, default: null })
-  metadata: Record<string, unknown> | null;
+  metadata!: Record<string, unknown> | null;
 
   @Column({ name: 'request_id', type: 'varchar', nullable: true, default: null })
-  requestId: string | null;
+  requestId!: string | null;
 
   @Column({ name: 'trace_id', type: 'varchar', nullable: true, default: null })
-  traceId: string | null;
+  traceId!: string | null;
 
   @Column({ name: 'user_agent', type: 'varchar', nullable: true, default: null })
-  userAgent: string | null;
+  userAgent!: string | null;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true, default: null })
-  ipAddress: string | null;
+  ipAddress!: string | null;
 
   @Column({ name: 'session_id', type: 'varchar', nullable: true, default: null })
-  sessionId: string | null;
+  sessionId!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

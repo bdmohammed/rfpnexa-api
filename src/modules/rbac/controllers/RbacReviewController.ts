@@ -44,13 +44,17 @@ export class RbacReviewController {
       const { id } = req.params;
       const review = await AppDataSource.getRepository(RoleReview).findOne({
         where: { id },
-        relations: [
-          'roleReviewAssignments',
-          'roleReviewAssignments.reviewer',
-          'roleReviewComments',
-          'roleReviewComments.user',
-          'roleVersion',
-        ],
+        relations: {
+          roleReviewAssignments: {
+            reviewer: true,
+          },
+
+          roleReviewComments: {
+            user: true,
+          },
+
+          roleVersion: true,
+        },
       });
       const mapped = review
         ? {

@@ -26,48 +26,48 @@ export interface SecurityLogDetails {
 @Index('idx_security_request_id', ['requestId'])
 export class SecurityLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'enum', enum: LogSource, default: LogSource.API })
-  source: LogSource;
+  source!: LogSource;
 
   @Column({ name: 'endpoint', type: 'varchar', nullable: true, default: null })
-  endpoint: string | null;
+  endpoint!: string | null;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true, default: null })
-  userId: string | null;
+  userId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user: User | null;
+  user!: User | null;
 
   @Column({ type: 'varchar', nullable: true, default: null })
-  email: string | null;
+  email!: string | null;
 
   @Column({ type: 'enum', enum: SecurityEvent })
-  event: SecurityEvent;
+  event!: SecurityEvent;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true, default: null })
-  ipAddress: string | null;
+  ipAddress!: string | null;
 
   @Column({ name: 'user_agent', type: 'varchar', nullable: true, default: null })
-  userAgent: string | null;
+  userAgent!: string | null;
 
   @Column({ name: 'session_id', type: 'varchar', nullable: true, default: null })
-  sessionId: string | null;
+  sessionId!: string | null;
 
   @Column({ name: 'request_id', type: 'varchar', nullable: true, default: null })
-  requestId: string | null;
+  requestId!: string | null;
 
   @Column({ name: 'trace_id', type: 'varchar', nullable: true, default: null })
-  traceId: string | null;
+  traceId!: string | null;
 
   @Column({ name: 'correlation_id', type: 'uuid', nullable: true, default: null })
-  correlationId: string | null;
+  correlationId!: string | null;
 
   @Column({ type: 'jsonb', nullable: true, default: null })
-  details: SecurityLogDetails | null;
+  details!: SecurityLogDetails | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

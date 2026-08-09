@@ -68,7 +68,9 @@ setupRouter.get(
           isSystemRole: true,
         },
       },
-      relations: ['role'],
+      relations: {
+        role: true,
+      },
     });
 
     if (superAdminCount > 0) {
@@ -172,7 +174,9 @@ setupRouter.post(
             isSystemRole: true,
           },
         },
-        relations: ['role'],
+        relations: {
+          role: true,
+        },
       });
 
       if (superAdminCount > 0) {
@@ -288,7 +292,11 @@ setupRouter.post(
         });
 
         if (existingPermCount === 0) {
-          const allPermissions = await permissionRepo.find({ relations: ['module'] });
+          const allPermissions = await permissionRepo.find({
+            relations: {
+              module: true,
+            },
+          });
           const roleVersionPerms = allPermissions.map((p) =>
             roleVersionPermissionRepo.create({
               roleVersionId: superAdminVersion.id,

@@ -17,57 +17,57 @@ import { AlertSeverity, AlertSource, AlertTriggerCondition } from '@/types/enums
 @Index('idx_analytics_alerts_metric', ['metricKey'])
 export class AnalyticsAlert {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'metric_key', type: 'varchar', length: 100 })
-  metricKey: string;
+  metricKey!: string;
 
   @Column({
     name: 'trigger_condition',
     type: 'enum',
     enum: AlertTriggerCondition,
   })
-  triggerCondition: AlertTriggerCondition;
+  triggerCondition!: AlertTriggerCondition;
 
   @Column({ name: 'actual_value', type: 'double precision' })
-  actualValue: number;
+  actualValue!: number;
 
   @Column({ name: 'threshold_value', type: 'double precision' })
-  thresholdValue: number;
+  thresholdValue!: number;
 
   @Column({
     type: 'enum',
     enum: AlertSeverity,
     default: AlertSeverity.MEDIUM,
   })
-  severity: AlertSeverity;
+  severity!: AlertSeverity;
 
   @Column({
     type: 'enum',
     enum: AlertSource,
     default: AlertSource.SYSTEM,
   })
-  source: AlertSource;
+  source!: AlertSource;
 
   @Column({ type: 'boolean', default: false })
-  resolved: boolean;
+  resolved!: boolean;
 
   @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true, default: null })
-  resolvedAt: Date | null;
+  resolvedAt!: Date | null;
 
   @Column({ name: 'resolved_by', type: 'uuid', nullable: true, default: null })
-  resolvedBy: string | null;
+  resolvedBy!: string | null;
 
   @ManyToOne(() => User, (user) => user.resolvedAlerts, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'resolved_by' })
-  resolvedByUser: User | null;
+  resolvedByUser!: User | null;
 
   @Column({ name: 'resolved_reason', type: 'text', nullable: true, default: null })
-  resolvedReason: string | null;
+  resolvedReason!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

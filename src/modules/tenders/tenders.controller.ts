@@ -197,7 +197,9 @@ export const duplicateTender = asyncHandler<TenderIdParamDto>(async (req, res) =
   const userId = getUserId(req);
   const original = await AppDataSource.getRepository(Tender).findOne({
     where: { id },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
   if (!original?.activeVersion) {
     throw new AppError('Tender not found', HttpStatusCode.NOT_FOUND, AppErrorCode.NOT_FOUND);

@@ -25,38 +25,38 @@ import { ReviewStatus } from '@/types/enums';
 })
 export class PlanReview {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'plan_id', type: 'uuid' })
-  planId: string;
+  planId!: string;
 
   @ManyToOne(() => Plan, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_id' })
-  plan: Plan;
+  plan!: Plan;
 
   @Column({ name: 'plan_version_id', type: 'uuid' })
-  planVersionId: string;
+  planVersionId!: string;
 
   @ManyToOne(() => PlanVersion, (planVersion) => planVersion.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion: PlanVersion;
+  planVersion!: PlanVersion;
 
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
-  status: ReviewStatus;
+  status!: ReviewStatus;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
-  completedAt: Date | null;
+  completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => PlanReviewAssignment, (pra) => pra.review)
-  planReviewAssignments: PlanReviewAssignment[];
+  planReviewAssignments!: PlanReviewAssignment[];
 
   @OneToMany(() => PlanReviewComment, (c) => c.planReview)
-  comments: PlanReviewComment[];
+  comments!: PlanReviewComment[];
 }

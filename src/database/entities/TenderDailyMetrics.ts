@@ -19,46 +19,46 @@ import { User } from './User';
 @Index(['date', 'countryId', 'categoryId'])
 export class TenderDailyMetrics {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'timestamptz' })
-  date: Date;
+  date!: Date;
 
   @Column({ name: 'country_id', type: 'smallint', nullable: true, default: null })
-  countryId: number | null;
+  countryId!: number | null;
 
   @ManyToOne(() => Country, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'country_id' })
-  country: Country | null;
+  country!: Country | null;
 
   @Column({ name: 'category_id', type: 'uuid', nullable: true, default: null })
-  categoryId: string | null;
+  categoryId!: string | null;
 
   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
-  category: Category | null;
+  category!: Category | null;
 
   @Column({ name: 'tender_id', type: 'uuid', nullable: true, default: null })
-  tenderId: string | null;
+  tenderId!: string | null;
 
   @ManyToOne(() => Tender, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'tender_id' })
-  tender: Tender | null;
+  tender!: Tender | null;
 
   @Column({ name: 'procurement_type', type: 'varchar', length: 100, nullable: true })
-  procurementType: string | null;
+  procurementType!: string | null;
 
   @Column({ name: 'created_count', type: 'integer', default: 0 })
-  createdCount: number;
+  createdCount!: number;
 
   @Column({ name: 'published_count', type: 'integer', default: 0 })
-  publishedCount: number;
+  publishedCount!: number;
 
   @Column({ name: 'awarded_count', type: 'integer', default: 0 })
-  awardedCount: number;
+  awardedCount!: number;
 
   @Column({ name: 'cancelled_count', type: 'integer', default: 0 })
-  cancelledCount: number;
+  cancelledCount!: number;
 
   @Column({
     name: 'total_budget',
@@ -71,7 +71,7 @@ export class TenderDailyMetrics {
       from: (val: string) => parseFloat(val),
     },
   })
-  totalBudget: number;
+  totalBudget!: number;
 
   @Column({
     name: 'average_evaluation_time_seconds',
@@ -84,7 +84,7 @@ export class TenderDailyMetrics {
       from: (val: string) => parseFloat(val),
     },
   })
-  averageEvaluationTimeSeconds: number;
+  averageEvaluationTimeSeconds!: number;
 
   @Column({
     name: 'average_award_time_seconds',
@@ -97,28 +97,28 @@ export class TenderDailyMetrics {
       from: (val: string) => parseFloat(val),
     },
   })
-  averageAwardTimeSeconds: number;
+  averageAwardTimeSeconds!: number;
 
   @Column({ name: 'bid_count', type: 'integer', default: 0 })
-  bidCount: number;
+  bidCount!: number;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdById: string | null;
+  createdById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy: User | null;
+  createdBy!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedById: string | null;
+  updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy: User | null;
+  updatedBy!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

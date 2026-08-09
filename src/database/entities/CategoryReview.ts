@@ -21,47 +21,47 @@ import { ReviewStatus } from '@/types/enums';
 @Index(['categoryVersionId'])
 export class CategoryReview {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'category_id', type: 'uuid' })
-  categoryId: string;
+  categoryId!: string;
 
   @ManyToOne(() => Category, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_id' })
-  category: Category;
+  category!: Category;
 
   @Column({ name: 'category_version_id', type: 'uuid' })
-  categoryVersionId: string;
+  categoryVersionId!: string;
 
   @ManyToOne(() => CategoryVersion, (version) => version.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_version_id' })
-  categoryVersion: CategoryVersion;
+  categoryVersion!: CategoryVersion;
 
   @Index('idx_category_reviews_status')
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
-  status: ReviewStatus;
+  status!: ReviewStatus;
 
   @Column({ name: 'submitted_by', type: 'uuid', nullable: true, default: null })
-  submittedByUserId: string | null;
+  submittedByUserId!: string | null;
 
   @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true, default: null })
-  submittedAt: Date | null;
+  submittedAt!: Date | null;
 
   @Column({ name: 'decision_comment', type: 'text', nullable: true, default: null })
-  decisionComment: string | null;
+  decisionComment!: string | null;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
-  completedAt: Date | null;
+  completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => CategoryReviewAssignment, (assignment) => assignment.review)
-  assignments: CategoryReviewAssignment[];
+  assignments!: CategoryReviewAssignment[];
 
   @OneToMany(() => CategoryReviewComment, (comment) => comment.categoryReview)
-  comments: CategoryReviewComment[];
+  comments!: CategoryReviewComment[];
 }

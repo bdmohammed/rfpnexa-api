@@ -121,7 +121,9 @@ export default class AddedAllUSStates1720800002 implements SeedInterface {
 
     const existingStates = await stateRepo.find({
       where: { countryId: country.id },
-      select: ['code'],
+      select: {
+        code: true,
+      },
     });
     const existingCodes = new Set(existingStates.map((state) => state.code));
 

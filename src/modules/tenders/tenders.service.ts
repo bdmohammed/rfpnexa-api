@@ -20,15 +20,14 @@ import { TenderVersion } from '../../database/entities/TenderVersion';
 import { TenderWatcher } from '../../database/entities/TenderWatcher';
 import { deleteFile, generateDownloadUrl } from '../../services/s3.service';
 import {
-  TenderBiddingStatus,
   TenderLifecycleStatus,
-  TenderProcessStatus,
   TenderPublicationStatus,
   TenderVersionStatus,
 } from '../../types/enums';
-import { TenderWorkflowService } from './TenderWorkflowService';
 import { hasAccessToTender } from '../../utils/access';
 import { domainEvents, TENDER_EVENTS } from '../../utils/domainEvents';
+
+import { TenderWorkflowService } from './TenderWorkflowService';
 
 import type {
   AnswerQuestionDto,
@@ -351,7 +350,11 @@ export async function getDownloadUrl(
 ): Promise<string> {
   const doc = await tenderDocumentRepository.findOne({
     where: { id: documentId },
-    relations: ['tenderVersion', 'tenderVersion.tender'],
+    relations: {
+      tenderVersion: {
+        tender: true,
+      },
+    },
   });
 
   if (!doc) {
@@ -471,7 +474,9 @@ export async function updateTender(
 ): Promise<Tender> {
   const tender = await tenderRepository.findOne({
     where: { id },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender) {
@@ -602,7 +607,9 @@ export async function updateTenderSchedule(
 export async function getTenderCompletionStatus(id: string) {
   const tender = await tenderRepository.findOne({
     where: { id },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -649,7 +656,9 @@ export async function updateTenderStatus(
 ): Promise<Tender> {
   const tender = await tenderRepository.findOne({
     where: { id },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender) {
@@ -736,7 +745,9 @@ export async function registerDocument(
 ): Promise<TenderDocument> {
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -778,7 +789,9 @@ export async function registerDocument(
 export async function getTenderDocuments(tenderId: string): Promise<TenderDocument[]> {
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -955,7 +968,9 @@ export async function submitDraftForReview(
 ): Promise<TenderReview> {
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -983,7 +998,9 @@ export async function submitDraftForReview(
 export async function getTenderReviews(tenderId: string): Promise<TenderReview[]> {
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -992,7 +1009,15 @@ export async function getTenderReviews(tenderId: string): Promise<TenderReview[]
 
   return tenderReviewRepository.find({
     where: { tenderVersionId: tender.activeVersion.id, status: 'REVIEW_ASSIGNED' },
-    relations: ['assignments', 'assignments.reviewer', 'comments', 'comments.author'],
+    relations: {
+      assignments: {
+        reviewer: true,
+      },
+
+      comments: {
+        author: true,
+      },
+    },
     order: { createdAt: 'DESC' },
   });
 }
@@ -1003,7 +1028,9 @@ export async function assignReviewers(
 ): Promise<TenderReview> {
   const tender = await tenderRepository.findOne({
     where: { id: tenderId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
 
   if (!tender?.activeVersion) {
@@ -1058,7 +1085,11 @@ export async function submitReviewComment(
 ): Promise<TenderReviewComment> {
   const review = await tenderReviewRepository.findOne({
     where: { id: reviewId },
-    relations: ['tenderVersion', 'tenderVersion.tender'],
+    relations: {
+      tenderVersion: {
+        tender: true,
+      },
+    },
   });
 
   if (!review) {
@@ -1081,7 +1112,7 @@ export async function submitReviewComment(
     review.status = dto.status;
     await tenderReviewRepository.save(review);
 
-    review.tenderVersion.status = dto.status as TenderVersionStatus;
+    review.tenderVersion.status = dto.status;
     await tenderVersionRepository.save(review.tenderVersion);
   }
 
@@ -1096,7 +1127,13 @@ export async function submitReviewDecision(
 ): Promise<TenderReview> {
   const review = await tenderReviewRepository.findOne({
     where: { id: reviewId },
-    relations: ['assignments', 'tenderVersion', 'tenderVersion.tender'],
+    relations: {
+      assignments: true,
+
+      tenderVersion: {
+        tender: true,
+      },
+    },
   });
 
   if (!review) {

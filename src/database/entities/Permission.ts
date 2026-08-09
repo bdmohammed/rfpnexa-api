@@ -23,45 +23,45 @@ export class Permission {
 
   @Index('permissions_module_id_idx')
   @Column({ name: 'module_id', type: 'smallint' })
-  moduleId: number;
+  moduleId!: number;
 
   @ManyToOne(() => PermissionModule, (m) => m.permissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'module_id' })
-  module: PermissionModule;
+  module!: PermissionModule;
 
   @Column({ type: 'varchar', length: 100 })
-  name: string;
+  name!: string;
 
   // module.key + "." + action
   @Index('permissions_key_idx')
   @Column({ type: 'varchar', length: 100, unique: true })
-  key: string;
+  key!: string;
 
   @Column({ type: 'enum', enum: PermissionActions })
-  action: string;
+  action!: string;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({
     name: 'display_order',
     type: 'integer',
     default: 0,
   })
-  displayOrder: number;
+  displayOrder!: number;
 
   @Column({
     name: 'is_active',
     type: 'boolean',
     default: false,
   })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({
     name: 'created_by',

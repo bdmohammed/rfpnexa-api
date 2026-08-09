@@ -24,7 +24,6 @@
     "isolatedModules": true,
     "resolvePackageJsonExports": true,
     "noUncheckedIndexedAccess": true,
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
@@ -35,7 +34,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
     "noUnusedLocals": false,
@@ -55,39 +53,39 @@
     "verbatimModuleSyntax": false,
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "@config/*": [
-        "src/config/*"
+        "./src/config/*"
       ],
       "@entities/*": [
-        "src/database/entities/*"
+        "./src/database/entities/*"
       ],
       "@middleware/*": [
-        "src/middleware/*"
+        "./src/middleware/*"
       ],
       "@modules/*": [
-        "src/modules/*"
+        "./src/modules/*"
       ],
       "@services/*": [
-        "src/services/*"
+        "./src/services/*"
       ],
       "@utils/*": [
-        "src/utils/*"
+        "./src/utils/*"
       ],
       "@jobs/*": [
-        "src/jobs/*"
+        "./src/jobs/*"
       ],
       "@core/*": [
-        "src/core/*"
+        "./src/core/*"
       ],
       "@search/*": [
-        "src/search/*"
+        "./src/search/*"
       ],
       "@types/*": [
-        "src/types/*"
+        "./src/types/*"
       ]
-    }
+    },
   },
   "include": [
     "src/**/*"

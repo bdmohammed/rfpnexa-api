@@ -32,7 +32,9 @@ export default class AddedTenderModuleAndPermissions1720800009 implements SeedIn
 
     const existingPermissions = await permRepo.find({
       where: { key: In(tenderPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

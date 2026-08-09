@@ -19,34 +19,34 @@ import { RetentionCategory } from '@/types/enums';
 @Index('idx_retention_category_enabled', ['category', 'enabled'])
 export class AuditRetentionPolicy {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true, type: 'enum', enum: RetentionCategory })
-  category: RetentionCategory;
+  category!: RetentionCategory;
 
   @Column({ name: 'retention_days', type: 'integer' })
-  retentionDays: number;
+  retentionDays!: number;
 
   @Column({ name: 'enabled', type: 'boolean', default: true })
-  enabled: boolean;
+  enabled!: boolean;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  updatedBy: string | null;
+  updatedBy!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdBy: User | null;
+  createdBy!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedByUserId: string | null;
+  updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser: User | null;
+  updatedByUser!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

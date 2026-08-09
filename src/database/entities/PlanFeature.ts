@@ -14,23 +14,23 @@ import { FeatureValueType } from '@/types/enums';
 @Entity('plan_features')
 export class PlanFeature {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'plan_version_id', type: 'uuid' })
-  planVersionId: string;
+  planVersionId!: string;
 
   @ManyToOne(() => PlanVersion, (v) => v.features, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion: PlanVersion;
+  planVersion!: PlanVersion;
 
   @Column({ name: 'feature_key', type: 'varchar', length: 100 })
-  featureKey: string;
+  featureKey!: string;
 
   @Column({ name: 'display_name', type: 'varchar', length: 150 })
-  displayName: string;
+  displayName!: string;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({
     name: 'value_type',
@@ -38,14 +38,14 @@ export class PlanFeature {
     enum: FeatureValueType,
     default: FeatureValueType.BOOLEAN,
   })
-  valueType: FeatureValueType;
+  valueType!: FeatureValueType;
 
   @Column({ name: 'limit_value', type: 'varchar', length: 100 })
-  limitValue: string;
+  limitValue!: string;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder: number;
+  displayOrder!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

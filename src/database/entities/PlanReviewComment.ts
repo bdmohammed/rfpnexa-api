@@ -18,31 +18,31 @@ import { ReviewAction } from '@/types/enums';
 @Index('idx_plan_review_comments_author', ['authorId'])
 export class PlanReviewComment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'plan_review_id', type: 'uuid' })
-  planReviewId: string;
+  planReviewId!: string;
 
   @Column({
     type: 'enum',
     enum: ReviewAction,
   })
-  action: ReviewAction;
+  action!: ReviewAction;
 
   @ManyToOne(() => PlanReview, (planReview) => planReview.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_review_id' })
-  planReview: PlanReview;
+  planReview!: PlanReview;
 
   @Column({ name: 'author_id', type: 'uuid' })
-  authorId: string;
+  authorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'author_id' })
-  author: User;
+  author!: User;
 
   @Column({ name: 'comment_text', type: 'text' })
-  commentText: string;
+  commentText!: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

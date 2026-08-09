@@ -17,29 +17,29 @@ import { User } from './User';
 @Index(['date', 'planId'])
 export class SubscriptionDailyMetrics {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'timestamptz' })
-  date: Date;
+  date!: Date;
 
   @Column({ name: 'plan_id', type: 'uuid', nullable: true, default: null })
-  planId: string | null;
+  planId!: string | null;
 
   @ManyToOne(() => Plan, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'plan_id' })
-  plan: Plan | null;
+  plan!: Plan | null;
 
   @Column({ type: 'varchar', length: 10, default: 'USD' })
-  currency: string;
+  currency!: string;
 
   @Column({ name: 'active_count', type: 'integer', default: 0 })
-  activeCount: number;
+  activeCount!: number;
 
   @Column({ name: 'expired_count', type: 'integer', default: 0 })
-  expiredCount: number;
+  expiredCount!: number;
 
   @Column({ name: 'cancelled_count', type: 'integer', default: 0 })
-  cancelledCount: number;
+  cancelledCount!: number;
 
   @Column({
     name: 'revenue_cents',
@@ -50,25 +50,25 @@ export class SubscriptionDailyMetrics {
       from: (val: string) => parseInt(val, 10),
     },
   })
-  revenueCents: number;
+  revenueCents!: number;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdById: string | null;
+  createdById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy: User | null;
+  createdBy!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedById: string | null;
+  updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy: User | null;
+  updatedBy!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

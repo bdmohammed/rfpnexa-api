@@ -15,27 +15,27 @@ import { User } from './User';
 @Unique('uq_purchased_tenders_user_tender', ['userId', 'tenderId'])
 export class PurchasedTender {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @Column()
-  userId: string;
+  @Column({ type: 'varchar' })
+  userId!: string;
 
-  @Column()
-  tenderId: string;
+  @Column({ type: 'varchar' })
+  tenderId!: string;
 
-  @Column()
-  transactionId: string;
+  @Column({ type: 'varchar' })
+  transactionId!: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  purchasedAt: Date;
+  purchasedAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Tender, { onDelete: 'CASCADE' })
-  tender: Tender;
+  tender!: Tender;
 
   @ManyToOne(() => Transaction)
-  transaction: Transaction;
+  transaction!: Transaction;
 }

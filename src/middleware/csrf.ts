@@ -2,6 +2,8 @@ import { doubleCsrf } from 'csrf-csrf';
 
 import { env } from '../config/env';
 
+import type { Request } from 'express';
+
 /**
  * CSRF protection using the double-submit cookie pattern (csrf-csrf library).
  *
@@ -17,8 +19,9 @@ import { env } from '../config/env';
  *
  * Applied globally in app.ts with a path-based skip.
  */
-export const { generateToken, doubleCsrfProtection } = doubleCsrf({
+export const { generateCsrfToken: generateToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => env.CSRF_SECRET,
+  getSessionIdentifier: (req: Request) => req.user?.userId ?? req.ip ?? '',
   cookieName: 'nexusbid.csrf',
   cookieOptions: {
     sameSite: 'lax',

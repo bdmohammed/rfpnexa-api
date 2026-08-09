@@ -32,7 +32,9 @@ export const checkForcedReset = async (
 
   const user = await userRepo.findOne({
     where: { id: req.user.userId },
-    select: ['mustResetPassword'],
+    select: {
+      mustResetPassword: true,
+    },
   });
 
   if (user?.mustResetPassword) {
@@ -68,7 +70,10 @@ export const checkPasswordExpiration = async (
 
   const user = await userRepo.findOne({
     where: { id: req.user.userId },
-    select: ['passwordChangedAt', 'createdAt'],
+    select: {
+      passwordChangedAt: true,
+      createdAt: true,
+    },
   });
 
   if (user) {

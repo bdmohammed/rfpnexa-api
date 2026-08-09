@@ -26,7 +26,7 @@ export interface DashboardWidget {
 @Index('ux_user_dashboard_layouts_user_id', ['userId'], { unique: true })
 export class UserDashboardLayout {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
@@ -38,24 +38,24 @@ export class UserDashboardLayout {
   user!: User;
 
   @Column({ name: 'widgets', type: 'jsonb', default: () => "'[]'::jsonb" })
-  widgets: DashboardWidget[];
+  widgets!: DashboardWidget[];
 
   @Column({ name: 'filters', type: 'jsonb', default: () => "'{}'::jsonb" })
-  filters: Record<string, unknown> | null;
+  filters!: Record<string, unknown> | null;
 
   @Column({
     type: 'enum',
     enum: DashboardTheme,
     default: DashboardTheme.DEFAULT,
   })
-  theme: DashboardTheme;
+  theme!: DashboardTheme;
 
   @Column({ name: 'layout_version', type: 'integer', default: 1 })
-  layoutVersion: number;
+  layoutVersion!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

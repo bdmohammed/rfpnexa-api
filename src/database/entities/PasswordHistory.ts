@@ -14,7 +14,7 @@ import { User } from './User';
 @Index('idx_password_histories_user_created', ['userId', 'createdAt'])
 export class PasswordHistory {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
@@ -26,8 +26,8 @@ export class PasswordHistory {
   user!: User;
 
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
-  passwordHash: string;
+  passwordHash!: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

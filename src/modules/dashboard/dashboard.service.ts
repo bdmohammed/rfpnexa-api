@@ -329,7 +329,9 @@ export async function getRevenueData() {
   const subRepo = AppDataSource.getRepository(Subscription);
   const activeSubs = await subRepo.find({
     where: { status: SubscriptionStatus.ACTIVE },
-    relations: ['planVersion'],
+    relations: {
+      planVersion: true,
+    },
   });
 
   let totalMRR = 0;

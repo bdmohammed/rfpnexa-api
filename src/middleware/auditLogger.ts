@@ -16,13 +16,16 @@ function buildAuditLogPayload(
   responseBody: Record<string, unknown>,
 ) {
   const { user } = req;
+  const rawEntityId = req.params['id'];
+  const entityId = Array.isArray(rawEntityId) ? (rawEntityId[0] ?? null) : (rawEntityId ?? null);
+
   return {
     eventId: uuidv4(),
     actorId: user ? user.userId : null,
     actorEmail: user ? user.email : 'unknown',
     action,
     module,
-    entityId: req.params['id'] ?? null,
+    entityId,
     before: (res.locals['auditBefore'] as unknown) ?? null,
     after: responseBody.data ?? null,
     requestId: req.requestId ?? null,

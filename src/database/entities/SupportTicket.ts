@@ -24,26 +24,26 @@ import { User } from './User';
 @Index('idx_support_tickets_status_assigned', ['status', 'assignedToId'])
 export class SupportTicket {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'varchar', length: 255 })
-  subject: string;
+  subject!: string;
 
   @Column({ type: 'enum', enum: TicketStatus, default: TicketStatus.OPEN })
-  status: TicketStatus;
+  status!: TicketStatus;
 
   @Column({ type: 'enum', enum: TicketPriority, default: TicketPriority.MEDIUM })
-  priority: TicketPriority;
+  priority!: TicketPriority;
 
   @Column({ type: 'enum', enum: TicketCategory, default: TicketCategory.TECHNICAL })
-  category: TicketCategory;
+  category!: TicketCategory;
 
   @Column({
     name: 'updated_by',
@@ -59,17 +59,17 @@ export class SupportTicket {
   updatedBy!: User;
 
   @Column({ name: 'assigned_to_id', type: 'uuid', nullable: true, default: null })
-  assignedToId: string | null;
+  assignedToId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'assigned_to_id' })
-  assignedTo: User | null;
+  assignedTo!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', nullable: true, default: null })
-  updatedAt: Date | null;
+  updatedAt!: Date | null;
 
   @Column({
     name: 'closed_at',
@@ -87,5 +87,5 @@ export class SupportTicket {
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => SupportTicketMessage, (m) => m.ticket)
-  messages: SupportTicketMessage[];
+  messages!: SupportTicketMessage[];
 }

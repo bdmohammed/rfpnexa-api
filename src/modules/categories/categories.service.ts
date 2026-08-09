@@ -1,4 +1,4 @@
-import { In, IsNull, Not } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 
 import type {
   BatchCategoriesResultDto,
@@ -203,7 +203,11 @@ export async function getCategoryHistory(id: string): Promise<AuditLog[]> {
 export async function getCategoryById(id: string): Promise<Category> {
   const category = await categoryRepo.findOne({
     where: { id },
-    relations: ['createdByUser', 'updatedByUser', 'activeVersion'],
+    relations: {
+      createdByUser: true,
+      updatedByUser: true,
+      activeVersion: true,
+    },
   });
   if (!category) {
     throw new AppError(
@@ -224,7 +228,11 @@ export async function getCategoryGovernanceDetails(id: string): Promise<{
 }> {
   const category = await categoryRepo.findOne({
     where: { id },
-    relations: ['createdByUser', 'updatedByUser', 'activeVersion'],
+    relations: {
+      createdByUser: true,
+      updatedByUser: true,
+      activeVersion: true,
+    },
   });
   if (!category) {
     throw new AppError(
@@ -236,19 +244,33 @@ export async function getCategoryGovernanceDetails(id: string): Promise<{
 
   const versions = await categoryVersionRepo.find({
     where: { categoryId: id },
-    relations: ['createdByUser', 'approvedByUser', 'parentCategory'],
+    relations: {
+      createdByUser: true,
+      approvedByUser: true,
+      parentCategory: true,
+    },
     order: { createdAt: 'DESC' },
   });
 
   const reviews = await categoryReviewRepo.find({
     where: { categoryId: id },
-    relations: ['assignments', 'assignments.reviewer', 'comments', 'comments.user'],
+    relations: {
+      assignments: {
+        reviewer: true,
+      },
+
+      comments: {
+        user: true,
+      },
+    },
     order: { createdAt: 'DESC' },
   });
 
   const activities = await categoryActivityRepo.find({
     where: { categoryId: id },
-    relations: ['actor'],
+    relations: {
+      actor: true,
+    },
     order: { createdAt: 'DESC' },
   });
 
@@ -441,7 +463,9 @@ export async function reviewCategoryDecision(
   const review = await categoryReviewRepo.findOne({
     where: { categoryId },
     order: { createdAt: 'DESC' },
-    relations: ['categoryVersion'],
+    relations: {
+      categoryVersion: true,
+    },
   });
 
   if (!review) {
@@ -568,7 +592,9 @@ export async function createNewCategoryDraftVersion(
 ): Promise<CategoryVersion> {
   const category = await categoryRepo.findOne({
     where: { id: categoryId },
-    relations: ['activeVersion'],
+    relations: {
+      activeVersion: true,
+    },
   });
   if (!category) {
     throw new AppError(
@@ -756,7 +782,9 @@ export async function createCategory(dto: CreateCategoryDto, adminId?: string): 
     if (parentCategoryId) {
       const childVersions = await categoryVersionRepo.find({
         where: { parentCategoryId },
-        relations: ['category'],
+        relations: {
+          category: true,
+        },
       });
       const childCodes = childVersions
         .map((v) => parseInt(v.category.code || '0', 10))
@@ -766,7 +794,9 @@ export async function createCategory(dto: CreateCategoryDto, adminId?: string): 
     } else {
       const rootVersions = await categoryVersionRepo.find({
         where: { parentCategoryId: IsNull() },
-        relations: ['category'],
+        relations: {
+          category: true,
+        },
       });
       const rootCatIds = new Set(rootVersions.map((v) => v.categoryId));
       const allCategories = await categoryRepo.find({ withDeleted: true });
@@ -787,7 +817,9 @@ export async function createCategory(dto: CreateCategoryDto, adminId?: string): 
   if (parentCategoryId) {
     const childVersions = await categoryVersionRepo.find({
       where: { parentCategoryId },
-      relations: ['category'],
+      relations: {
+        category: true,
+      },
     });
     const duplicateChild = childVersions.find((v) => v.category.code === code);
     if (duplicateChild) {
@@ -800,7 +832,9 @@ export async function createCategory(dto: CreateCategoryDto, adminId?: string): 
   } else {
     const rootVersions = await categoryVersionRepo.find({
       where: { parentCategoryId: IsNull() },
-      relations: ['category'],
+      relations: {
+        category: true,
+      },
     });
     const duplicateRoot = rootVersions.find((v) => v.category.code === code);
     if (duplicateRoot) {
@@ -1025,7 +1059,11 @@ export async function updateCategory(
 export async function deleteCategory(id: string, adminId?: string): Promise<void> {
   const category = await categoryRepo.findOne({
     where: { id },
-    relations: ['tenders', 'tenders.tender'],
+    relations: {
+      tenders: {
+        tender: true,
+      },
+    },
   });
   if (!category) {
     throw new AppError(
@@ -1191,7 +1229,9 @@ export async function processBatchCategories(
       // Check for associated tenders
       const tenderVersions = await transactionalEntityManager.getRepository(TenderVersion).find({
         where: { categoryId: In(deleteIds) },
-        relations: ['category'],
+        relations: {
+          category: true,
+        },
       });
 
       if (tenderVersions.length > 0) {

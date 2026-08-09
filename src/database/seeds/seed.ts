@@ -254,7 +254,6 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
   }
 
   for await (const file of matchedFiles) {
-    // eslint-disable-next-line no-await-in-loop
     const result = await applySeed(file, definitionsDir, dataSource, systemUser);
     if (result.status === SeedStatus.APPLIED && result.durationMs !== undefined) {
       executedCount++;

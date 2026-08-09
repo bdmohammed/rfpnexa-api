@@ -32,7 +32,9 @@ export default class AddedCmsModuleAndPermissions1720800014 implements SeedInter
 
     const existingPermissions = await permRepo.find({
       where: { key: In(cmsPermissions.map((p) => p.key)) },
-      select: ['key'],
+      select: {
+        key: true,
+      },
     });
     const existingKeys = new Set(existingPermissions.map((p) => p.key));
 

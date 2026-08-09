@@ -299,7 +299,9 @@ export const executeAction = asyncHandler<ExecuteActionParamsDto>(async (req, re
 
   const action = await actionRepo.findOne({
     where: { id: actionId, notificationId: id },
-    relations: ['notification'],
+    relations: {
+      notification: true,
+    },
   });
 
   if (!action) {

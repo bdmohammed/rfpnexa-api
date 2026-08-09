@@ -52,16 +52,22 @@ export class RbacService {
   public static async getRoles(includeDeleted = false, userId?: string, isSuperAdmin = false) {
     const roles = await this.roleRepo.find({
       where: includeDeleted ? {} : { status: Not(RoleStatus.ARCHIVED) },
-      relations: [
-        'activeVersion',
-        'activeVersion.roleVersionPermissions',
-        'versions',
-        'versions.roleVersionPermissions',
-        'versions.reviews',
-        'versions.reviews.roleReviewAssignments',
-        'createdByUser',
-        'userRoles',
-      ],
+      relations: {
+        activeVersion: {
+          roleVersionPermissions: true,
+        },
+
+        versions: {
+          roleVersionPermissions: true,
+
+          reviews: {
+            roleReviewAssignments: true,
+          },
+        },
+
+        createdByUser: true,
+        userRoles: true,
+      },
       order: { createdAt: 'DESC' },
     });
 
@@ -177,12 +183,15 @@ export class RbacService {
   public static async getRoleById(id: string): Promise<RoleDetails> {
     const role = await this.roleRepo.findOne({
       where: { id },
-      relations: [
-        'activeVersion',
-        'activeVersion.roleVersionPermissions',
-        'versions',
-        'versions.roleVersionPermissions',
-      ],
+      relations: {
+        activeVersion: {
+          roleVersionPermissions: true,
+        },
+
+        versions: {
+          roleVersionPermissions: true,
+        },
+      },
     });
 
     if (!role) {
@@ -261,7 +270,9 @@ export class RbacService {
       permissionKeys.length > 0
         ? await this.permRepo.find({
             where: { key: In(permissionKeys) },
-            relations: ['module'],
+            relations: {
+              module: true,
+            },
           })
         : [];
 
@@ -327,7 +338,9 @@ export class RbacService {
   ): Promise<UpdateRoleResult> {
     const role = await this.roleRepo.findOne({
       where: { id },
-      relations: ['activeVersion'],
+      relations: {
+        activeVersion: true,
+      },
     });
     if (!role) {
       throw new AppError(
@@ -356,7 +369,9 @@ export class RbacService {
     // Resolve registry permissions
     const permissions = await this.permRepo.find({
       where: { key: In(permissionKeys) },
-      relations: ['module'],
+      relations: {
+        module: true,
+      },
     });
     if (permissions.length === 0) {
       throw new AppError(
@@ -576,7 +591,10 @@ export class RbacService {
     return this.versionRepo.find({
       where: { roleId },
       order: { version: 'DESC' },
-      relations: ['createdByUser', 'reviews'],
+      relations: {
+        createdByUser: true,
+        reviews: true,
+      },
     });
   }
 
@@ -747,7 +765,10 @@ export class RbacService {
   ): Promise<void> {
     const review = await this.reviewRepo.findOne({
       where: { id: reviewId },
-      relations: ['roleVersion', 'role'],
+      relations: {
+        roleVersion: true,
+        role: true,
+      },
     });
 
     if (!review)
@@ -934,12 +955,16 @@ export class RbacService {
   ): Promise<CompareVersionsResult> {
     const ver1 = await this.versionRepo.findOne({
       where: { roleId, version: v1Num },
-      relations: ['roleVersionPermissions'],
+      relations: {
+        roleVersionPermissions: true,
+      },
     });
 
     const ver2 = await this.versionRepo.findOne({
       where: { roleId, version: v2Num },
-      relations: ['roleVersionPermissions'],
+      relations: {
+        roleVersionPermissions: true,
+      },
     });
 
     if (!ver1 || !ver2) {
@@ -1007,7 +1032,11 @@ export class RbacService {
    */
   public static async getExportData(): Promise<ExportRoleData[]> {
     const roles = await this.roleRepo.find({
-      relations: ['activeVersion', 'activeVersion.roleVersionPermissions'],
+      relations: {
+        activeVersion: {
+          roleVersionPermissions: true,
+        },
+      },
     });
     return roles.map((r) => ({
       roleId: r.id,
@@ -1026,7 +1055,12 @@ export class RbacService {
    */
   public static async getAssignments(): Promise<UserRole[]> {
     return this.userRoleRepo.find({
-      relations: ['user', 'role', 'assignedBy', 'reviewer'],
+      relations: {
+        user: true,
+        role: true,
+        assignedBy: true,
+        reviewer: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
@@ -1049,7 +1083,9 @@ export class RbacService {
   ): Promise<void> {
     const role = await this.roleRepo.findOne({
       where: { id: roleId },
-      relations: ['activeVersion'],
+      relations: {
+        activeVersion: true,
+      },
     });
     if (!role)
       throw new AppError(
@@ -1060,7 +1096,9 @@ export class RbacService {
 
     const existingAssignments = await this.userRoleRepo.find({
       where: { userId },
-      relations: ['role'],
+      relations: {
+        role: true,
+      },
     });
     const assignments = existingAssignments
       .filter((ur) => ur.roleId !== roleId && ur.role.status === RoleStatus.ACTIVE)
@@ -1105,7 +1143,11 @@ export class RbacService {
   ): Promise<UserRole> {
     const userRole = await this.userRoleRepo.findOne({
       where: { id: assignmentId },
-      relations: ['user', 'role', 'reviewer'],
+      relations: {
+        user: true,
+        role: true,
+        reviewer: true,
+      },
     });
 
     if (!userRole) {
@@ -1174,7 +1216,11 @@ export class RbacService {
   public static async getPermissionsGroupedByModule() {
     // : Promise<GroupedPermissionModule[]>
     const modules = await this.moduleRepo.find({ order: { displayOrder: 'ASC' } });
-    const permissions = await this.permRepo.find({ relations: ['module'] });
+    const permissions = await this.permRepo.find({
+      relations: {
+        module: true,
+      },
+    });
 
     return modules.map((mod) => {
       const modPerms = permissions.filter((p) => p.moduleId === mod.id);
@@ -1210,7 +1256,9 @@ export class RbacService {
         status: ReviewStatus.PENDING,
         createdAt: Not(In([])), // TypeORM representation helper
       },
-      relations: ['roleVersion'],
+      relations: {
+        roleVersion: true,
+      },
     });
 
     for (const review of expiredReviews) {

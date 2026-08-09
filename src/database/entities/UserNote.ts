@@ -14,30 +14,30 @@ import { User } from './User';
 @Entity('user_notes')
 export class UserNote {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   @Index()
-  userId: string;
+  userId!: string;
 
   @Column({ name: 'admin_id', type: 'uuid', nullable: true })
   @Index()
-  adminId: string | null;
+  adminId!: string | null;
 
   @Column({ type: 'text' })
-  note: string;
+  note!: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'admin_id' })
-  admin: User | null;
+  admin!: User | null;
 }

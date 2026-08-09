@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-import { IsNull, MoreThan, type EntityManager } from 'typeorm';
+import { type EntityManager, IsNull, MoreThan } from 'typeorm';
 
 import { AppDataSource } from '../config/database';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
@@ -109,7 +109,9 @@ export async function getValidTokenDetails(
       usedAt: IsNull() as unknown as Date,
       expiresAt: MoreThan(new Date()),
     },
-    relations: ['user'],
+    relations: {
+      user: true,
+    },
   });
 
   if (!matched?.user) {

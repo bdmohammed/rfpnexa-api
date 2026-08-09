@@ -18,31 +18,31 @@ import { ReviewAction } from '@/types/enums';
 @Index(['categoryReviewId'])
 export class CategoryReviewComment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'category_review_id', type: 'uuid' })
-  categoryReviewId: string;
+  categoryReviewId!: string;
 
   @ManyToOne(() => CategoryReview, (cr) => cr.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_review_id' })
-  categoryReview: CategoryReview;
+  categoryReview!: CategoryReview;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'text' })
-  comment: string;
+  comment!: string;
 
   @Column({ type: 'enum', enum: ReviewAction, default: ReviewAction.SUBMIT })
-  action: ReviewAction;
+  action!: ReviewAction;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

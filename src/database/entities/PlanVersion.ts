@@ -32,127 +32,127 @@ import { PlanType, PlanVersionStatus } from '@/types/enums';
 })
 export class PlanVersion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'plan_id', type: 'uuid' })
-  planId: string;
+  planId!: string;
 
   @ManyToOne(() => Plan, (p) => p.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_id' })
-  plan: Plan;
+  plan!: Plan;
 
   @Column({ type: 'integer', default: 1 })
-  version: number;
+  version!: number;
 
   @Column({ type: 'enum', enum: PlanVersionStatus })
-  status: PlanVersionStatus;
+  status!: PlanVersionStatus;
 
-  @Column({ length: 80 })
-  name: string;
+  @Column({ type: 'varchar', length: 80 })
+  name!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true, default: null })
-  subtitle: string | null;
+  subtitle!: string | null;
 
   @Column({ type: 'text', nullable: true, default: null })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'price_cents', type: 'int' })
-  priceCents: number;
+  priceCents!: number;
 
-  @Column({ length: 10, default: 'USD' })
-  currency: string;
+  @Column({ type: 'varchar', length: 10, default: 'USD' })
+  currency!: string;
 
   @Column({ name: 'duration_days', type: 'int' })
-  durationDays: number;
+  durationDays!: number;
 
   @Column({ name: 'trial_days', type: 'int', default: 0 })
-  trialDays: number;
+  trialDays!: number;
 
   @Column({ name: 'setup_fee_cents', type: 'int', default: 0 })
-  setupFeeCents: number;
+  setupFeeCents!: number;
 
-  @Column({ name: 'is_recurring', default: true })
-  isRecurring: boolean;
+  @Column({ name: 'is_recurring', type: 'boolean', default: true })
+  isRecurring!: boolean;
 
-  @Column({ name: 'is_featured', default: false })
-  isFeatured: boolean;
+  @Column({ name: 'is_featured', type: 'boolean', default: false })
+  isFeatured!: boolean;
 
   @Column({ type: 'varchar', length: 50, nullable: true, default: null })
-  badge: string | null;
+  badge!: string | null;
 
   @Column({ name: 'plan_type', type: 'enum', enum: PlanType, default: PlanType.ALL_ACCESS })
-  planType: PlanType;
+  planType!: PlanType;
 
   @Column({ name: 'target_state_id', type: 'smallint', nullable: true, default: null })
-  targetStateId: number | null;
+  targetStateId!: number | null;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_state_id' })
-  targetState: State | null;
+  targetState!: State | null;
 
   @Column({ name: 'target_country', type: 'varchar', length: 100, nullable: true, default: null })
-  targetCountry: string | null;
+  targetCountry!: string | null;
 
   @Column({ name: 'target_category_id', type: 'uuid', nullable: true, default: null })
-  targetCategoryId: string | null;
+  targetCategoryId!: string | null;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_category_id' })
-  targetCategory: Category | null;
+  targetCategory!: Category | null;
 
   @Column({ name: 'bundle_size', type: 'int', nullable: true, default: null })
-  bundleSize: number | null;
+  bundleSize!: number | null;
 
   @Column({ name: 'locked_by', type: 'uuid', nullable: true, default: null })
-  lockedByUserId: string | null;
+  lockedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
-  lockedByUser: User | null;
+  lockedByUser!: User | null;
 
   @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
-  lockedAt: Date | null;
+  lockedAt!: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdBy: string | null;
+  createdBy!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
-  updatedBy: string | null;
+  updatedBy!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser: User | null;
+  updatedByUser!: User | null;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
-  approvedByUserId: string | null;
+  approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser: User | null;
+  approvedByUser!: User | null;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
-  approvedAt: Date | null;
+  approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => PlanFeature, (f) => f.planVersion)
-  features: PlanFeature[];
+  features!: PlanFeature[];
 
   @OneToMany(() => PlanCountryPricing, (cp) => cp.planVersion)
-  countryPricing: PlanCountryPricing[];
+  countryPricing!: PlanCountryPricing[];
 
   @OneToMany(() => PlanCategoryPricing, (catP) => catP.planVersion)
-  categoryPricing: PlanCategoryPricing[];
+  categoryPricing!: PlanCategoryPricing[];
 
   @OneToMany(() => PlanReview, (r) => r.planVersion)
-  reviews: PlanReview[];
+  reviews!: PlanReview[];
 }

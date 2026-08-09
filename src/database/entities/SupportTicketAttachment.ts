@@ -14,29 +14,29 @@ import { SupportTicketMessage } from './SupportTicketMessage';
 @Index('idx_ticket_attachments_message_id', ['messageId'])
 export class SupportTicketAttachment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'message_id', type: 'uuid' })
-  messageId: string;
+  messageId!: string;
 
   @ManyToOne(() => SupportTicketMessage, (message) => message.attachments, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'message_id' })
-  message: SupportTicketMessage;
+  message!: SupportTicketMessage;
 
   @Column({ name: 'file_name', type: 'varchar', length: 255 })
-  fileName: string;
+  fileName!: string;
 
   @Column({ name: 'storage_key', type: 'varchar', length: 512 })
-  storageKey: string;
+  storageKey!: string;
 
   @Column({ name: 'mime_type', type: 'varchar', length: 100 })
-  mimeType: string;
+  mimeType!: string;
 
   @Column({ name: 'size', type: 'integer' })
-  size: number;
+  size!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

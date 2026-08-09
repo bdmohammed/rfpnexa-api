@@ -33,45 +33,45 @@ export enum RoleActivityType {
 @Index('idx_role_activities_created_at', ['createdAt'])
 export class RoleActivity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'role_id', type: 'uuid' })
-  roleId: string;
+  roleId!: string;
 
   @ManyToOne(() => Role, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role!: Role;
 
   @Column({ name: 'role_version_id', type: 'uuid', nullable: true })
-  roleVersionId: string | null;
+  roleVersionId!: string | null;
 
   @ManyToOne(() => RoleVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion: RoleVersion | null;
+  roleVersion!: RoleVersion | null;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({
     name: 'activity_type',
     type: 'enum',
     enum: RoleActivityType,
   })
-  activityType: RoleActivityType;
+  activityType!: RoleActivityType;
 
   @Column({ name: 'old_value', type: 'jsonb', nullable: true })
-  oldValue: Record<string, any> | null;
+  oldValue!: Record<string, any> | null;
 
   @Column({ name: 'new_value', type: 'jsonb', nullable: true })
-  newValue: Record<string, any> | null;
+  newValue!: Record<string, any> | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  metadata!: Record<string, any> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

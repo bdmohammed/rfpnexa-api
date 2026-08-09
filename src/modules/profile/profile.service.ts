@@ -34,7 +34,15 @@ function sanitizeUserProfile(user: User) {
 export async function getProfile(userId: string) {
   const user = await userRepo.findOne({
     where: { id: userId },
-    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion', 'country'],
+    relations: {
+      userRoles: {
+        role: {
+          activeVersion: true,
+        },
+      },
+
+      country: true,
+    },
   });
 
   if (!user) {
@@ -222,7 +230,9 @@ export async function getTimeline(userId: string) {
   // Fetch subscription purchases
   const subs = await subscriptionRepo.find({
     where: { userId },
-    relations: ['plan', 'planVersion'],
+    relations: {
+      planVersion: true,
+    },
     order: { createdAt: 'ASC' },
   });
 
@@ -251,7 +261,9 @@ export async function getSubscription(userId: string, accountType: AccountType) 
 
   const activeSub = await subscriptionRepo.findOne({
     where: { userId, status: SubscriptionStatus.ACTIVE },
-    relations: ['plan'],
+    relations: {
+      planVersion: true,
+    },
     order: { createdAt: 'DESC' },
   });
 
@@ -261,7 +273,10 @@ export async function getSubscription(userId: string, accountType: AccountType) 
 export async function getPreferences(userId: string) {
   const user = await userRepo.findOne({
     where: { id: userId },
-    select: ['id', 'notificationPreferences'],
+    select: {
+      id: true,
+      notificationPreferences: true,
+    },
   });
   if (!user) {
     throw new AppError(
@@ -427,7 +442,15 @@ export async function requestDeleteAccount(userId: string) {
 export async function exportProfileData(userId: string) {
   const user = await userRepo.findOne({
     where: { id: userId },
-    relations: ['userRoles', 'userRoles.role', 'userRoles.role.activeVersion', 'country'],
+    relations: {
+      userRoles: {
+        role: {
+          activeVersion: true,
+        },
+      },
+
+      country: true,
+    },
   });
 
   if (!user) {
@@ -444,7 +467,9 @@ export async function exportProfileData(userId: string) {
   const securityLogs = await securityRepo.find({ where: { userId } });
   const subscription = await subscriptionRepo.find({
     where: { userId },
-    relations: ['plan', 'planVersion'],
+    relations: {
+      planVersion: true,
+    },
   });
 
   return {

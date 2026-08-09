@@ -16,28 +16,28 @@ import { PlanStatus } from '@/types/enums';
 @Entity('plans')
 export class Plan {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'reference_no', type: 'varchar', length: 100, unique: true })
-  referenceNo: string;
+  referenceNo!: string;
 
   @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
-  activeVersionId: string | null;
+  activeVersionId!: string | null;
 
   @Column({ type: 'enum', enum: PlanStatus, default: PlanStatus.ACTIVE })
-  status: PlanStatus;
+  status!: PlanStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => PlanVersion, (v) => v.plan)
-  versions: PlanVersion[];
+  versions!: PlanVersion[];
 
   @ManyToOne(() => PlanVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion: PlanVersion | null;
+  activeVersion!: PlanVersion | null;
 
   @OneToMany(() => SubscriptionDailyMetrics, (metrics) => metrics.plan)
-  subscriptionMetrics: SubscriptionDailyMetrics[];
+  subscriptionMetrics!: SubscriptionDailyMetrics[];
 }

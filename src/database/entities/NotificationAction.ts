@@ -7,19 +7,19 @@ import { NotificationActionType } from '@/types/enums';
 @Entity('notification_actions')
 export class NotificationAction {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'notification_id', type: 'uuid' })
-  notificationId: string;
+  notificationId!: string;
 
   @Column({ type: 'varchar', length: 100 })
-  label: string;
+  label!: string;
 
   @Column({ type: 'enum', enum: NotificationActionType })
-  type: NotificationActionType;
+  type!: NotificationActionType;
 
   @Column({ type: 'jsonb', nullable: true, default: null })
-  payload: Record<string, unknown> | null;
+  payload!: Record<string, unknown> | null;
 
   @Column({
     name: 'required_permission_key',
@@ -28,12 +28,12 @@ export class NotificationAction {
     nullable: true,
     default: null,
   })
-  requiredPermissionKey: string | null;
+  requiredPermissionKey!: string | null;
 
   @Column({ name: 'btn_order', type: 'integer', default: 0 })
-  btnOrder: number;
+  btnOrder!: number;
 
   @ManyToOne(() => Notification, (n) => n.actions, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'notification_id' })
-  notification: Notification;
+  notification!: Notification;
 }

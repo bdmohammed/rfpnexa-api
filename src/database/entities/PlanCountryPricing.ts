@@ -13,28 +13,28 @@ import { PlanVersion } from './PlanVersion';
 @Entity('plan_country_pricing')
 export class PlanCountryPricing {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'plan_version_id', type: 'uuid' })
-  planVersionId: string;
+  planVersionId!: string;
 
   @ManyToOne(() => PlanVersion, (v) => v.countryPricing, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion: PlanVersion;
+  planVersion!: PlanVersion;
 
   @Column({ name: 'country_id', type: 'smallint' })
-  countryId: number;
+  countryId!: number;
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
-  country: Country;
+  country!: Country;
 
   @Column({ type: 'varchar', length: 10 })
-  currency: string;
+  currency!: string;
 
   @Column({ name: 'price_cents', type: 'int' })
-  priceCents: number;
+  priceCents!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

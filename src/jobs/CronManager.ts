@@ -47,7 +47,7 @@ export class CronManager {
   register(name: JobName, schedule: string, fn: () => Promise<void> | void): void {
     if (this.tasks.has(name)) return; // Already registered
 
-    const task = cron.schedule(
+    const task = cron.createTask(
       schedule,
       async () => {
         const traceId = randomUUID();
@@ -65,7 +65,7 @@ export class CronManager {
           }
         });
       },
-      { timezone: 'UTC', scheduled: false },
+      { timezone: 'UTC' },
     );
 
     this.tasks.set(name, task);

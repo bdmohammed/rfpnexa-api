@@ -41,7 +41,9 @@ export class CountriesService {
 
   public static async getCountriesHierarchy() {
     const countries = await this.countryRepo.find({
-      relations: ['states'],
+      relations: {
+        states: true,
+      },
       order: { displayOrder: 'ASC', name: 'ASC' },
     });
 
@@ -167,7 +169,12 @@ export class CountriesService {
     if (canSelfAssign && !finalUsers.some((u) => u.id === currentUserId)) {
       const currentUser = await userRepo.findOne({
         where: { id: currentUserId },
-        select: ['id', 'name', 'email', 'avatarUrl'],
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+        },
       });
       if (currentUser) {
         finalUsers.push(currentUser);
@@ -447,7 +454,10 @@ export class CountriesService {
 
       const request = await requestRepo.findOne({
         where: { id: requestId },
-        relations: ['country', 'state'],
+        relations: {
+          country: true,
+          state: true,
+        },
       });
 
       if (!request) {
@@ -689,15 +699,19 @@ export class CountriesService {
 
     const request = await requestRepo.findOne({
       where: { id: requestId },
-      relations: [
-        'country',
-        'state',
-        'requestedBy',
-        'assignments',
-        'assignments.reviewer',
-        'comments',
-        'comments.author',
-      ],
+      relations: {
+        country: true,
+        state: true,
+        requestedBy: true,
+
+        assignments: {
+          reviewer: true,
+        },
+
+        comments: {
+          author: true,
+        },
+      },
       order: { comments: { createdAt: 'ASC' } },
     });
 
@@ -734,7 +748,9 @@ export class CountriesService {
 
     return await activityRepo.find({
       where: whereCondition,
-      relations: ['actor'],
+      relations: {
+        actor: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
@@ -747,7 +763,9 @@ export class CountriesService {
 
     return await activityRepo.find({
       where: { requestId },
-      relations: ['actor'],
+      relations: {
+        actor: true,
+      },
       order: { createdAt: 'ASC' },
     });
   }
@@ -801,7 +819,11 @@ export class CountriesService {
     { countryId: string; countryName: string; countryCode: string }[]
   > {
     const result = await this.countryRepo.find({
-      select: ['id', 'name', 'code'],
+      select: {
+        id: true,
+        name: true,
+        code: true,
+      },
       where: { isActive: true },
       order: { name: 'ASC' },
     });
@@ -813,7 +835,12 @@ export class CountriesService {
   }
 
   public static async getStateById(id: string): Promise<State> {
-    const state = await this.stateRepo.findOne({ where: { id }, relations: ['country'] });
+    const state = await this.stateRepo.findOne({
+      where: { id },
+      relations: {
+        country: true,
+      },
+    });
     if (!state) {
       throw new AppError(
         AppErrorMessage.STATE_NOT_FOUND,

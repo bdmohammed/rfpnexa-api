@@ -23,10 +23,10 @@ import { ExportFormat, ExportJobStatus, ExportJobType } from '@/types/enums';
 @Index('idx_export_jobs_status_created', ['status', 'createdAt'])
 export class ExportJob {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, {
     onDelete: 'RESTRICT',
@@ -35,72 +35,72 @@ export class ExportJob {
   user!: User;
 
   @Column({ type: 'enum', enum: ExportJobStatus })
-  status: ExportJobStatus;
+  status!: ExportJobStatus;
 
   @Column({ type: 'integer', default: 0 })
-  progress: number;
+  progress!: number;
 
   @Column({ name: 'export_type', type: 'enum', enum: ExportJobType })
-  exportType: ExportJobType;
+  exportType!: ExportJobType;
 
   @Column({ type: 'enum', enum: ExportFormat })
-  format: ExportFormat;
+  format!: ExportFormat;
 
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
-  filters: Record<string, unknown>;
+  filters!: Record<string, unknown>;
 
   @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true, default: null })
-  storageKey: string | null;
+  storageKey!: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Column({ name: 'expired_at', type: 'timestamptz', nullable: true, default: null })
-  expiredAt: Date | null;
+  expiredAt!: Date | null;
 
   @Column({ name: 'started_at', type: 'timestamptz', nullable: true, default: null })
-  startedAt: Date | null;
+  startedAt!: Date | null;
 
   @Column({ name: 'finished_at', type: 'timestamptz', nullable: true, default: null })
-  finishedAt: Date | null;
+  finishedAt!: Date | null;
 
   @Column({ name: 'download_count', type: 'integer', default: 0 })
-  downloadCount: number;
+  downloadCount!: number;
 
   @Column({ name: 'last_downloaded_at', type: 'timestamptz', nullable: true, default: null })
-  lastDownloadedAt: Date | null;
+  lastDownloadedAt!: Date | null;
 
   @Column({ name: 'file_name', type: 'varchar', length: 255, nullable: true, default: null })
-  fileName: string | null;
+  fileName!: string | null;
 
   @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true, default: null })
-  fileSizeBytes: number | null;
+  fileSizeBytes!: number | null;
 
   @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true, default: null })
-  mimeType: string | null;
+  mimeType!: string | null;
 
   @Column({ name: 'queue_name', type: 'varchar', length: 100, nullable: true, default: null })
-  queueName: string | null;
+  queueName!: string | null;
 
   @Column({ name: 'job_id', type: 'varchar', length: 100, nullable: true, default: null })
-  jobId: string | null;
+  jobId!: string | null;
 
   @Column({ name: 'retry_count', type: 'integer', default: 0 })
-  retryCount: number;
+  retryCount!: number;
 
   @Column({ name: 'error_message', type: 'text', nullable: true, default: null })
-  errorMessage: string | null;
+  errorMessage!: string | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
-  createdByUserId: string | null;
+  createdByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdByUser: User | null;
+  createdByUser!: User | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

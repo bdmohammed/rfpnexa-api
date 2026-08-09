@@ -32,24 +32,24 @@ import { User } from './User';
 @Entity('tenders')
 export class Tender {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @Column({ name: 'reference_no', unique: true })
-  referenceNo: string;
+  @Column({ type: 'varchar', name: 'reference_no', unique: true })
+  referenceNo!: string;
 
   @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
-  activeVersionId: string | null;
+  activeVersionId!: string | null;
 
   @ManyToOne(() => TenderVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion: TenderVersion | null;
+  activeVersion!: TenderVersion | null;
 
   @Column({
     type: 'varchar',
     length: 50,
     default: TenderLifecycleStatus.ACTIVE,
   })
-  status: TenderLifecycleStatus;
+  status!: TenderLifecycleStatus;
 
   @Column({
     name: 'publication_status',
@@ -57,7 +57,7 @@ export class Tender {
     length: 50,
     default: TenderPublicationStatus.UNPUBLISHED,
   })
-  publicationStatus: TenderPublicationStatus;
+  publicationStatus!: TenderPublicationStatus;
 
   @Column({
     name: 'bidding_status',
@@ -65,7 +65,7 @@ export class Tender {
     length: 50,
     default: TenderBiddingStatus.NOT_OPEN,
   })
-  biddingStatus: TenderBiddingStatus;
+  biddingStatus!: TenderBiddingStatus;
 
   @Column({
     name: 'process_status',
@@ -73,56 +73,56 @@ export class Tender {
     length: 50,
     default: TenderProcessStatus.PRE_BIDDING,
   })
-  processStatus: TenderProcessStatus;
+  processStatus!: TenderProcessStatus;
 
   @Column({ name: 'publish_at', type: 'timestamptz', nullable: true })
-  publishAt: Date | null;
+  publishAt!: Date | null;
 
   @VersionColumn({ name: 'db_version', default: 1 })
-  dbVersion: number;
+  dbVersion!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy: User | null;
+  createdBy!: User | null;
 
-  @Column({ name: 'created_by_id', nullable: true, default: null })
-  createdById: string | null;
+  @Column({ type: 'varchar', name: 'created_by_id', nullable: true, default: null })
+  createdById!: string | null;
 
   // ─── Relations ─────────────────────────────────────────────────────────────
 
   @OneToMany(() => TenderVersion, (version) => version.tender)
-  versions: TenderVersion[];
+  versions!: TenderVersion[];
 
   @OneToMany(() => TenderCommittee, (committee) => committee.tender)
-  committees: TenderCommittee[];
+  committees!: TenderCommittee[];
 
   @OneToMany(() => TenderParticipant, (participant) => participant.tender)
-  participants: TenderParticipant[];
+  participants!: TenderParticipant[];
 
   @OneToMany(() => TenderWatcher, (watcher) => watcher.tender)
-  watchers: TenderWatcher[];
+  watchers!: TenderWatcher[];
 
   @OneToMany(() => TenderInvitation, (invitation) => invitation.tender)
-  invitations: TenderInvitation[];
+  invitations!: TenderInvitation[];
 
   @OneToMany(() => TenderQuestion, (question) => question.tender)
-  questions: TenderQuestion[];
+  questions!: TenderQuestion[];
 
   @OneToMany(() => TenderClarification, (clarification) => clarification.tender)
-  clarifications: TenderClarification[];
+  clarifications!: TenderClarification[];
 
   @OneToMany(() => TenderAmendment, (amendment) => amendment.tender)
-  amendments: TenderAmendment[];
+  amendments!: TenderAmendment[];
 
   @OneToMany(() => DownloadHistory, (downloadHistory) => downloadHistory.tender)
-  downloadHistory: DownloadHistory[];
+  downloadHistory!: DownloadHistory[];
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.tender)
-  dailyMetrics: TenderDailyMetrics[];
+  dailyMetrics!: TenderDailyMetrics[];
 }

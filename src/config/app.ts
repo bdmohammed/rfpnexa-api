@@ -195,10 +195,10 @@ if (env.SWAGGER_ENABLED) {
 }
 
 // ── Dummy S3 Upload/Download (Local Mock) ────────────────────────────────────
-app.put('/dummy-s3-upload/*', (_req: Request, res: Response) => {
+app.put('/dummy-s3-upload/*splat', (_req: Request, res: Response) => {
   res.status(200).send('OK');
 });
-app.get('/dummy-s3-download/*', (_req: Request, res: Response) => {
+app.get('/dummy-s3-download/*splat', (_req: Request, res: Response) => {
   res.status(200).send('Dummy File Content');
 });
 

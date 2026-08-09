@@ -14,35 +14,35 @@ import { User } from './User';
 @Entity('user_devices')
 export class UserDevice {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ type: 'varchar', name: 'user_id' })
   @Index()
-  userId: string;
+  userId!: string;
 
   @Column({ type: 'varchar' })
   @Index()
-  deviceHash: string;
+  deviceHash!: string;
 
   @Column({ type: 'varchar', nullable: true })
-  userAgent: string | null;
+  userAgent!: string | null;
 
   @Column({ type: 'varchar', nullable: true })
-  lastIpAddress: string | null;
+  lastIpAddress!: string | null;
 
   @Column({ type: 'boolean', default: false })
-  isTrusted: boolean;
+  isTrusted!: boolean;
 
   @Column({ type: 'timestamptz' })
-  lastActiveAt: Date;
+  lastActiveAt!: Date;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 }
