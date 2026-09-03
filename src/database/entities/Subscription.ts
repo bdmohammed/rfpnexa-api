@@ -8,13 +8,14 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { SubscriptionStatus } from '../../types/enums';
-
 import { Category } from './Category';
 import { Coupon } from './Coupon';
 import { PlanVersion } from './PlanVersion';
 import { State } from './State';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { SubscriptionStatus } from '@/types/enums';
 
 @Entity('subscriptions')
 @Index('idx_subs_user_status', ['userId', 'status'])
@@ -28,7 +29,7 @@ export class Subscription {
 
   @ManyToOne(() => User, (user) => user.subscriptions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'plan_version_id', type: 'uuid' })
   planVersionId!: string;
@@ -78,17 +79,17 @@ export class Subscription {
 
   @ManyToOne(() => PlanVersion, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: PlanVersion;
+  planVersion!: Relation<PlanVersion>;
 
   @ManyToOne(() => Coupon, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'coupon_id' })
-  coupon!: Coupon | null;
+  coupon!: Relation<Coupon | null>;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_state_id' })
-  targetState!: State | null;
+  targetState!: Relation<State | null>;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_category_id' })
-  targetCategory!: Category | null;
+  targetCategory!: Relation<Category | null>;
 }

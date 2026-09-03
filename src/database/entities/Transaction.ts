@@ -9,9 +9,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { TransactionStatus, TransactionType } from '../../types/enums';
-
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { TransactionStatus, TransactionType } from '@/types/enums';
 
 @Entity('transactions')
 @Index('idx_txn_user_created', ['userId', 'createdAt'])
@@ -100,5 +101,5 @@ export class Transaction {
   // ─── Relations ────────────────────────────────────────────────────────────
   @ManyToOne(() => User, (u) => u.transactions, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User | null;
+  user!: Relation<User | null>;
 }

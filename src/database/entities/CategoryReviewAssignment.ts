@@ -12,6 +12,7 @@ import {
 import { CategoryReview } from './CategoryReview';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ReviewAssignmentStatus } from '@/types/enums';
 
 @Entity('category_review_assignments')
@@ -25,14 +26,14 @@ export class CategoryReviewAssignment {
 
   @ManyToOne(() => CategoryReview, (review) => review.assignments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
-  review!: CategoryReview;
+  review!: Relation<CategoryReview>;
 
   @Column({ name: 'reviewer_id', type: 'uuid' })
   reviewerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: User;
+  reviewer!: Relation<User>;
 
   @Column({
     type: 'enum',
@@ -46,7 +47,7 @@ export class CategoryReviewAssignment {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'assigned_by' })
-  assignedByUser!: User | null;
+  assignedByUser!: Relation<User | null>;
 
   @Column({ name: 'assigned_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   assignedAt!: Date;

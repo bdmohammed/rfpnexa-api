@@ -11,6 +11,8 @@ import {
 import { TenderEvaluation } from './TenderEvaluation';
 import { TenderParticipant } from './TenderParticipant';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_submissions')
 export class TenderSubmission {
   @PrimaryGeneratedColumn('uuid')
@@ -23,7 +25,7 @@ export class TenderSubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'tender_participant_id' })
-  participant!: TenderParticipant;
+  participant!: Relation<TenderParticipant>;
 
   @Column({ name: 'document_version', type: 'int', default: 1 })
   documentVersion!: number;
@@ -51,5 +53,5 @@ export class TenderSubmission {
   submittedAt!: Date;
 
   @OneToMany(() => TenderEvaluation, (evalRow) => evalRow.submission)
-  evaluations!: TenderEvaluation[];
+  evaluations!: Relation<TenderEvaluation[]>;
 }

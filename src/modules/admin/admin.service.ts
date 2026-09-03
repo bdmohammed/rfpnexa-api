@@ -1,45 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { In, Not } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-
-import { AppDataSource } from '../../config/database';
-import { env } from '../../config/env';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { BCRYPT_ROUNDS } from '../../core/constants';
-import { AuditLog } from '../../database/entities/AuditLog';
-import { Country } from '../../database/entities/Country';
-import { DownloadHistory } from '../../database/entities/DownloadHistory';
-import { Permission } from '../../database/entities/Permission';
-import { Role } from '../../database/entities/Role';
-import { RoleVersionPermission } from '../../database/entities/RoleVersionPermission';
-import { SecurityLog } from '../../database/entities/SecurityLog';
-import { Subscription } from '../../database/entities/Subscription';
-import { Tender } from '../../database/entities/Tender';
-import { Transaction } from '../../database/entities/Transaction';
-import { User } from '../../database/entities/User';
-import {
-  UserApprovalRequest,
-  UserApprovalRequestStatus,
-} from '../../database/entities/UserApprovalRequest';
-import { UserNote } from '../../database/entities/UserNote';
-import { UserRole } from '../../database/entities/UserRole';
-import { UserSession } from '../../database/entities/UserSession';
-import { CacheService } from '../../services/cache.service';
-import {
-  sendAdminApprovalStatusEmail,
-  sendPasswordResetEmail,
-  sendVerificationEmail,
-} from '../../services/email.service';
-import { createEmailToken } from '../../services/token.service';
-import {
-  AccountType,
-  EmailTokenType,
-  RoleStatus,
-  SecurityEvent,
-  SubscriptionStatus,
-  UserStatus,
-} from '../../types/enums';
 
 import type {
   AssignUserRolesBodyDto,
@@ -56,7 +17,41 @@ import type {
   UserSubscriptionOverviewDto,
   UserTimelineEvent,
 } from './admin.dto';
-import { PermissionModule } from '@/database/entities/PermissionModule';
+import { AppDataSource } from '@/config/database';
+import { env } from '@/config/env';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { BCRYPT_ROUNDS } from '@/core/constants';
+import { AuditLog } from '@/entities/AuditLog';
+import { Country } from '@/entities/Country';
+import { DownloadHistory } from '@/entities/DownloadHistory';
+import { Permission } from '@/entities/Permission';
+import { PermissionModule } from '@/entities/PermissionModule';
+import { Role } from '@/entities/Role';
+import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+import { SecurityLog } from '@/entities/SecurityLog';
+import { Subscription } from '@/entities/Subscription';
+import { Tender } from '@/entities/Tender';
+import { Transaction } from '@/entities/Transaction';
+import { User } from '@/entities/User';
+import { UserApprovalRequest, UserApprovalRequestStatus } from '@/entities/UserApprovalRequest';
+import { UserNote } from '@/entities/UserNote';
+import { UserRole } from '@/entities/UserRole';
+import { UserSession } from '@/entities/UserSession';
+import { CacheService } from '@/services/cache.service';
+import {
+  sendAdminApprovalStatusEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from '@/services/email.service';
+import { createEmailToken } from '@/services/token.service';
+import {
+  AccountType,
+  EmailTokenType,
+  RoleStatus,
+  SecurityEvent,
+  SubscriptionStatus,
+  UserStatus,
+} from '@/types/enums';
 
 const userRepo = AppDataSource.getRepository(User);
 const subRepo = AppDataSource.getRepository(Subscription);
@@ -373,7 +368,7 @@ export async function revokeAllSessions(userId: string): Promise<void> {
 export async function impersonateUser(
   userId: string,
   adminId: string,
-  reason: string,
+  _reason: string,
 ): Promise<{ token: string }> {
   const user = await userRepo.findOne({ where: { id: userId } });
   if (!user)
@@ -394,10 +389,14 @@ export async function impersonateUser(
     tokenVersion: user.tokenVersion,
     impersonatedBy: admin.email,
     impersonatorId: admin.id,
-    reason,
+    type: 'access',
   };
 
-  const token = jwt.sign(payload, env.JWT_SECRET, { expiresIn: '15m' });
+  const token = jwt.sign(payload, env.JWT_SECRET, {
+    expiresIn: '15m',
+    issuer: env.JWT_ISSUER,
+    audience: env.JWT_AUDIENCE,
+  });
   return { token };
 }
 
@@ -1298,10 +1297,10 @@ export async function submitUserApprovalRequest(
 
   // Create Audit Log entry
   const audit = auditRepo.create({
-    eventId: uuidv4(),
+    eventId: crypto.randomUUID(),
     actorId: submittedByUserId,
     actorUserId: submittedByUserId,
-    actorEmail: submitter?.email ?? 'admin@nexusbid.com',
+    actorEmail: submitter?.email ?? 'admin@rfpnexa.com',
     module: 'user',
     entityType: 'user',
     entityId: user.id,
@@ -1395,10 +1394,10 @@ export async function reviewUserApprovalRequest(
 
     // Audit log
     const audit = auditRepo.create({
-      eventId: uuidv4(),
+      eventId: crypto.randomUUID(),
       actorId: reviewerUserId,
       actorUserId: reviewerUserId,
-      actorEmail: reviewerUser?.email ?? 'admin@nexusbid.com',
+      actorEmail: reviewerUser?.email ?? 'admin@rfpnexa.com',
       module: 'user',
       entityType: 'user',
       entityId: user.id,
@@ -1432,10 +1431,10 @@ export async function reviewUserApprovalRequest(
 
     // Audit log
     const audit = auditRepo.create({
-      eventId: uuidv4(),
+      eventId: crypto.randomUUID(),
       actorId: reviewerUserId,
       actorUserId: reviewerUserId,
-      actorEmail: reviewerUser?.email ?? 'admin@nexusbid.com',
+      actorEmail: reviewerUser?.email ?? 'admin@rfpnexa.com',
       module: 'user',
       entityType: 'user',
       entityId: user.id,

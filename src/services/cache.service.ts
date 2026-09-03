@@ -1,4 +1,4 @@
-import { logger } from '../config/logger';
+import { logger } from '@/config/logger';
 
 // Custom zero-dependency LRU Cache to maintain bounded memory usage
 class LRUCache<K, V> {
@@ -141,6 +141,13 @@ export class CacheService {
   }
 
   /**
+   * Alias for invalidate to support key deletion.
+   */
+  public static async del(key: string): Promise<void> {
+    return this.invalidate(key);
+  }
+
+  /**
    * Background invalidation helper to avoid blocking main thread.
    */
   public static invalidateBackground(key: string): void {
@@ -152,4 +159,19 @@ export class CacheService {
       }
     });
   }
+
+  /**
+   * Clears L1 in-memory cache and flushes L2 Redis cache.
+   */
+  public static async flush(): Promise<void> {
+    l1Cache.clear();
+    if (redisClient) {
+      try {
+        await redisClient.flushdb();
+      } catch (error) {
+        logger.error({ err: error }, 'Failed to flush Redis');
+      }
+    }
+  }
 }
+export default new CacheService();

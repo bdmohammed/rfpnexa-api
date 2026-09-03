@@ -1,4 +1,4 @@
-import { logger } from '../config/logger';
+import { logger } from '@/config/logger';
 
 export async function retryNotificationsJob(): Promise<void> {
   // Simulates querying failed push notifications or emails and retrying delivery

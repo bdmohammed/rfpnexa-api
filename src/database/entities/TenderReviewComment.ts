@@ -10,6 +10,8 @@ import {
 import { TenderReview } from './TenderReview';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_review_comments')
 export class TenderReviewComment {
   @PrimaryGeneratedColumn('uuid')
@@ -20,14 +22,14 @@ export class TenderReviewComment {
 
   @ManyToOne(() => TenderReview, (review) => review.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
-  review!: TenderReview;
+  review!: Relation<TenderReview>;
 
   @Column({ name: 'author_id', type: 'uuid' })
   authorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'author_id' })
-  author!: User;
+  author!: Relation<User>;
 
   @Column({ name: 'comment_text', type: 'text' })
   commentText!: string;

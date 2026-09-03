@@ -1,6 +1,3 @@
-import { AppDataSource } from '../../../config/database';
-import { asyncHandler } from '../../../core/asyncHandler';
-import { RoleReview } from '../../../database/entities/RoleReview';
 import { RbacService } from '../rbac.service';
 
 import type {
@@ -11,6 +8,9 @@ import type {
   SuccessResponse,
   VersionIdParamDto,
 } from '../rbac.dto';
+import { AppDataSource } from '@/config/database';
+import { asyncHandler } from '@/core/asyncHandler';
+import { RoleReview } from '@/entities/RoleReview';
 
 export class RbacReviewController {
   public static submitVersion = asyncHandler<
@@ -39,7 +39,7 @@ export class RbacReviewController {
     res.json({ success: true, message: 'Review decision submitted successfully' });
   });
 
-  public static getReviewDetails = asyncHandler<IdParamDto, SuccessResponse<any>>(
+  public static getReviewDetails = asyncHandler<IdParamDto, SuccessResponse<unknown>>(
     async (req, res) => {
       const { id } = req.params;
       const review = await AppDataSource.getRepository(RoleReview).findOne({

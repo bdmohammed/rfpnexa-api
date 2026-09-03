@@ -209,6 +209,10 @@ export const createBaseConfig = (options: any = {}) => {
             pascalCase: true,
             kebabCase: true,
           },
+          ignore: [
+            /^__tests__$/,
+            /^__mocks__$/, // add this too if you use Jest manual mocks
+          ],
         },
       ],
       'unicorn/no-null': 'off',
@@ -252,11 +256,17 @@ export const createTestConfig = (options: any = {}) => ({
   files: [
     '**/__tests__/**/*',
     '**/tests/**/*',
-    '**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '**/*.{test,spec}.{js,ts}',
     '**/jest-setup.{js,ts}',
     ...(options.additionalTestFiles ?? []),
   ],
   languageOptions: {
+    parser: typescriptParser,
+    parserOptions: {
+      projectService: false,
+      project: ['./tsconfig.test.json'],
+      tsconfigRootDir: rootTsConfigDir,
+    },
     globals: {
       jest: 'readonly',
       describe: 'readonly',
@@ -300,7 +310,7 @@ export const createConfigFilesConfig = (options: any = {}) => ({
       global: 'readonly',
       ...options.additionalGlobals,
     },
-    sourceType: 'commonjs',
+    sourceType: 'NodeNext',
   },
   rules: {
     '@typescript-eslint/no-var-requires': 'off',

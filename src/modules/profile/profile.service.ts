@@ -1,5 +1,3 @@
-import { AppDataSource } from '../../config/database';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { AuditLog } from '../../database/entities/AuditLog';
 import { Country } from '../../database/entities/Country';
 import { SecurityLog } from '../../database/entities/SecurityLog';
@@ -9,6 +7,9 @@ import { SupportTicketMessage } from '../../database/entities/SupportTicketMessa
 import { User } from '../../database/entities/User';
 import { UserDevice } from '../../database/entities/UserDevice';
 import { UserSession } from '../../database/entities/UserSession';
+
+import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 import {
   AccountType,
   SecurityEvent,
@@ -17,7 +18,7 @@ import {
   TicketPriority,
   TicketStatus,
   UserStatus,
-} from '../../types/enums';
+} from '@/types/enums';
 
 const userRepo = AppDataSource.getRepository(User);
 const sessionRepo = AppDataSource.getRepository(UserSession);

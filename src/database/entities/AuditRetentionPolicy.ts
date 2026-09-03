@@ -12,6 +12,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { RetentionCategory } from '@/types/enums';
 
 @Entity('audit_retention_policies')
@@ -35,14 +36,14 @@ export class AuditRetentionPolicy {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

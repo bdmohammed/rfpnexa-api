@@ -12,15 +12,15 @@ import type {
 } from './categories.dto';
 import { AppDataSource } from '@/config/database';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
-import { AuditLog } from '@/database/entities/AuditLog';
-import { Category } from '@/database/entities/Category';
-import { CategoryActivity } from '@/database/entities/CategoryActivity';
-import { CategoryReview } from '@/database/entities/CategoryReview';
-import { CategoryReviewAssignment } from '@/database/entities/CategoryReviewAssignment';
-import { CategoryReviewComment } from '@/database/entities/CategoryReviewComment';
-import { CategoryVersion } from '@/database/entities/CategoryVersion';
-import { Tender } from '@/database/entities/Tender';
-import { TenderVersion } from '@/database/entities/TenderVersion';
+import { AuditLog } from '@/entities/AuditLog';
+import { Category } from '@/entities/Category';
+import { CategoryActivity } from '@/entities/CategoryActivity';
+import { CategoryReview } from '@/entities/CategoryReview';
+import { CategoryReviewAssignment } from '@/entities/CategoryReviewAssignment';
+import { CategoryReviewComment } from '@/entities/CategoryReviewComment';
+import { CategoryVersion } from '@/entities/CategoryVersion';
+import { Tender } from '@/entities/Tender';
+import { TenderVersion } from '@/entities/TenderVersion';
 import {
   CategoryStatus,
   CategoryVersionStatus,

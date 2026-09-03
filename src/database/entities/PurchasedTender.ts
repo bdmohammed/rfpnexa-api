@@ -11,6 +11,8 @@ import { Tender } from './Tender';
 import { Transaction } from './Transaction';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('purchased_tenders')
 @Unique('uq_purchased_tenders_user_tender', ['userId', 'tenderId'])
 export class PurchasedTender {
@@ -31,11 +33,11 @@ export class PurchasedTender {
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  user!: User;
+  user!: Relation<User>;
 
   @ManyToOne(() => Tender, { onDelete: 'CASCADE' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @ManyToOne(() => Transaction)
-  transaction!: Transaction;
+  transaction!: Relation<Transaction>;
 }

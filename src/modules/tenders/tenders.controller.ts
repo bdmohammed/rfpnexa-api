@@ -1,21 +1,9 @@
-import { AppDataSource } from '../../config/database';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { asyncHandler } from '../../core/asyncHandler';
-import { paginationMeta, sendCreated, sendNoContent, sendOk } from '../../core/response';
 import { Tender } from '../../database/entities/Tender';
 import { TenderVersion } from '../../database/entities/TenderVersion';
-import { generateUploadUrl } from '../../services/s3.service';
-import {
-  TenderBiddingStatus,
-  TenderLifecycleStatus,
-  TenderProcessStatus,
-  TenderPublicationStatus,
-} from '../../types/enums';
 
 import * as service from './tenders.service';
 import { TenderWorkflowService } from './TenderWorkflowService';
 
-import type { JwtPayload } from '../../types/express';
 import type {
   AnswerQuestionDto,
   AssignReviewerDto,
@@ -40,6 +28,18 @@ import type {
   UpdateTenderStatusDto,
   UploadUrlDto,
 } from './tenders.dto';
+import type { JwtPayload } from '@/types/express';
+import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { asyncHandler } from '@/core/asyncHandler';
+import { paginationMeta, sendCreated, sendNoContent, sendOk } from '@/core/response';
+import { generateUploadUrl } from '@/services/s3.service';
+import {
+  TenderBiddingStatus,
+  TenderLifecycleStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+} from '@/types/enums';
 
 const getUserId = (req: { user?: unknown }): string => {
   const user = req.user as JwtPayload | undefined;

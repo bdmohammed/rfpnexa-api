@@ -1,4 +1,4 @@
-import { env } from '../../../config/env';
+import { env } from '@/config/env';
 
 export function emailFooterHtml(userId: string): string {
   return `
@@ -10,5 +10,5 @@ export function emailFooterHtml(userId: string): string {
 }
 
 export function emailFooterText(userId: string): string {
-  return `\n\nNexusBid · USA Government RFP Marketplace\nUnsubscribe from email notifications: ${env.FRONTEND_CUSTOMER_URL}/unsubscribe?uid=${userId}`;
+  return `\n\nrfpnexa · USA Government RFP Marketplace\nUnsubscribe from email notifications: ${env.FRONTEND_CUSTOMER_URL}/unsubscribe?uid=${userId}`;
 }

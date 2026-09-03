@@ -1,7 +1,7 @@
-import { asyncHandler } from '../../../core/asyncHandler';
 import { RbacService } from '../rbac.service';
 
 import type { ExportRoleData, SuccessResponse } from '../rbac.dto';
+import { asyncHandler } from '@/core/asyncHandler';
 
 export class RbacExportController {
   public static exportData = asyncHandler<{}, SuccessResponse<ExportRoleData[]>>(

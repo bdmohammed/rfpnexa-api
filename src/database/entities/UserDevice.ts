@@ -11,38 +11,43 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('user_devices')
+@Index('uq_user_devices_user_device', ['userId', 'deviceHash'], {
+  unique: true,
+})
 export class UserDevice {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'user_id' })
+  @Column({ type: 'uuid', name: 'user_id' })
   @Index()
   userId!: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', name: 'device_hash' })
   @Index()
   deviceHash!: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'user_agent', type: 'varchar', nullable: true })
   userAgent!: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'last_ip_address', type: 'varchar', nullable: true })
   lastIpAddress!: string | null;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'is_trusted', type: 'boolean', default: false })
   isTrusted!: boolean;
 
-  @Column({ type: 'timestamptz' })
+  @Column({ name: 'last_active_at', type: 'timestamptz' })
   lastActiveAt!: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 }

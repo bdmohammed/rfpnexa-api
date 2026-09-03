@@ -1,11 +1,11 @@
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
-import { Country } from '../../../database/entities/Country';
-import { SubscriptionDailyMetrics } from '../../../database/entities/SubscriptionDailyMetrics';
-import { TenderDailyMetrics } from '../../../database/entities/TenderDailyMetrics';
-import { TrafficDailyMetrics } from '../../../database/entities/TrafficDailyMetrics';
-import { UserDailyMetrics } from '../../../database/entities/UserDailyMetrics';
-import { BrowserType, DeviceType } from '../../../types/enums';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { Country } from '@/entities/Country';
+import { SubscriptionDailyMetrics } from '@/entities/SubscriptionDailyMetrics';
+import { TenderDailyMetrics } from '@/entities/TenderDailyMetrics';
+import { TrafficDailyMetrics } from '@/entities/TrafficDailyMetrics';
+import { UserDailyMetrics } from '@/entities/UserDailyMetrics';
+import { BrowserType, DeviceType } from '@/types/enums';
 
 export async function runDailyRollups(targetDate: Date = new Date()): Promise<void> {
   const dateStr = targetDate.toISOString().split('T')[0] ?? '';
@@ -311,7 +311,7 @@ export async function backfillHistoricalDevMetrics(): Promise<void> {
       const countryEntity = countryMap[code];
       for (const dev of devices) {
         const rawDevice = dev.toUpperCase();
-        const deviceEnum = Object.values(DeviceType).includes(rawDevice as DeviceType)
+        const deviceEnum = Object.values(DeviceType).includes(rawDevice as unknown as DeviceType)
           ? (rawDevice as DeviceType)
           : DeviceType.DESKTOP;
 

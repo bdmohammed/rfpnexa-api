@@ -3,7 +3,6 @@ import { Router } from 'express';
 import * as controller from './profile.controller';
 import {
   ChangePasswordSchema,
-  PageLimitQuerySchema,
   ProfileSessionIdParamSchema,
   RequestChangeSchema,
   UpdateAvatarSchema,
@@ -186,7 +185,7 @@ router.patch('/', validate(UpdateProfileSchema, 'body'), controller.updateProfil
  *               avatarUrl:
  *                 type: string
  *                 format: uri
- *                 example: "https://nexusbid-bucket.s3.amazonaws.com/avatars/user-123.jpg"
+ *                 example: "https://rfpnexa-bucket.s3.amazonaws.com/avatars/user-123.jpg"
  *     responses:
  *       200:
  *         description: Avatar updated
@@ -400,7 +399,7 @@ router.get('/devices', controller.getDevices);
  *                       items:
  *                         $ref: '#/components/schemas/ProfileActivity'
  */
-router.get('/activity', validate(PageLimitQuerySchema, 'query'), controller.getActivity);
+// router.get('/activity', validate(PageLimitQuerySchema, 'query'), controller.getActivity);
 
 /**
  * @swagger
@@ -430,11 +429,11 @@ router.get('/activity', validate(PageLimitQuerySchema, 'query'), controller.getA
  *                       items:
  *                         $ref: '#/components/schemas/ProfileActivity'
  */
-router.get(
-  '/security-history',
-  validate(PageLimitQuerySchema, 'query'),
-  controller.getSecurityHistory,
-);
+// router.get(
+//   '/security-history',
+//   validate(PageLimitQuerySchema, 'query'),
+//   controller.getSecurityHistory,
+// );
 
 /**
  * @swagger
@@ -656,8 +655,7 @@ router.post('/delete-request', controller.deleteRequest);
  * /api/v1/profile/export:
  *   get:
  *     summary: Export profile data
- *     description: Downloads all user-owned profile data, preferences, subscriptions, and actions
- *     as a raw JSON file. Bypass standard API envelopes.
+ *     description: Downloads all user-owned profile data, preferences, subscriptions, and actions as a raw JSON file. Bypass standard API envelopes.
  *     operationId: exportProfileData
  *     tags: [Profile]
  *     security:
@@ -669,7 +667,7 @@ router.post('/delete-request', controller.deleteRequest);
  *           Content-Disposition:
  *             schema:
  *               type: string
- *               example: "attachment; filename=nexusbid_profile_export.json"
+ *               example: "attachment; filename=rfpnexa_profile_export.json"
  *         content:
  *           application/json:
  *             schema:

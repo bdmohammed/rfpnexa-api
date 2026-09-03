@@ -11,6 +11,7 @@ import {
 import { PlanReview } from './PlanReview';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ReviewAction } from '@/types/enums';
 
 @Entity('plan_review_comments')
@@ -31,14 +32,14 @@ export class PlanReviewComment {
 
   @ManyToOne(() => PlanReview, (planReview) => planReview.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_review_id' })
-  planReview!: PlanReview;
+  planReview!: Relation<PlanReview>;
 
   @Column({ name: 'author_id', type: 'uuid' })
   authorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'author_id' })
-  author!: User;
+  author!: Relation<User>;
 
   @Column({ name: 'comment_text', type: 'text' })
   commentText!: string;

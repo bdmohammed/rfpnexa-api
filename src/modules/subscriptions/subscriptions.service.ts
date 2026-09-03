@@ -1,15 +1,15 @@
 import { performance } from 'node:perf_hooks';
 
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { Coupon } from '../../database/entities/Coupon';
 import { Plan } from '../../database/entities/Plan';
 import { Subscription } from '../../database/entities/Subscription';
-import { cancelSubscription as paypalCancelSubscription } from '../../services/paypal/paypal.subscriptions';
-import { CouponDiscountType, PlanStatus, SubscriptionStatus } from '../../types/enums';
 
 import type { CreateSubscriptionDto } from './subscriptions.dto';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { cancelSubscription as paypalCancelSubscription } from '@/services/paypal/paypal.subscriptions';
+import { CouponDiscountType, PlanStatus, SubscriptionStatus } from '@/types/enums';
 
 const planRepository = AppDataSource.getRepository(Plan);
 const subscriptionRepository = AppDataSource.getRepository(Subscription);

@@ -16,6 +16,8 @@ import {
 import { TenderEvaluation } from './TenderEvaluation';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('evaluation_templates')
 @Check('"default_weight" >= 0')
 @Check('"default_weight" <= 100')
@@ -65,14 +67,14 @@ export class EvaluationTemplate {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User;
+  createdByUser!: Relation<User>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -83,7 +85,7 @@ export class EvaluationTemplate {
   // ─── Relations ─────────────────────────────────────────────────────────────
 
   @OneToMany(() => TenderEvaluation, (evaluation) => evaluation.evaluationTemplate)
-  evaluations!: TenderEvaluation[];
+  evaluations!: Relation<TenderEvaluation[]>;
 
   // ─── Hooks ─────────────────────────────────────────────────────────────────
 

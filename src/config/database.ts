@@ -1,113 +1,145 @@
-import { DataSource } from 'typeorm';
+import path from 'node:path';
 
-// ─── Entity Imports ───────────────────────────────────────────────────────────
-import { AlertPreference } from '../database/entities/AlertPreference';
-import { AnalyticsAlert } from '../database/entities/AnalyticsAlert';
-import { AnalyticsEvent } from '../database/entities/AnalyticsEvent';
-import { AuditLog } from '../database/entities/AuditLog';
-import { AuditRetentionPolicy } from '../database/entities/AuditRetentionPolicy';
-import { Category } from '../database/entities/Category';
-import { Country } from '../database/entities/Country';
-import { CountryActivity } from '../database/entities/CountryActivity';
-import { CountryChangeRequest } from '../database/entities/CountryChangeRequest';
-import { CountryChangeRequestAssignment } from '../database/entities/CountryChangeRequestAssignment';
-import { CountryChangeRequestComment } from '../database/entities/CountryChangeRequestComment';
-import { Coupon } from '../database/entities/Coupon';
-import { DownloadHistory } from '../database/entities/DownloadHistory';
-import { EmailToken } from '../database/entities/EmailToken';
-import { EvaluationTemplate } from '../database/entities/EvaluationTemplate';
-import { ExportJob } from '../database/entities/ExportJob';
-import { FeatureCatalog } from '../database/entities/FeatureCatalog';
-import { Notification } from '../database/entities/Notification';
-import { NotificationAction } from '../database/entities/NotificationAction';
-import { NotificationRecipient } from '../database/entities/NotificationRecipient';
-import { PasswordHistory } from '../database/entities/PasswordHistory';
-import { Permission } from '../database/entities/Permission';
-import { PermissionModule } from '../database/entities/PermissionModule';
-import { Plan } from '../database/entities/Plan';
-import { PlanCategoryPricing } from '../database/entities/PlanCategoryPricing';
-import { PlanCountryPricing } from '../database/entities/PlanCountryPricing';
-import { PlanFeature } from '../database/entities/PlanFeature';
-import { PlanReview } from '../database/entities/PlanReview';
-import { PlanReviewAssignment } from '../database/entities/PlanReviewAssignment';
-import { PlanReviewComment } from '../database/entities/PlanReviewComment';
-import { PlanVersion } from '../database/entities/PlanVersion';
-import { PurchasedTender } from '../database/entities/PurchasedTender';
-import { Role } from '../database/entities/Role';
-import { RoleActivity } from '../database/entities/RoleActivity';
-import { RoleReview } from '../database/entities/RoleReview';
-import { RoleReviewAssignment } from '../database/entities/RoleReviewAssignment';
-import { RoleReviewComment } from '../database/entities/RoleReviewComment';
-import { RoleVersion } from '../database/entities/RoleVersion';
-import { RoleVersionPermission } from '../database/entities/RoleVersionPermission';
-import { ScheduledReport } from '../database/entities/ScheduledReport';
-import { ScheduledReportRecipient } from '../database/entities/ScheduledReportRecipient';
-import { SecurityLog } from '../database/entities/SecurityLog';
-import { State } from '../database/entities/State';
-import { Subscription } from '../database/entities/Subscription';
-import { SubscriptionDailyMetrics } from '../database/entities/SubscriptionDailyMetrics';
-import { SubscriptionMigration } from '../database/entities/SubscriptionMigration';
-import { SupportTicket } from '../database/entities/SupportTicket';
-import { SupportTicketAttachment } from '../database/entities/SupportTicketAttachment';
-import { SupportTicketMessage } from '../database/entities/SupportTicketMessage';
-import { Tender } from '../database/entities/Tender';
-import { TenderAmendment } from '../database/entities/TenderAmendment';
-import { TenderClarification } from '../database/entities/TenderClarification';
-import { TenderCommittee } from '../database/entities/TenderCommittee';
-import { TenderDailyMetrics } from '../database/entities/TenderDailyMetrics';
-import { TenderDocument } from '../database/entities/TenderDocument';
-import { TenderEvaluation } from '../database/entities/TenderEvaluation';
-import { TenderInvitation } from '../database/entities/TenderInvitation';
-import { TenderParticipant } from '../database/entities/TenderParticipant';
-import { TenderQuestion } from '../database/entities/TenderQuestion';
-import { TenderReview } from '../database/entities/TenderReview';
-import { TenderReviewAssignment } from '../database/entities/TenderReviewAssignment';
-import { TenderReviewComment } from '../database/entities/TenderReviewComment';
-import { TenderSubmission } from '../database/entities/TenderSubmission';
-import { TenderTemplate } from '../database/entities/TenderTemplate';
-import { TenderVersion } from '../database/entities/TenderVersion';
-import { TenderWatcher } from '../database/entities/TenderWatcher';
-import { TrafficDailyMetrics } from '../database/entities/TrafficDailyMetrics';
-import { Transaction } from '../database/entities/Transaction';
-import { User } from '../database/entities/User';
-import { UserApprovalRequest } from '../database/entities/UserApprovalRequest';
-import { UserDailyMetrics } from '../database/entities/UserDailyMetrics';
-import { UserDashboardLayout } from '../database/entities/UserDashboardLayout';
-import { UserDevice } from '../database/entities/UserDevice';
-import { UserNote } from '../database/entities/UserNote';
-import { UserRole } from '../database/entities/UserRole';
-import { UserSession } from '../database/entities/UserSession';
-import { WebhookEvent } from '../database/entities/WebhookEvent';
+import { DataSource } from 'typeorm';
 
 import { TypeOrmPinoLogger } from './databaseLogger';
 import { env } from './env';
 import { SnakeNamingStrategy } from './namingStrategy';
 
-import { CategoryActivity } from '@/database/entities/CategoryActivity';
-import { CategoryReview } from '@/database/entities/CategoryReview';
-import { CategoryReviewAssignment } from '@/database/entities/CategoryReviewAssignment';
-import { CategoryReviewComment } from '@/database/entities/CategoryReviewComment';
-import { CategoryVersion } from '@/database/entities/CategoryVersion';
-import { SeedHistory } from '@/database/entities/SeedHistory';
+import { AlertPreference } from '@/entities/AlertPreference';
+import { AnalyticsAlert } from '@/entities/AnalyticsAlert';
+import { AnalyticsEvent } from '@/entities/AnalyticsEvent';
+import { AuditLog } from '@/entities/AuditLog';
+import { AuditRetentionPolicy } from '@/entities/AuditRetentionPolicy';
+import { Category } from '@/entities/Category';
+import { CategoryActivity } from '@/entities/CategoryActivity';
+import { CategoryReview } from '@/entities/CategoryReview';
+import { CategoryReviewAssignment } from '@/entities/CategoryReviewAssignment';
+import { CategoryReviewComment } from '@/entities/CategoryReviewComment';
+import { CategoryVersion } from '@/entities/CategoryVersion';
+import { Country } from '@/entities/Country';
+import { CountryActivity } from '@/entities/CountryActivity';
+import { CountryChangeRequest } from '@/entities/CountryChangeRequest';
+import { CountryChangeRequestAssignment } from '@/entities/CountryChangeRequestAssignment';
+import { CountryChangeRequestComment } from '@/entities/CountryChangeRequestComment';
+import { Coupon } from '@/entities/Coupon';
+import { DownloadHistory } from '@/entities/DownloadHistory';
+import { EmailToken } from '@/entities/EmailToken';
+import { EvaluationTemplate } from '@/entities/EvaluationTemplate';
+import { ExportJob } from '@/entities/ExportJob';
+import { FeatureCatalog } from '@/entities/FeatureCatalog';
+import { Notification } from '@/entities/Notification';
+import { NotificationAction } from '@/entities/NotificationAction';
+import { NotificationRecipient } from '@/entities/NotificationRecipient';
+import { PasswordHistory } from '@/entities/PasswordHistory';
+import { Permission } from '@/entities/Permission';
+import { PermissionModule } from '@/entities/PermissionModule';
+import { Plan } from '@/entities/Plan';
+import { PlanCategoryPricing } from '@/entities/PlanCategoryPricing';
+import { PlanCountryPricing } from '@/entities/PlanCountryPricing';
+import { PlanFeature } from '@/entities/PlanFeature';
+import { PlanReview } from '@/entities/PlanReview';
+import { PlanReviewAssignment } from '@/entities/PlanReviewAssignment';
+import { PlanReviewComment } from '@/entities/PlanReviewComment';
+import { PlanVersion } from '@/entities/PlanVersion';
+import { PurchasedTender } from '@/entities/PurchasedTender';
+import { Role } from '@/entities/Role';
+import { RoleActivity } from '@/entities/RoleActivity';
+import { RoleReview } from '@/entities/RoleReview';
+import { RoleReviewAssignment } from '@/entities/RoleReviewAssignment';
+import { RoleReviewComment } from '@/entities/RoleReviewComment';
+import { RoleVersion } from '@/entities/RoleVersion';
+import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+import { ScheduledReport } from '@/entities/ScheduledReport';
+import { ScheduledReportRecipient } from '@/entities/ScheduledReportRecipient';
+import { SecurityLog } from '@/entities/SecurityLog';
+import { SeedHistory } from '@/entities/SeedHistory';
+import { State } from '@/entities/State';
+import { Subscription } from '@/entities/Subscription';
+import { SubscriptionDailyMetrics } from '@/entities/SubscriptionDailyMetrics';
+import { SubscriptionMigration } from '@/entities/SubscriptionMigration';
+import { SupportTicket } from '@/entities/SupportTicket';
+import { SupportTicketAttachment } from '@/entities/SupportTicketAttachment';
+import { SupportTicketMessage } from '@/entities/SupportTicketMessage';
+import { Tender } from '@/entities/Tender';
+import { TenderAmendment } from '@/entities/TenderAmendment';
+import { TenderClarification } from '@/entities/TenderClarification';
+import { TenderCommittee } from '@/entities/TenderCommittee';
+import { TenderDailyMetrics } from '@/entities/TenderDailyMetrics';
+import { TenderDocument } from '@/entities/TenderDocument';
+import { TenderEvaluation } from '@/entities/TenderEvaluation';
+import { TenderInvitation } from '@/entities/TenderInvitation';
+import { TenderParticipant } from '@/entities/TenderParticipant';
+import { TenderQuestion } from '@/entities/TenderQuestion';
+import { TenderReview } from '@/entities/TenderReview';
+import { TenderReviewAssignment } from '@/entities/TenderReviewAssignment';
+import { TenderReviewComment } from '@/entities/TenderReviewComment';
+import { TenderSubmission } from '@/entities/TenderSubmission';
+import { TenderTemplate } from '@/entities/TenderTemplate';
+import { TenderVersion } from '@/entities/TenderVersion';
+import { TenderWatcher } from '@/entities/TenderWatcher';
+import { TrafficDailyMetrics } from '@/entities/TrafficDailyMetrics';
+import { Transaction } from '@/entities/Transaction';
+import { User } from '@/entities/User';
+import { UserApprovalRequest } from '@/entities/UserApprovalRequest';
+import { UserDailyMetrics } from '@/entities/UserDailyMetrics';
+import { UserDashboardLayout } from '@/entities/UserDashboardLayout';
+import { UserDevice } from '@/entities/UserDevice';
+import { UserNote } from '@/entities/UserNote';
+import { UserRole } from '@/entities/UserRole';
+import { UserSession } from '@/entities/UserSession';
+import { WebhookEvent } from '@/entities/WebhookEvent';
 
-import 'reflect-metadata';
+/**
+ * Resolves SSL configuration based on environment parameters and provider CA certificates.
+ */
+const getSslConfig = () => {
+  if (env.DATABASE_SSL || ['prod', 'uat'].includes(env.NODE_ENV)) {
+    return {
+      rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED,
+      ...(env.DATABASE_CA_CERT ? { ca: env.DATABASE_CA_CERT } : {}),
+    };
+  }
+  return false;
+};
 
+/**
+ * [WHAT]
+ * Production TypeORM DataSource configuration for PostgreSQL database connections, entities, and migrations.
+ *
+ * [WHY]
+ * Manages database connection pooling, naming strategies, migration paths, and logging integrations.
+ *
+ * [CONSTRAINT]
+ * 1. `synchronize: false` MUST ALWAYS be enforced. Schema updates are handled exclusively via TypeORM migrations.
+ * 2. `migrationsRun: false` MUST be kept false in multi-worker environments (PM2 cluster mode).
+ *    Database migrations MUST be executed as an explicit deployment step (`npm run migration:run`) via CI/CD pipelines
+ *    to prevent database lock contention, schema race conditions, and connection pool exhaustion across workers.
+ * 3. `extra.max` controls per-worker pool size.
+ *    Total DB connections = `worker_count × DATABASE_POOL_MAX + background_jobs`.
+ * 4. `query_timeout` (5000ms) enforces defensive limits on HTTP request threads.
+ *    Long-running queries (e.g. exports, reports)
+ *    MUST execute out-of-band via background workers (`ExportJob`, `ScheduledReport`).
+ *
+ * [SIDE EFFECTS]
+ * Initializes PostgreSQL connection pool upon `AppDataSource.initialize()`.
+ *
+ * [ERRORS]
+ * Throws DataSource initialization errors if credentials, network connectivity, SSL verification, or schema paths fail.
+ */
 export const AppDataSource = new DataSource({
   type: 'postgres',
   namingStrategy: new SnakeNamingStrategy(),
   url: env.DATABASE_URL,
 
-  /**
-   * NEVER set synchronize: true in any environment.
-   * Schema changes are managed exclusively through migrations.
-   */
+  /** Schema modifications are strictly managed via migrations */
   synchronize: false,
 
   /**
-   * Run migrations automatically on startup.
-   * Safe because migrations are idempotent (TypeORM tracks executed migrations).
+   * Disabled in application runtime to prevent PM2 cluster worker race conditions.
+   * Executed explicitly in deployment scripts (`npm run migration:run`).
    */
-  migrationsRun: true,
+  migrationsRun: false,
 
   logging: ['error', 'warn', 'migration'],
   logger: new TypeOrmPinoLogger(),
@@ -200,25 +232,19 @@ export const AppDataSource = new DataSource({
   ],
 
   migrations: [
-    // Production: compiled JS files
-    // Development (ts-node): TypeScript source files
     ['prod', 'uat'].includes(env.NODE_ENV)
-      ? 'dist/database/migrations/*.js'
-      : 'src/database/migrations/*.ts',
+      ? path.join(__dirname, '../database/migrations/*.js')
+      : path.join(__dirname, '../database/migrations/*.ts'),
   ],
 
-  /**
-   * Connection pool limits per PM2 worker.
-   * With 4 workers and max=10, total DB connections = 40.
-   * Adjust max if using Neon/Supabase connection pooler (pgBouncer).
-   */
+  /** Connection pooling and execution timeout safeguards */
   extra: {
-    max: 10,
+    max: env.DATABASE_POOL_MAX,
     connectionTimeoutMillis: 3000,
     query_timeout: 5000,
     statement_timeout: 5000,
     idle_in_transaction_session_timeout: 10000,
   },
 
-  ssl: env.NODE_ENV === 'prod' ? { rejectUnauthorized: false } : false,
+  ssl: getSslConfig(),
 });

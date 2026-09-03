@@ -13,6 +13,8 @@ import {
 import { Role } from './Role';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('user_roles')
 @Unique(['userId', 'roleId'])
 @Index(['userId'])
@@ -26,21 +28,21 @@ export class UserRole {
 
   @ManyToOne(() => User, (u) => u.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'role_id', type: 'uuid' })
   roleId!: string;
 
   @ManyToOne(() => Role, (r) => r.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role!: Role;
+  role!: Relation<Role>;
 
   @ManyToOne(() => User, (u) => u.assignedRoles, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'assigned_by' })
-  assignedBy?: User | null;
+  assignedBy?: Relation<User | null>;
 
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt!: Date;
@@ -62,7 +64,7 @@ export class UserRole {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer?: User | null;
+  reviewer?: Relation<User | null>;
 
   @Column({ name: 'reason', type: 'text', nullable: true })
   reason?: string | null;

@@ -1,10 +1,11 @@
-import { AppDataSource } from '../../config/database';
-import { asyncHandler } from '../../core/asyncHandler';
-import { sendOk } from '../../core/response';
 import { Tender } from '../../database/entities/Tender';
 import { TenderParticipant } from '../../database/entities/TenderParticipant';
 import { TenderSubmission } from '../../database/entities/TenderSubmission';
 import { TenderVersion } from '../../database/entities/TenderVersion';
+
+import { AppDataSource } from '@/config/database';
+import { asyncHandler } from '@/core/asyncHandler';
+import { sendOk } from '@/core/response';
 
 const tenderRepository = AppDataSource.getRepository(Tender);
 const tenderVersionRepository = AppDataSource.getRepository(TenderVersion);

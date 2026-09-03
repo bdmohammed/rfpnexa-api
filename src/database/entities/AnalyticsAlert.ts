@@ -10,6 +10,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { AlertSeverity, AlertSource, AlertTriggerCondition } from '@/types/enums';
 
 @Entity('analytics_alerts')
@@ -63,7 +64,7 @@ export class AnalyticsAlert {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'resolved_by' })
-  resolvedByUser!: User | null;
+  resolvedByUser!: Relation<User | null>;
 
   @Column({ name: 'resolved_reason', type: 'text', nullable: true, default: null })
   resolvedReason!: string | null;

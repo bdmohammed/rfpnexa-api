@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-import { WebhookEventStatus, WebhookEventType, WebhookProvider } from '../../types/enums';
+import { WebhookEventStatus, WebhookEventType, WebhookProvider } from '@/types/enums';
 
 /**
  * Logs ALL incoming webhooks BEFORE processing.

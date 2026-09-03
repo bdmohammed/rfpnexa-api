@@ -3,8 +3,8 @@ import { performance } from 'node:perf_hooks';
 
 import * as cron from 'node-cron';
 
-import { logger } from '../config/logger';
-import { runWithContext } from '../config/requestContext';
+import { logger } from '@/config/logger';
+import { runWithContext } from '@/core/requestContext';
 
 type JobName =
   | 'expire_tenders'

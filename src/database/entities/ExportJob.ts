@@ -12,6 +12,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ExportFormat, ExportJobStatus, ExportJobType } from '@/types/enums';
 
 @Entity('export_jobs')
@@ -32,7 +33,7 @@ export class ExportJob {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'enum', enum: ExportJobStatus })
   status!: ExportJobStatus;
@@ -96,7 +97,7 @@ export class ExportJob {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

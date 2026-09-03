@@ -1,9 +1,8 @@
-import { asyncHandler } from '../../core/asyncHandler';
-import { sendOk } from '../../core/response';
-import { sendContactFormEmail } from '../../services/email.service';
-
 import type { ContactFormDto } from './support.dto';
 import type { Request, Response } from 'express';
+import { asyncHandler } from '@/core/asyncHandler';
+import { sendOk } from '@/core/response';
+import { sendContactFormEmail } from '@/services/email.service';
 
 /**
  * POST /api/v1/support/contact

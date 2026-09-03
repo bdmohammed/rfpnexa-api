@@ -12,6 +12,8 @@ import { TenderReviewAssignment } from './TenderReviewAssignment';
 import { TenderReviewComment } from './TenderReviewComment';
 import { TenderVersion } from './TenderVersion';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_reviews')
 export class TenderReview {
   @PrimaryGeneratedColumn('uuid')
@@ -22,7 +24,7 @@ export class TenderReview {
 
   @ManyToOne(() => TenderVersion, (version) => version.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion!: TenderVersion;
+  tenderVersion!: Relation<TenderVersion>;
 
   @Column({ type: 'varchar', length: 50, default: 'assigned' })
   status!: string;
@@ -31,8 +33,8 @@ export class TenderReview {
   createdAt!: Date;
 
   @OneToMany(() => TenderReviewAssignment, (assign) => assign.review)
-  assignments!: TenderReviewAssignment[];
+  assignments!: Relation<TenderReviewAssignment[]>;
 
   @OneToMany(() => TenderReviewComment, (comment) => comment.review)
-  comments!: TenderReviewComment[];
+  comments!: Relation<TenderReviewComment[]>;
 }

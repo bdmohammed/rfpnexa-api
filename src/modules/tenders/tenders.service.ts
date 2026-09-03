@@ -1,32 +1,3 @@
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { DownloadHistory } from '../../database/entities/DownloadHistory';
-import { EvaluationTemplate } from '../../database/entities/EvaluationTemplate';
-import { Tender } from '../../database/entities/Tender';
-import { TenderAmendment } from '../../database/entities/TenderAmendment';
-import { TenderClarification } from '../../database/entities/TenderClarification';
-import { TenderCommittee } from '../../database/entities/TenderCommittee';
-import { TenderDocument } from '../../database/entities/TenderDocument';
-import { TenderEvaluation } from '../../database/entities/TenderEvaluation';
-import { TenderInvitation } from '../../database/entities/TenderInvitation';
-import { TenderParticipant } from '../../database/entities/TenderParticipant';
-import { TenderQuestion } from '../../database/entities/TenderQuestion';
-import { TenderReview } from '../../database/entities/TenderReview';
-import { TenderReviewAssignment } from '../../database/entities/TenderReviewAssignment';
-import { TenderReviewComment } from '../../database/entities/TenderReviewComment';
-import { TenderTemplate } from '../../database/entities/TenderTemplate';
-import { TenderVersion } from '../../database/entities/TenderVersion';
-import { TenderWatcher } from '../../database/entities/TenderWatcher';
-import { deleteFile, generateDownloadUrl } from '../../services/s3.service';
-import {
-  TenderLifecycleStatus,
-  TenderPublicationStatus,
-  TenderVersionStatus,
-} from '../../types/enums';
-import { hasAccessToTender } from '../../utils/access';
-import { domainEvents, TENDER_EVENTS } from '../../utils/domainEvents';
-
 import { TenderWorkflowService } from './TenderWorkflowService';
 
 import type {
@@ -49,6 +20,37 @@ import type {
 } from './tenders.dto';
 import type { Request } from 'express';
 import type { DeepPartial, SelectQueryBuilder } from 'typeorm';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { DownloadHistory } from '@/entities/DownloadHistory';
+import { EvaluationTemplate } from '@/entities/EvaluationTemplate';
+import { PurchasedTender } from '@/entities/PurchasedTender';
+import { Subscription } from '@/entities/Subscription';
+import { Tender } from '@/entities/Tender';
+import { TenderAmendment } from '@/entities/TenderAmendment';
+import { TenderClarification } from '@/entities/TenderClarification';
+import { TenderCommittee } from '@/entities/TenderCommittee';
+import { TenderDocument } from '@/entities/TenderDocument';
+import { TenderEvaluation } from '@/entities/TenderEvaluation';
+import { TenderInvitation } from '@/entities/TenderInvitation';
+import { TenderParticipant } from '@/entities/TenderParticipant';
+import { TenderQuestion } from '@/entities/TenderQuestion';
+import { TenderReview } from '@/entities/TenderReview';
+import { TenderReviewAssignment } from '@/entities/TenderReviewAssignment';
+import { TenderReviewComment } from '@/entities/TenderReviewComment';
+import { TenderTemplate } from '@/entities/TenderTemplate';
+import { TenderVersion } from '@/entities/TenderVersion';
+import { TenderWatcher } from '@/entities/TenderWatcher';
+import { deleteFile, generateDownloadUrl } from '@/services/s3.service';
+import {
+  SubscriptionStatus,
+  TenderLifecycleStatus,
+  TenderPublicationStatus,
+  TenderVersionStatus,
+} from '@/types/enums';
+import { checkPlanAccess } from '@/utils/access.rules';
+import { domainEvents, TENDER_EVENTS } from '@/utils/domainEvents';
 
 const tenderRepository = AppDataSource.getRepository(Tender);
 const tenderVersionRepository = AppDataSource.getRepository(TenderVersion);
@@ -66,6 +68,8 @@ const tenderQuestionRepository = AppDataSource.getRepository(TenderQuestion);
 const tenderClarificationRepository = AppDataSource.getRepository(TenderClarification);
 const tenderAmendmentRepository = AppDataSource.getRepository(TenderAmendment);
 const downloadHistoryRepository = AppDataSource.getRepository(DownloadHistory);
+const subscriptionRepository = AppDataSource.getRepository(Subscription);
+const purchasedTenderRepository = AppDataSource.getRepository(PurchasedTender);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -302,6 +306,65 @@ export async function listTenders(params: TenderSearchQueryDto) {
 }
 
 // ─── Public: Get Tender by Slug ───────────────────────────────────────────────
+
+async function checkPurchaseFallback(userId: string, tenderId: string): Promise<boolean> {
+  const purchase = await purchasedTenderRepository.findOne({
+    where: { userId, tenderId },
+    select: {
+      id: true,
+    },
+  });
+  return purchase !== null;
+}
+
+export async function hasAccessToTender(userId: string, tenderId: string): Promise<boolean> {
+  // Check active subscriptions first (most common case)
+  const activeSubscriptions = await subscriptionRepository.find({
+    where: { userId, status: SubscriptionStatus.ACTIVE },
+    relations: {
+      planVersion: {
+        plan: true,
+      },
+    },
+  });
+
+  const now = new Date();
+  const validSubscriptions = activeSubscriptions.filter(
+    (subscription) => subscription.endDate > now,
+  );
+
+  if (validSubscriptions.length === 0) {
+    return checkPurchaseFallback(userId, tenderId);
+  }
+
+  // Fetch the tender details (category, state, state.country) to verify access
+  const tender = await tenderRepository.findOne({
+    where: { id: tenderId },
+    relations: {
+      activeVersion: {
+        state: {
+          country: true,
+        },
+
+        category: true,
+      },
+    },
+  });
+
+  const version = tender?.activeVersion;
+  if (!version) {
+    return checkPurchaseFallback(userId, tenderId);
+  }
+
+  for (const subscription of validSubscriptions) {
+    const { planVersion } = subscription;
+    if (checkPlanAccess(planVersion.planType, subscription, version)) {
+      return true;
+    }
+  }
+
+  return checkPurchaseFallback(userId, tenderId);
+}
 
 export async function getTenderBySlug(slug: string, userId?: string) {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);

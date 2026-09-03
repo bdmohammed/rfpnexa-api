@@ -1,16 +1,16 @@
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
 import { Subscription } from '../../database/entities/Subscription';
 import { Transaction } from '../../database/entities/Transaction';
 import { WebhookEvent } from '../../database/entities/WebhookEvent';
+
+import type { WebhookEventType, WebhookProvider } from '@/types/enums';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
 import {
   SubscriptionStatus,
   TransactionStatus,
   TransactionType,
   WebhookEventStatus,
-} from '../../types/enums';
-
-import type { WebhookEventType, WebhookProvider } from '../../types/enums';
+} from '@/types/enums';
 
 const webhookEventRepository = AppDataSource.getRepository(WebhookEvent);
 const subscriptionRepository = AppDataSource.getRepository(Subscription);

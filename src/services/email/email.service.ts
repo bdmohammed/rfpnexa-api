@@ -1,6 +1,3 @@
-import { env } from '../../config/env';
-import { logger } from '../../config/logger';
-
 import { DummyEmailProvider } from './providers/dummy.provider';
 import { ResendProvider } from './providers/resend.provider';
 import { SesProvider } from './providers/ses.provider';
@@ -19,6 +16,8 @@ import { getVerificationTemplate } from './templates/verification';
 
 import type { EmailProvider } from './email.provider';
 import type { EmailOptions } from './types/email.types';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
 
 const FRONTEND = env.FRONTEND_CUSTOMER_URL;
 

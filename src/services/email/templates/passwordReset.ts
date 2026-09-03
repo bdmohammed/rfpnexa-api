@@ -1,9 +1,12 @@
 import { emailFooterHtml, emailFooterText } from './footer';
 
+import { escapeHtml } from '@/utils/html';
+
 export function getPasswordResetTemplate(opts: { name: string; link: string; userId: string }) {
+  const safeName = escapeHtml(opts.name);
   const html = `
     <h2>Password Reset Request</h2>
-    <p>Hi ${opts.name}, we received a request to reset your password.</p>
+    <p>Hi ${safeName}, we received a request to reset your password.</p>
     <a href="${opts.link}" style="background:#dc2626;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">
       Reset Password
     </a>

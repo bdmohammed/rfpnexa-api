@@ -1,24 +1,5 @@
 import { Router } from 'express';
 
-import { auditLogger } from '../../middleware/auditLogger';
-import { authenticate } from '../../middleware/authenticate';
-import { requireAnyPermission, requirePermission } from '../../middleware/permissions';
-import { requireAccountType } from '../../middleware/requireAccountType';
-import { validate } from '../../middleware/validate';
-import { AccountType } from '../../types/enums';
-import * as authController from '../auth/auth.controller';
-import {
-  ApproveBootstrapAdminSchema,
-  ForgotPasswordSchema,
-  LoginSchema,
-  OwnerReviewSchema,
-  RegisterSchema,
-  ResendVerificationSchema,
-  ResetPasswordSchema,
-  VerifyBootstrapTokenSchema,
-  VerifyEmailSchema,
-} from '../auth/auth.dto';
-
 import * as controller from './admin.controller';
 import {
   AssignUserRolesBodySchema,
@@ -27,287 +8,32 @@ import {
   CreateUserNoteSchema,
   IdParamSchema,
   ImpersonateUserSchema,
-  ListUsersQuerySchema,
-  PaginationQuerySchema,
   ReviewApprovalBodySchema,
   RoleParamSchema,
   SessionParamSchema,
   SubmitApprovalBodySchema,
   UpdateUserDetailSchema,
 } from './admin.dto';
-import setupRouter from './setup.routes';
 
-import { TenderPermissions, UserPermissions } from '@/constants/permissions';
+import { UserPermissions } from '@/constants/permissions';
+import { auditLogger } from '@/middleware/auditLogger';
+import { authenticate } from '@/middleware/authenticate';
+import { requirePermission } from '@/middleware/permissions';
+import { requireAccountType } from '@/middleware/requireAccountType';
+import { validate } from '@/middleware/validate';
+import { adminAuthBootstrapRoutes } from '@/modules/auth/admin/routes/auth.admin.bootstrap.routes';
+import { adminAuthPublicRoutes } from '@/modules/auth/admin/routes/auth.admin.public.routes';
+import { AccountType } from '@/types/enums';
 import { PermissionModules } from '@/types/types';
 
 const router = Router();
 
-// ─── Public Admin Auth Endpoints (No Session Required) ────────────────────────
-
-/**
- * @swagger
- * /api/v1/admin/auth/register:
- *   post:
- *     summary: Register a new admin request (Public)
- *     description: Submits a registration application for the administrator role. Awaiting system owner approval.
- *     operationId: registerAdmin
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, password, firstName, lastName]
- *             properties:
- *               email: { type: string, format: email, example: "superadmin@gmail.com" }
- *               password: { type: string, example: "1234@Admin#" }
- *               firstName: { type: string, example: "John" }
- *               lastName: { type: string, example: "Smith" }
- *     responses:
- *       201:
- *         description: Application submitted successfully
- */
-router.post('/auth/register', validate(RegisterSchema), authController.registerAdmin);
-
-/**
- * @swagger
- * /api/v1/admin/auth/login:
- *   post:
- *     summary: Admin credentials login (Public)
- *     description: Authenticates admin users and returns HTTP-Only session cookies.
- *     operationId: loginAdmin
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email: { type: string, format: email, example: "superadmin@gmail.com" }
- *               password: { type: string, example: "1234@Admin#" }
- *     responses:
- *       200:
- *         description: Login successful
- */
-router.post('/auth/login', validate(LoginSchema), authController.loginAdmin);
-
-/**
- * @swagger
- * /api/v1/admin/auth/verify-email:
- *   post:
- *     summary: Verify admin email token (Public)
- *     description: Verifies the email address using the confirmation token sent during registration.
- *     operationId: verifyAdminEmail
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token]
- *             properties:
- *               token: { type: string, example: "token123" }
- *     responses:
- *       200:
- *         description: Email verified successfully
- */
-router.post('/auth/verify-email', validate(VerifyEmailSchema), authController.verifyAdminEmail);
-
-/**
- * @swagger
- * /api/v1/admin/auth/resend-verification:
- *   post:
- *     summary: Resend admin email verification (Public)
- *     description: Re-dispatches email confirmation instructions.
- *     operationId: resendAdminVerification
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email]
- *             properties:
- *               email: { type: string, format: email }
- *     responses:
- *       200:
- *         description: Verification email resent
- */
-router.post(
-  '/auth/resend-verification',
-  validate(ResendVerificationSchema),
-  authController.resendAdminVerification,
-);
-
-/**
- * @swagger
- * /api/v1/admin/auth/forgot-password:
- *   post:
- *     summary: Request admin password reset (Public)
- *     description: Sends instructions to change the password if the account exists.
- *     operationId: forgotAdminPassword
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email]
- *             properties:
- *               email: { type: string, format: email }
- *     responses:
- *       200:
- *         description: Password reset email sent
- */
-router.post(
-  '/auth/forgot-password',
-  validate(ForgotPasswordSchema),
-  authController.forgotAdminPassword,
-);
-
-/**
- * @swagger
- * /api/v1/admin/auth/reset-password:
- *   post:
- *     summary: Reset admin password with token (Public)
- *     description: Changes password using a valid forgot-password token.
- *     operationId: resetAdminPassword
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token, password]
- *             properties:
- *               token: { type: string }
- *               password: { type: string }
- *     responses:
- *       200:
- *         description: Password updated successfully
- */
-router.post(
-  '/auth/reset-password',
-  validate(ResetPasswordSchema),
-  authController.resetAdminPassword,
-);
-/**
- * @swagger
- * /api/v1/admin/auth/owner-review:
- *   get:
- *     summary: Review admin requests for Owner (Public)
- *     description: Returns a list of pending admin registrations.
- *     operationId: ownerReview
- *     tags: [Admin Auth]
- *     security: []
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *         description: Owner token to authorize action
- *     responses:
- *       200:
- *         description: Admin registration requests resolved successfully
- */
-router.get('/auth/owner-review', validate(OwnerReviewSchema, 'query'), authController.ownerReview);
-
-/**
- * @swagger
- * /api/v1/admin/auth/bootstrap:
- *   get:
- *     summary: Verify bootstrap token (Public)
- *     description: Validates the token before launching initial admin registration.
- *     operationId: verifyBootstrapToken
- *     tags: [Admin Auth]
- *     security: []
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *         description: Bootstrap token to verify
- *     responses:
- *       200:
- *         description: Token is valid
- *
- *   post:
- *     summary: Approve bootstrap admin creation (Public)
- *     description: Creates the initial platform administrator if bootstrap credentials match.
- *     operationId: approveBootstrapAdmin
- *     tags: [Admin Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token]
- *             properties:
- *               token: { type: string }
- *               action:
- *                 type: string
- *                 enum: [approve, reject]
- *                 default: approve
- *     responses:
- *       200:
- *         description: Platform bootstrapped successfully
- */
-router.get(
-  '/auth/bootstrap',
-  validate(VerifyBootstrapTokenSchema, 'query'),
-  authController.verifyBootstrapToken,
-);
-router.post(
-  '/auth/bootstrap',
-  validate(ApproveBootstrapAdminSchema),
-  authController.approveBootstrapAdmin,
-);
+// ─── Public Admin Auth & Bootstrap Endpoints ───────────────────────────────
+router.use('/auth', adminAuthPublicRoutes);
+router.use('/auth', adminAuthBootstrapRoutes);
 
 // ─── Protected Admin Endpoints (Require Admin Session) ─────────────────────────
 router.use(authenticate, requireAccountType(AccountType.ADMIN));
-
-/**
- * @swagger
- * /api/v1/admin/auth/logout:
- *   post:
- *     summary: Log out admin user
- *     description: Invalidates admin token cookies and terminates the active session.
- *     operationId: logoutAdmin
- *     tags: [Admin Auth]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     responses:
- *       200:
- *         description: Logout successful
- */
-router.post('/auth/logout', authController.logoutAdmin);
-
-router.use('/register', setupRouter);
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -356,12 +82,12 @@ router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controll
  *       200:
  *         description: Users list resolved
  */
-router.get(
-  '/users',
-  requireAnyPermission([UserPermissions.VIEW.key, TenderPermissions.MANAGE.key]),
-  validate(ListUsersQuerySchema, 'query'),
-  controller.listUsers,
-);
+// router.get(
+//   '/users',
+//   requireAnyPermission([UserPermissions.VIEW.key, TenderPermissions.MANAGE.key]),
+//   validate(ListUsersQuerySchema, 'query'),
+//   controller.listUsers,
+// );
 
 /**
  * @swagger
@@ -577,13 +303,13 @@ router.get(
  *       200:
  *         description: Activity log resolved
  */
-router.get(
-  '/users/:id/activity',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(PaginationQuerySchema, 'query'),
-  controller.getUserActivity,
-);
+// router.get(
+//   '/users/:id/activity',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(PaginationQuerySchema, 'query'),
+//   controller.getUserActivity,
+// );
 
 /**
  * @swagger
@@ -628,13 +354,13 @@ router.get(
  *       200:
  *         description: Audit records resolved
  */
-router.get(
-  '/users/:id/audit',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(PaginationQuerySchema, 'query'),
-  controller.getUserAuditLogs,
-);
+// router.get(
+//   '/users/:id/audit',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(PaginationQuerySchema, 'query'),
+//   controller.getUserAuditLogs,
+// );
 
 /**
  * @swagger

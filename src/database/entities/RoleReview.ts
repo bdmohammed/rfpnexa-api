@@ -15,6 +15,7 @@ import { RoleReviewAssignment } from './RoleReviewAssignment';
 import { RoleReviewComment } from './RoleReviewComment';
 import { RoleVersion } from './RoleVersion';
 
+import type { Relation } from 'typeorm';
 import { ReviewStatus } from '@/types/enums';
 
 @Entity('role_reviews')
@@ -32,14 +33,14 @@ export class RoleReview {
 
   @ManyToOne(() => Role, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role!: Role;
+  role!: Relation<Role>;
 
   @Column({ name: 'role_version_id', type: 'uuid' })
   roleVersionId!: string;
 
   @ManyToOne(() => RoleVersion, (roleVersion) => roleVersion.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion!: RoleVersion;
+  roleVersion!: Relation<RoleVersion>;
 
   @Index('idx_role_reviews_status')
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
@@ -64,8 +65,8 @@ export class RoleReview {
   updatedAt!: Date;
 
   @OneToMany(() => RoleReviewAssignment, (roleReviewAssignment) => roleReviewAssignment.review)
-  roleReviewAssignments!: RoleReviewAssignment[];
+  roleReviewAssignments!: Relation<RoleReviewAssignment[]>;
 
   @OneToMany(() => RoleReviewComment, (roleReviewComment) => roleReviewComment.roleReview)
-  roleReviewComments!: RoleReviewComment[];
+  roleReviewComments!: Relation<RoleReviewComment[]>;
 }

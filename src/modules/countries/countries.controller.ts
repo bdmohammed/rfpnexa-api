@@ -14,8 +14,9 @@ import {
 import { CountriesService } from './countries.service';
 import { CountryDependencyService, type DependencyMatrix } from './country-dependency.service';
 
+import type { ApiResponse } from '@/types/types';
 import { asyncHandler } from '@/core/asyncHandler';
-import { type ApiResponse, paginationMeta, sendCreated, sendOk } from '@/core/response';
+import { paginationMeta, sendCreated, sendOk } from '@/core/response';
 
 export const getCountriesHierarchy = asyncHandler<{}, ApiResponse<unknown>>(async (_req, res) => {
   const hierarchy = await CountriesService.getCountriesHierarchy();

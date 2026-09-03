@@ -1,6 +1,7 @@
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
 import { ScheduledReport } from '../../../database/entities/ScheduledReport';
+
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
 
 export async function processScheduledReports(): Promise<void> {
   const reportRepo = AppDataSource.getRepository(ScheduledReport);

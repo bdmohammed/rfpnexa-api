@@ -1,8 +1,5 @@
-import { asyncHandler } from '../../../core/asyncHandler';
-import { AccountType } from '../../../types/enums';
 import { RbacService } from '../rbac.service';
 
-import type { Role } from '../../../database/entities/Role';
 import type {
   AssignRoleDto,
   CreateRoleDto,
@@ -16,6 +13,9 @@ import type {
   UpdateRoleDto,
   UpdateRoleResult,
 } from '../rbac.dto';
+import type { Role } from '@/entities/Role';
+import { asyncHandler } from '@/core/asyncHandler';
+import { AccountType } from '@/types/enums';
 
 export class RbacRoleController {
   public static getRoles = asyncHandler<{}, {}, {}, ListRolesQueryDto>(async (req, res) => {

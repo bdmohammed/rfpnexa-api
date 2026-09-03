@@ -1,8 +1,5 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { requirePermission, requireSuperAdmin } from '../../middleware/permissions';
-import { validate } from '../../middleware/validate';
 import { PlanParamSchema, UpdatePlanSchema } from '../admin/admin.dto';
 
 import * as controller from './plans.controller';
@@ -19,6 +16,9 @@ import {
 } from './plans.dto';
 
 import { BillingPermissions } from '@/constants/permissions';
+import { authenticate } from '@/middleware/authenticate';
+import { requirePermission, requireSuperAdmin } from '@/middleware/permissions';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

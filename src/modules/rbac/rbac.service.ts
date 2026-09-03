@@ -1,8 +1,6 @@
 import slugify from 'slugify';
 import { In, Not } from 'typeorm';
 
-import { AppDataSource } from '../../config/database';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
 import { Permission } from '../../database/entities/Permission';
 import { PermissionModule } from '../../database/entities/PermissionModule';
 import { Role } from '../../database/entities/Role';
@@ -24,7 +22,9 @@ import type {
   RoleStatsResult,
   UpdateRoleResult,
 } from './rbac.dto';
-import { RoleReview } from '@/database/entities/RoleReview';
+import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { RoleReview } from '@/entities/RoleReview';
 import {
   AccountType,
   ReviewAction,

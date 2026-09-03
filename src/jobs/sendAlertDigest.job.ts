@@ -1,4 +1,4 @@
-import { logger } from '../config/logger';
+import { logger } from '@/config/logger';
 
 /**
  * Send Alert Digest Job — Phase 2 placeholder.

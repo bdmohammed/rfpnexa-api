@@ -1,15 +1,3 @@
-import {
-  cleanupExpiredExportFiles,
-  processNextExportJob,
-} from '../modules/analytics/jobs/export.job';
-import { cleanupAnalyticsData, runDailyRollups } from '../modules/analytics/jobs/rollup.job';
-import { processScheduledReports } from '../modules/analytics/reports/reports.job';
-import {
-  processAuditExports,
-  runAuditArchival,
-  runSecurityAlertScanner,
-} from '../modules/audit/jobs';
-
 import { cleanupInvitationsJob } from './cleanupInvitations.job';
 import { CronManager } from './CronManager';
 import { deadlineRemindersJob } from './deadlineReminders.job';
@@ -21,11 +9,27 @@ import { retryNotificationsJob } from './retryNotifications.job';
 import { sendAlertDigestJob } from './sendAlertDigest.job';
 import { virusScanningJob } from './virusScanning.job';
 
+import {
+  cleanupExpiredExportFiles,
+  processNextExportJob,
+} from '@/modules/analytics/jobs/export.job';
+import { cleanupAnalyticsData, runDailyRollups } from '@/modules/analytics/jobs/rollup.job';
+import { processScheduledReports } from '@/modules/analytics/reports/reports.job';
+import {
+  processAuditExports,
+  runAuditArchival,
+  runSecurityAlertScanner,
+} from '@/modules/audit/jobs';
+
+let cronStarted = false;
+
 /**
- * Registers all cron jobs and starts them.
+ * Registers all cron jobs and starts them idempotently.
  * ONLY called on PM2 worker 0 (checked in server.ts).
  */
 export function startCronJobs(): void {
+  if (cronStarted) return;
+
   const manager = CronManager.getInstance();
 
   manager.register('expire_tenders', '0 * * * *', expireTendersJob);
@@ -51,4 +55,16 @@ export function startCronJobs(): void {
   manager.register('security_alert_scanner', '*/5 * * * *', runSecurityAlertScanner);
 
   manager.startAll();
+  cronStarted = true;
+}
+
+/**
+ * Stops all registered cron jobs idempotently.
+ * Called during graceful server shutdown.
+ */
+export function stopCronJobs(): void {
+  if (!cronStarted) return;
+
+  CronManager.getInstance().stopAll();
+  cronStarted = false;
 }

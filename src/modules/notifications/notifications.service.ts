@@ -1,19 +1,19 @@
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
 import { Notification } from '../../database/entities/Notification';
 import { NotificationAction } from '../../database/entities/NotificationAction';
 import { NotificationRecipient } from '../../database/entities/NotificationRecipient';
 import { UserRole } from '../../database/entities/UserRole';
+import { rbacEventEmitter } from '../rbac/events/RbacEvents';
+
+import type { Response } from 'express';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
 import {
   NotificationActionType,
   NotificationCategory,
   NotificationRecipientStatus,
   NotificationSeverity,
-} from '../../types/enums';
-import { domainEvents, TENDER_EVENTS } from '../../utils/domainEvents';
-import { rbacEventEmitter } from '../rbac/events/RbacEvents';
-
-import type { Response } from 'express';
+} from '@/types/enums';
+import { domainEvents, TENDER_EVENTS } from '@/utils/domainEvents';
 
 // ─── SSE Client Registry ──────────────────────────────────────────────────────
 export interface SSEClient {
@@ -164,8 +164,12 @@ export async function createNotification(params: {
   });
 }
 
+let listenersStarted = false;
+
 // ─── Setup Listeners ──────────────────────────────────────────────────────────
 export function setupNotificationListeners() {
+  if (listenersStarted) return;
+
   logger.info('Initializing notification listeners');
 
   // 1. Tender submitted (Needs Review)
@@ -371,4 +375,27 @@ export function setupNotificationListeners() {
       logger.error({ err }, 'Error handling RoleArchived notification');
     }
   });
+
+  listenersStarted = true;
+}
+
+/**
+ * Removes notification listeners and closes active SSE streams during server shutdown.
+ */
+export function stopNotificationListeners(): void {
+  if (!listenersStarted) return;
+
+  for (const client of sseClients) {
+    try {
+      client.res.end();
+    } catch {
+      // Ignore closing errors on terminating sockets
+    }
+  }
+  sseClients.length = 0;
+
+  domainEvents.removeAllListeners();
+  rbacEventEmitter.removeAllListeners();
+  listenersStarted = false;
+  logger.info('Notification listeners and active SSE streams closed');
 }

@@ -1,12 +1,11 @@
+import type { Tender } from '../../database/entities/Tender';
+import type { TenderVersion } from '../../database/entities/TenderVersion';
 import {
   TenderBiddingStatus,
   TenderProcessStatus,
   TenderPublicationStatus,
   TenderVersionStatus,
-} from '../../types/enums';
-
-import type { Tender } from '../../database/entities/Tender';
-import type { TenderVersion } from '../../database/entities/TenderVersion';
+} from '@/types/enums';
 
 export class TenderWorkflowService {
   /**

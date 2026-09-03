@@ -11,6 +11,8 @@ import { Tender } from './Tender';
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_amendments')
 export class TenderAmendment {
   @PrimaryGeneratedColumn('uuid')
@@ -21,14 +23,14 @@ export class TenderAmendment {
 
   @ManyToOne(() => Tender, (tender) => tender.amendments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ name: 'tender_version_id', type: 'uuid', nullable: true })
   tenderVersionId!: string | null;
 
   @ManyToOne(() => TenderVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion!: TenderVersion | null;
+  tenderVersion!: Relation<TenderVersion | null>;
 
   @Column({ name: 'amendment_number', type: 'int' })
   amendmentNumber!: number;
@@ -47,7 +49,7 @@ export class TenderAmendment {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'published_by_id' })
-  publishedBy!: User | null;
+  publishedBy!: Relation<User | null>;
 
   @Column({ name: 'published_by_id', type: 'uuid', nullable: true })
   publishedById!: string | null;

@@ -22,6 +22,7 @@ import { TenderDailyMetrics } from './TenderDailyMetrics';
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { CategoryStatus } from '@/types/enums';
 
 @Entity('categories')
@@ -52,7 +53,7 @@ export class Category {
 
   @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion!: CategoryVersion | null;
+  activeVersion!: Relation<CategoryVersion | null>;
 
   @Column({ name: 'is_deleted', type: 'boolean', default: false })
   isDeleted!: boolean;
@@ -83,7 +84,7 @@ export class Category {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User;
+  createdByUser!: Relation<User>;
 
   @Column({
     name: 'updated_by',
@@ -97,23 +98,23 @@ export class Category {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => TenderVersion, (t) => t.category)
-  tenders!: TenderVersion[];
+  tenders!: Relation<TenderVersion[]>;
 
   @OneToMany(() => AlertPreference, (alertPreference) => alertPreference.categoryId)
-  alertPreference!: AlertPreference[];
+  alertPreferences!: Relation<AlertPreference[]>;
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.category)
-  tenderMetrics!: TenderDailyMetrics[];
+  tenderMetrics!: Relation<TenderDailyMetrics[]>;
 
   @OneToMany(() => CategoryVersion, (v) => v.category)
-  versions!: CategoryVersion[];
+  versions!: Relation<CategoryVersion[]>;
 
   @OneToMany(() => CategoryActivity, (a) => a.category)
-  activities!: CategoryActivity[];
+  activities!: Relation<CategoryActivity[]>;
 
   // ─── Hooks ───────────────────────────────────────────────────────────────
   @BeforeInsert()

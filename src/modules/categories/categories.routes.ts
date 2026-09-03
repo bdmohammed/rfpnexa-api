@@ -1,15 +1,9 @@
 import express, { Router } from 'express';
 
-import { auditLogger } from '../../middleware/auditLogger';
-import { authenticate } from '../../middleware/authenticate';
-import { validate } from '../../middleware/validate';
-import { AccountType, PermissionKey } from '../../types/enums';
-
 import * as controller from './categories.controll';
 import {
   AssignCategoryReviewerSchema,
   CategoryDecisionSchema,
-  CategoryQuerySchema,
   CreateCategorySchema,
   IdParamSchema,
   SubmitCategoryReviewSchema,
@@ -17,12 +11,16 @@ import {
 } from './categories.dto';
 
 import type { RequestHandler } from 'express';
+import { auditLogger } from '@/middleware/auditLogger';
+import { authenticate } from '@/middleware/authenticate';
 import { requirePermission } from '@/middleware/permissions';
-import { requireRole } from '@/middleware/requireAccountType';
+import { requireAccountType } from '@/middleware/requireAccountType';
+import { validate } from '@/middleware/validate';
+import { AccountType, PermissionKey } from '@/types/enums';
 
 const router = Router();
 
-const adminAuth = [authenticate, requireRole(AccountType.ADMIN)];
+const adminAuth = [authenticate, requireAccountType(AccountType.ADMIN)];
 
 /**
  * @swagger
@@ -152,7 +150,7 @@ const adminAuth = [authenticate, requireRole(AccountType.ADMIN)];
  *                 currentPage: 1
  *               traceId: "uuid"
  */
-router.get('/', validate(CategoryQuerySchema, 'query'), controller.listCategories);
+// router.get('/', validate(CategoryQuerySchema, 'query'), controller.listCategories);
 
 /**
  * @swagger

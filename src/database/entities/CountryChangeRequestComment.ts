@@ -12,6 +12,7 @@ import {
 import { CountryChangeRequest } from './CountryChangeRequest';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { CountryCommentType } from '@/types/enums';
 
 @Entity('country_change_request_comments')
@@ -25,14 +26,14 @@ export class CountryChangeRequestComment {
 
   @ManyToOne(() => CountryChangeRequest, (req) => req.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'request_id' })
-  request!: CountryChangeRequest;
+  request!: Relation<CountryChangeRequest>;
 
   @Column({ name: 'author_id', type: 'uuid' })
   authorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'author_id' })
-  author!: User;
+  author!: Relation<User>;
 
   @Column({
     type: 'enum',

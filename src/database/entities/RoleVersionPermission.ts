@@ -10,6 +10,8 @@ import {
 
 import { RoleVersion } from './RoleVersion';
 
+import type { Relation } from 'typeorm';
+
 @Entity('role_version_permissions')
 @Unique(['roleVersionId', 'permissionKey'])
 @Index(['roleVersionId'])
@@ -22,7 +24,7 @@ export class RoleVersionPermission {
 
   @ManyToOne(() => RoleVersion, (rv) => rv.roleVersionPermissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion!: RoleVersion;
+  roleVersion!: Relation<RoleVersion>;
 
   @Column({ name: 'permission_key', type: 'varchar', length: 100 })
   permissionKey!: string;

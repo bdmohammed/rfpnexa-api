@@ -2,12 +2,11 @@ import { performance } from 'node:perf_hooks';
 
 import { Resend } from 'resend';
 
-import { env } from '../../../config/env';
-import { logger } from '../../../config/logger';
-
 import type { EmailProvider } from '../email.provider';
 import type { EmailOptions } from '../types/email.types';
 import type { CreateEmailOptions } from 'resend';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
 
 export class ResendProvider implements EmailProvider {
   private readonly resend: Resend;

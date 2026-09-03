@@ -10,6 +10,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { AuditSeverity, AuditStatus, LogSource } from '@/types/enums';
 
 /**
@@ -50,14 +51,14 @@ export class AuditLog {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'actor_user_id' })
-  actorUser!: User | null;
+  actorUser!: Relation<User | null>;
 
   @Column({ type: 'uuid', name: 'target_user_id', nullable: true, default: null })
   targetUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'target_user_id' })
-  targetUser!: User | null;
+  targetUser!: Relation<User | null>;
 
   /** Denormalized — preserved even if user is deleted */
   @Column({ type: 'varchar', name: 'actor_email' })

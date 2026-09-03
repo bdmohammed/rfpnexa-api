@@ -3,10 +3,10 @@ import * as path from 'node:path';
 
 import { IsNull, Not } from 'typeorm';
 
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
 import { ExportJob } from '../../../database/entities/ExportJob';
 
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
 import { ExportJobStatus, ExportJobType } from '@/types/enums';
 
 export async function processNextExportJob(): Promise<void> {

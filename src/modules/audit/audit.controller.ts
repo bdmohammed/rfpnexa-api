@@ -1,6 +1,3 @@
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { asyncHandler } from '../../core/asyncHandler';
-
 import {
   AuditLogIdParamSchema,
   AuditQuerySchema,
@@ -12,7 +9,6 @@ import {
 } from './audit.dto';
 import * as service from './audit.service';
 
-import type { JwtPayload } from '../../types/express';
 import type {
   AuditLogIdParamDto,
   AuditQueryDto,
@@ -22,6 +18,9 @@ import type {
   SecurityEventsQueryDto,
   UpdateRetentionDto,
 } from './audit.dto';
+import type { JwtPayload } from '@/types/express';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { asyncHandler } from '@/core/asyncHandler';
 
 export const searchLogs = asyncHandler<{}, object, {}, AuditQueryDto>(async (req, res) => {
   const filters = AuditQuerySchema.parse(req.query);

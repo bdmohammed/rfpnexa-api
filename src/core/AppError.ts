@@ -1,3 +1,10 @@
+/**
+ * [WHAT]
+ * Enumeration of standard HTTP response status codes categorized by response type (1xx, 2xx, 3xx, 4xx, 5xx).
+ *
+ * [WHY]
+ * Eliminates magic numbers across controllers, middleware, and error handlers to ensure HTTP specification compliance.
+ */
 export enum HttpStatusCode {
   // 1xx Informational
   CONTINUE = 100,
@@ -72,6 +79,16 @@ export enum HttpStatusCode {
   NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
 
+/**
+ * [WHAT]
+ * Machine-readable application error codes sent in structured JSON API responses.
+ *
+ * [WHY]
+ * Allows API clients, frontends, and mobile SDKs to programmatically handle specific errors independently of text.
+ *
+ * [CONSTRAINT]
+ * Code strings MUST remain stable, UPPER_SNAKE_CASE, and distinct across domain features.
+ */
 export enum AppErrorCode {
   ALREADY_EXISTS = 'ALREADY_EXISTS',
   ACCESS_DENIED = 'ACCESS_DENIED',
@@ -153,8 +170,25 @@ export enum AppErrorCode {
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   VALIDATION_FAILED = 'VALIDATION_FAILED',
+  PASSWORD_UNCHANGED = 'PASSWORD_UNCHANGED',
+  INVALID_EMAIL = 'INVALID_EMAIL',
+  INVALID_PASSWORD = 'INVALID_PASSWORD',
+  INVALID_ROLE = 'INVALID_ROLE',
+  INVALID_PLAN = 'INVALID_PLAN',
+  INVALID_CATEGORY = 'INVALID_CATEGORY',
+  INVALID_COUNTRY = 'INVALID_COUNTRY',
+  INVALID_LAYOUT_CONFIG = 'INVALID_LAYOUT_CONFIG',
+  INVALID_BATCH_ITEM = 'INVALID_BATCH_ITEM',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
 }
 
+/**
+ * [WHAT]
+ * Standardized human-readable error messages and dynamic error message formatter functions.
+ *
+ * [WHY]
+ * Ensures consistent error messaging across controllers, services, and middlewares.
+ */
 export const AppErrorMessage = {
   INVALID_INPUT: 'INVALID_INPUT',
   INVALID_FILE_TYPE: 'INVALID_FILE_TYPE',
@@ -331,29 +365,45 @@ export const AppErrorMessage = {
 } as const;
 
 /**
- * AppError — all expected, handled errors in the application.
+ * [WHAT]
+ * Custom Error subclass representing expected, operational application failures.
  *
- * Usage:
- *   throw new AppError(
- *        AppErrorMessage.FORBIDDEN_INSUFFICIENT_PERMISSIONS,
- *        HttpStatusCode.FORBIDDEN,
- *        AppErrorCode.FORBIDDEN
- *   );
+ * [WHY]
+ * Distinguishes handled business/validation errors (e.g. 400, 401, 404, 422)
+ * from unhandled 500 server crashes during global error logging and client response formatting.
  *
- * The global errorHandler middleware catches these and returns a structured JSON response.
- * Unexpected errors (without isOperational=true) are treated as 500s.
+ * [CONSTRAINT]
+ * 1. Must restore JavaScript prototype chain (`Object.setPrototypeOf`).
+ * 2. Property `isOperational` MUST remain `true` for global `errorHandler` middleware.
+ *
+ * [SIDE EFFECTS]
+ * Captures V8 stack trace upon instantiation (`Error.captureStackTrace`).
+ *
+ * [ERRORS]
+ * Caught by `errorHandler` middleware to format structured HTTP error responses.
  */
 export class AppError extends Error {
+  /** HTTP status code associated with the error (e.g. 400, 401, 404, 422) */
   public readonly statusCode: HttpStatusCode;
-  /** Machine-readable error code for the frontend to act on */
+  /** Machine-readable error code for frontend clients */
   public readonly code: AppErrorCode;
-  /** Always true for AppError — distinguishes from unexpected crashes */
+  /** Identifies expected operational errors versus unhandled system crashes */
   public readonly isOperational: boolean = true;
+  /** Optional field-level error details (e.g. Zod validation issue list) */
+  public readonly errors?: Array<{ field: string; message: string }>;
 
-  constructor(message: string, statusCode: HttpStatusCode, code: AppErrorCode) {
+  constructor(
+    message: string,
+    statusCode: HttpStatusCode,
+    code: AppErrorCode,
+    errors?: Array<{ field: string; message: string }>,
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
+    if (errors) {
+      this.errors = errors;
+    }
     // Restore prototype chain (required when extending built-ins in TypeScript)
     Object.setPrototypeOf(this, new.target.prototype);
     Error.captureStackTrace(this, this.constructor);

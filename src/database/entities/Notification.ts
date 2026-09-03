@@ -12,6 +12,7 @@ import { NotificationAction } from './NotificationAction';
 import { NotificationRecipient } from './NotificationRecipient';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { NotificationCategory, NotificationSeverity } from '@/types/enums';
 
 @Entity('notifications')
@@ -48,7 +49,7 @@ export class Notification {
 
   @ManyToOne(() => User, (user) => user.sentNotifications, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'sender_id' })
-  senderUser!: User | null;
+  senderUser!: Relation<User | null>;
 
   @Column({ type: 'jsonb', nullable: true, default: null })
   metadata!: Record<string, unknown> | null;
@@ -57,8 +58,8 @@ export class Notification {
   createdAt!: Date;
 
   @OneToMany(() => NotificationRecipient, (r) => r.notification, { cascade: true })
-  recipients!: NotificationRecipient[];
+  recipients!: Relation<NotificationRecipient[]>;
 
   @OneToMany(() => NotificationAction, (a) => a.notification, { cascade: true })
-  actions!: NotificationAction[];
+  actions!: Relation<NotificationAction[]>;
 }

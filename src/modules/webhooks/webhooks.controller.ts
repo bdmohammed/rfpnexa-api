@@ -1,13 +1,12 @@
 import { performance } from 'node:perf_hooks';
 
-import { logger } from '../../config/logger';
-import { asyncHandler } from '../../core/asyncHandler';
-import { getPayPalEventId, verifyPayPalWebhook } from '../../services/paypal/paypal.webhook';
-import { WebhookEventType, WebhookProvider } from '../../types/enums';
-
 import * as service from './webhooks.service';
 
 import type { PayPalWebhookDto } from './webhooks.dto';
+import { logger } from '@/config/logger';
+import { asyncHandler } from '@/core/asyncHandler';
+import { getPayPalEventId, verifyPayPalWebhook } from '@/services/paypal/paypal.webhook';
+import { WebhookEventType, WebhookProvider } from '@/types/enums';
 
 /**
  * POST /api/v1/webhooks/paypal

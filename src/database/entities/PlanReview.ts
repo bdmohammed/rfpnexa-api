@@ -15,6 +15,7 @@ import { PlanReviewAssignment } from './PlanReviewAssignment';
 import { PlanReviewComment } from './PlanReviewComment';
 import { PlanVersion } from './PlanVersion';
 
+import type { Relation } from 'typeorm';
 import { ReviewStatus } from '@/types/enums';
 
 @Entity('plan_reviews')
@@ -32,14 +33,14 @@ export class PlanReview {
 
   @ManyToOne(() => Plan, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_id' })
-  plan!: Plan;
+  plan!: Relation<Plan>;
 
   @Column({ name: 'plan_version_id', type: 'uuid' })
   planVersionId!: string;
 
   @ManyToOne(() => PlanVersion, (planVersion) => planVersion.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: PlanVersion;
+  planVersion!: Relation<PlanVersion>;
 
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
   status!: ReviewStatus;
@@ -55,8 +56,8 @@ export class PlanReview {
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => PlanReviewAssignment, (pra) => pra.review)
-  planReviewAssignments!: PlanReviewAssignment[];
+  planReviewAssignments!: Relation<PlanReviewAssignment[]>;
 
   @OneToMany(() => PlanReviewComment, (c) => c.planReview)
-  comments!: PlanReviewComment[];
+  comments!: Relation<PlanReviewComment[]>;
 }

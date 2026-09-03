@@ -1,8 +1,9 @@
-import { env } from '../../config/env';
-import { asyncHandler } from '../../core/asyncHandler';
-import { JWT_COOKIE_NAME } from '../../core/constants';
-import { sendOk } from '../../core/response';
-import * as authService from '../auth/auth.service';
+import { changeUserPassword } from '../auth/credentials/services/auth.email.service';
+import {
+  getUserSessions,
+  revokeAllUserSessions,
+  revokeSessionById,
+} from '../auth/session/auth.session.service';
 
 import * as profileService from './profile.service';
 
@@ -15,6 +16,10 @@ import type {
   UpdatePreferencesDto,
   UpdateProfileDto,
 } from './profile.dto';
+import { env } from '@/config/env';
+import { asyncHandler } from '@/core/asyncHandler';
+import { JWT_COOKIE_NAME } from '@/core/constants';
+import { sendOk } from '@/core/response';
 
 export const getProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.getProfile(req.user!.userId);
@@ -47,7 +52,7 @@ export const changePassword = asyncHandler<{}, {}, ChangePasswordDto>(async (req
   const userAgent = req.headers['user-agent'] ?? null;
   const ipAddress = req.ip ?? null;
 
-  await authService.changeUserPassword(req.user!.userId, currentPassword, newPassword, {
+  await changeUserPassword(req.user!.userId, currentPassword, newPassword, {
     userAgent,
     ipAddress,
   });
@@ -65,18 +70,18 @@ export const changePassword = asyncHandler<{}, {}, ChangePasswordDto>(async (req
 
 export const getSessions = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken ?? undefined;
-  const sessions = await authService.getUserSessions(req.user!.userId, refreshToken);
+  const sessions = await getUserSessions(req.user!.userId, refreshToken);
   return sendOk(res, sessions);
 });
 
 export const revokeSession = asyncHandler<ProfileSessionIdParamDto>(async (req, res) => {
   const { id } = req.params;
-  await authService.revokeSessionById(req.user!.userId, id);
+  await revokeSessionById(req.user!.userId, id);
   return sendOk(res, null, 'Session revoked successfully');
 });
 
 export const revokeAllSessions = asyncHandler(async (req, res) => {
-  await authService.revokeAllUserSessions(req.user!.userId);
+  await revokeAllUserSessions(req.user!.userId);
 
   // Clear cookie as we invalidated the current token as well
   res.clearCookie(JWT_COOKIE_NAME, {
@@ -164,7 +169,7 @@ export const deleteRequest = asyncHandler(async (req, res) => {
 
 export const exportData = asyncHandler(async (req, res) => {
   const data = await profileService.exportProfileData(req.user!.userId);
-  res.setHeader('Content-Disposition', 'attachment; filename=nexusbid_profile_export.json');
+  res.setHeader('Content-Disposition', 'attachment; filename=rfpnexa_profile_export.json');
   res.setHeader('Content-Type', 'application/json');
   return res.json(data);
 });

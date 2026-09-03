@@ -1,16 +1,15 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { loadPermissions } from '../../middleware/permissions';
-import { validate } from '../../middleware/validate';
-
 import * as controller from './notifications.controller';
 import {
   ExecuteActionParamsSchema,
-  GetNotificationsQuerySchema,
   NotificationIdParamSchema,
   UpdatePreferencesBodySchema,
 } from './notifications.dto';
+
+import { authenticate } from '@/middleware/authenticate';
+import { loadPermissions } from '@/middleware/permissions';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 
@@ -118,7 +117,7 @@ router.use(loadPermissions);
  *                       items:
  *                         $ref: '#/components/schemas/NotificationItem'
  */
-router.get('/', validate(GetNotificationsQuerySchema, 'query'), controller.getNotifications);
+// router.get('/', validate(GetNotificationsQuerySchema, 'query'), controller.getNotifications);
 
 /**
  * @swagger
@@ -347,8 +346,7 @@ router.patch(
  * /api/v1/notifications/{id}/actions/{actionId}/execute:
  *   post:
  *     summary: Execute an action trigger on a notification
- *     description: Performs a user response action attached to an interactive
- *     notification (e.g. accepting invitation, approving draft).
+ *     description: Performs a user response action attached to an interactive notification (e.g. accepting invitation, approving draft).
  *     operationId: executeNotificationAction
  *     tags: [Notifications]
  *     security:

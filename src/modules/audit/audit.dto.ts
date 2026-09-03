@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { RetentionCategory } from '../../types/enums';
+import { RetentionCategory } from '@/types/enums';
 
 export const AuditQuerySchema = z.object({
   from: z.string().optional(),

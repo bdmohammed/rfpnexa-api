@@ -12,6 +12,8 @@ import {
 import { Plan } from './Plan';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('subscription_daily_metrics')
 @Index(['date'])
 @Index(['date', 'planId'])
@@ -27,7 +29,7 @@ export class SubscriptionDailyMetrics {
 
   @ManyToOne(() => Plan, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'plan_id' })
-  plan!: Plan | null;
+  plan!: Relation<Plan | null>;
 
   @Column({ type: 'varchar', length: 10, default: 'USD' })
   currency!: string;
@@ -57,14 +59,14 @@ export class SubscriptionDailyMetrics {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CouponDiscountType, FeatureValueType, PlanType } from '../../types/enums';
+import { CouponDiscountType, FeatureValueType, PlanType } from '@/types/enums';
 
 // ─── Plan Core CRUD Schemas ──────────────────────────────────────────────────
 

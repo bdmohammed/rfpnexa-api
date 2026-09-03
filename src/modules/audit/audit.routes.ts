@@ -1,11 +1,10 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { requirePermission } from '../../middleware/permissions';
-
 import * as controller from './audit.controller';
 
 import { AuditPermissions } from '@/constants/permissions';
+import { authenticate } from '@/middleware/authenticate';
+import { requirePermission } from '@/middleware/permissions';
 
 const router = Router();
 

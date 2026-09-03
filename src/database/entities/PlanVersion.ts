@@ -20,6 +20,7 @@ import { PlanReview } from './PlanReview';
 import { State } from './State';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { PlanType, PlanVersionStatus } from '@/types/enums';
 
 @Entity('plan_versions')
@@ -39,7 +40,7 @@ export class PlanVersion {
 
   @ManyToOne(() => Plan, (p) => p.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_id' })
-  plan!: Plan;
+  plan!: Relation<Plan>;
 
   @Column({ type: 'integer', default: 1 })
   version!: number;
@@ -88,7 +89,7 @@ export class PlanVersion {
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_state_id' })
-  targetState!: State | null;
+  targetState!: Relation<State | null>;
 
   @Column({ name: 'target_country', type: 'varchar', length: 100, nullable: true, default: null })
   targetCountry!: string | null;
@@ -98,7 +99,7 @@ export class PlanVersion {
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_category_id' })
-  targetCategory!: Category | null;
+  targetCategory!: Relation<Category | null>;
 
   @Column({ name: 'bundle_size', type: 'int', nullable: true, default: null })
   bundleSize!: number | null;
@@ -108,7 +109,7 @@ export class PlanVersion {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
-  lockedByUser!: User | null;
+  lockedByUser!: Relation<User | null>;
 
   @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
   lockedAt!: Date | null;
@@ -118,21 +119,21 @@ export class PlanVersion {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedBy!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser!: User | null;
+  approvedByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
   approvedAt!: Date | null;
@@ -145,14 +146,14 @@ export class PlanVersion {
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => PlanFeature, (f) => f.planVersion)
-  features!: PlanFeature[];
+  features!: Relation<PlanFeature[]>;
 
   @OneToMany(() => PlanCountryPricing, (cp) => cp.planVersion)
-  countryPricing!: PlanCountryPricing[];
+  countryPricing!: Relation<PlanCountryPricing[]>;
 
   @OneToMany(() => PlanCategoryPricing, (catP) => catP.planVersion)
-  categoryPricing!: PlanCategoryPricing[];
+  categoryPricing!: Relation<PlanCategoryPricing[]>;
 
   @OneToMany(() => PlanReview, (r) => r.planVersion)
-  reviews!: PlanReview[];
+  reviews!: Relation<PlanReview[]>;
 }

@@ -1,70 +1,149 @@
-import { v4 as uuidv4 } from 'uuid';
-
-import { AppDataSource } from '../config/database';
-import { asyncHandler } from '../core/asyncHandler';
-import { AuditLog } from '../database/entities/AuditLog';
+import { randomUUID } from 'node:crypto';
 
 import type { NextFunction, Request, Response } from 'express';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AuditLog } from '@/entities/AuditLog';
 
 const auditLogRepository = AppDataSource.getRepository(AuditLog);
 
+// enum AUDIT_ACTIONS {
+//   CREATE = 'create',
+//   UPDATE = 'update',
+//   DELETE = 'delete',
+//   APPROVE = 'approve',
+//   REJECT = 'reject',
+//   PUBLISH = 'publish',
+// }
+
+interface AuditResponse {
+  data?: unknown;
+  [key: string]: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Builds the immutable audit event from the authenticated request context.
+ *
+ * Audit records must contain enough information to answer:
+ *
+ *   WHO    → actorId / actorEmail
+ *   WHAT   → action
+ *   WHERE  → module / entityId
+ *   WHEN   → database createdAt
+ *   TRACE  → requestId / traceId
+ *   FROM   → IP address / user agent
+ *   CHANGE → before / after
+ */
 function buildAuditLogPayload(
   req: Request,
   res: Response,
   action: string,
   module: string,
   responseBody: Record<string, unknown>,
-) {
+): Partial<AuditLog> {
   const { user } = req;
+
+  if (!user) {
+    throw new Error('Audit logging requires an authenticated user');
+  }
+
   const rawEntityId = req.params['id'];
+
   const entityId = Array.isArray(rawEntityId) ? (rawEntityId[0] ?? null) : (rawEntityId ?? null);
 
   return {
-    eventId: uuidv4(),
-    actorId: user ? user.userId : null,
-    actorEmail: user ? user.email : 'unknown',
+    eventId: randomUUID(),
+
+    actorId: user.userId,
+    actorUserId: user.userId,
+    actorEmail: user.email,
+
     action,
     module,
+
     entityId,
-    before: (res.locals['auditBefore'] as unknown) ?? null,
-    after: responseBody.data ?? null,
+
+    before: res.locals['auditBefore'] ?? null,
+    after: isRecord(responseBody.data) ? responseBody.data : null,
+
     requestId: req.requestId ?? null,
-    userAgent: req.headers['user-agent'] ?? null,
+    traceId: req.traceId ?? null,
+
+    endpoint: req.path,
+    userAgent: req.get('user-agent') ?? null,
     ipAddress: req.ip ?? null,
   };
 }
 
 /**
- * Middleware factory that logs admin actions to the audit_logs table.
- * Logging is non-blocking (setImmediate) and does not affect response time.
- * The before state must be captured in the route handler and passed via res.locals.
+ * Logs security-sensitive administrative actions.
  *
- * Usage:
- *   router.patch('/:id',
- *     authenticate,
- *     requirePermission(PermissionKey.EDIT_TENDER),
- *     auditLogger('edit', 'tender'),
- *     controller.update,
- *   );
+ * The middleware captures the final successful response and creates an
+ * immutable audit event containing:
  *
- * To capture the 'before' state in the controller:
- *   res.locals.auditBefore = { status: tender.status };
+ * - authenticated actor
+ * - action
+ * - module/entity
+ * - before/after state
+ * - request/trace correlation
+ * - client metadata
+ *
+ * IMPORTANT:
+ * Audit logging is intentionally performed after the response has been
+ * generated. The audit failure is logged but must not modify the already
+ * completed HTTP response.
+ *
+ * Example:
+ *
+ * router.patch(
+ *   '/:id',
+ *   authenticate,
+ *   requirePermission(PermissionKey.EDIT_TENDER),
+ *   captureAuditBefore,
+ *   auditLogger(AUDIT_ACTIONS.UPDATE, 'tender'),
+ *   tenderController.update,
+ * );
  */
-export const auditLogger = (action: string, module: string) =>
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const auditLogger =
+  (action: string, module: string) =>
+  (req: Request, res: Response, next: NextFunction): void => {
     const originalJson = res.json.bind(res);
 
-    res.json = (responseBody: Record<string, unknown>) => {
-      // Non-blocking — does not delay the response
-      setImmediate(() => {
-        const payload = buildAuditLogPayload(req, res, action, module, responseBody);
-        void auditLogRepository.save(payload).catch(() => {
-          // Silently fail — audit logging should never crash the app
-        });
-      });
+    res.json = ((responseBody: AuditResponse) => {
+      const { statusCode } = res;
 
-      return originalJson(responseBody);
-    };
+      const result = originalJson(responseBody);
+
+      // Audit only successful state-changing operations.
+      if (statusCode >= 200 && statusCode < 300) {
+        const payload = buildAuditLogPayload(req, res, action, module, responseBody);
+
+        setImmediate(() => {
+          void auditLogRepository.save(payload).catch((error: unknown) => {
+            // Never expose audit persistence failures to the client.
+            // But NEVER silently discard them either.
+            logger.error(
+              {
+                err: error,
+                eventId: payload.eventId,
+                action: payload.action,
+                module: payload.module,
+                entityId: payload.entityId,
+                requestId: payload.requestId,
+                traceId: payload.traceId,
+              },
+              'Failed to persist audit log',
+            );
+          });
+        });
+      }
+
+      return result;
+    }) as Response['json'];
 
     next();
-  });
+  };

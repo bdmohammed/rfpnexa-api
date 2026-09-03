@@ -1,6 +1,3 @@
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { asyncHandler } from '../../core/asyncHandler';
-
 import {
   AssignReviewerBodySchema,
   CreateCouponSchema,
@@ -14,7 +11,6 @@ import {
 } from './plans.dto';
 import * as plansService from './plans.service';
 
-import type { JwtPayload } from '../../types/express';
 import type { PlanParamDto, UpdatePlanDto } from '../admin/admin.dto';
 import type {
   AssignReviewerBodyDto,
@@ -27,8 +23,11 @@ import type {
   SubmitReviewActionBodyDto,
   VersionIdParamDto,
 } from './plans.dto';
-import type { ApiResponse } from '@/core/response';
-import type { Plan } from '@/database/entities/Plan';
+import type { Plan } from '@/entities/Plan';
+import type { JwtPayload } from '@/types/express';
+import type { ApiResponse } from '@/types/types';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { asyncHandler } from '@/core/asyncHandler';
 import { sendOk } from '@/core/response';
 
 // ─── Plan Workflows ─────────────────────────────────────────────────────────

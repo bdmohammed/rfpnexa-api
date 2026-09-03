@@ -10,6 +10,8 @@ import {
 import { Tender } from './Tender';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_watchers')
 export class TenderWatcher {
   @PrimaryGeneratedColumn('uuid')
@@ -20,14 +22,14 @@ export class TenderWatcher {
 
   @ManyToOne(() => Tender, (tender) => tender.watchers, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'channels', type: 'jsonb', default: '["EMAIL", "IN_APP"]' })
   channels!: string[];

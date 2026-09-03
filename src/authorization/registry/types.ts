@@ -1,5 +1,3 @@
-// Canonical types are defined here.
-
 export type PermissionAction =
   | 'view'
   | 'create'

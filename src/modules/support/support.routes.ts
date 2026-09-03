@@ -1,10 +1,10 @@
 import { Router } from 'express';
 
-import { contactLimiter } from '../../middleware/rateLimits';
-import { validate } from '../../middleware/validate';
-
 import { submitContactForm } from './support.controller';
 import { ContactFormSchema } from './support.dto';
+
+import { contactLimiter } from '@/middleware/rateLimits';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

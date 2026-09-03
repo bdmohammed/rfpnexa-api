@@ -11,6 +11,8 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('user_notes')
 export class UserNote {
   @PrimaryGeneratedColumn('uuid')
@@ -35,9 +37,9 @@ export class UserNote {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'admin_id' })
-  admin!: User | null;
+  admin!: Relation<User | null>;
 }

@@ -13,6 +13,8 @@ import { TenderEvaluation } from './TenderEvaluation';
 import { TenderSubmission } from './TenderSubmission';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_participants')
 export class TenderParticipant {
   @PrimaryGeneratedColumn('uuid')
@@ -23,14 +25,14 @@ export class TenderParticipant {
 
   @ManyToOne(() => Tender, (tender) => tender.participants, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ name: 'vendor_id', type: 'uuid' })
   vendorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vendor_id' })
-  vendor!: User;
+  vendor!: Relation<User>;
 
   @Column({ type: 'varchar', length: 50 })
   status!: string;
@@ -48,8 +50,8 @@ export class TenderParticipant {
   createdAt!: Date;
 
   @OneToMany(() => TenderEvaluation, (evalRow) => evalRow.participant)
-  evaluations!: TenderEvaluation[];
+  evaluations!: Relation<TenderEvaluation[]>;
 
   @OneToMany(() => TenderSubmission, (submission) => submission.participant)
-  submissions!: TenderSubmission[];
+  submissions!: Relation<TenderSubmission[]>;
 }

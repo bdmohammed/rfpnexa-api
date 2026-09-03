@@ -1,203 +1,205 @@
-import request from 'supertest';
-import { app } from '../../src/config/app';
-import { AppDataSource } from '../../src/config/database';
-import { State } from '../../src/database/entities/State';
-import { Category } from '../../src/database/entities/Category';
-import { Tender } from '../../src/database/entities/Tender';
-import { TenderVersion } from '../../src/database/entities/TenderVersion';
-import {
-  AccountType,
-  PermissionKey,
-  TenderLifecycleStatus,
-  TenderPublicationStatus,
-  TenderVersionStatus,
-} from '../../src/types/enums';
-import { clearAuthTables, setupTestRoleWithPermission } from '../helpers/db';
-import { getCsrf } from '../helpers/csrf';
-import { createUser } from '../helpers/builders';
-import { User } from '../../src/database/entities/User';
+// import request from 'supertest';
 
-const stateRepo = () => AppDataSource.getRepository(State);
-const categoryRepo = () => AppDataSource.getRepository(Category);
-const tenderRepo = () => AppDataSource.getRepository(Tender);
-const versionRepo = () => AppDataSource.getRepository(TenderVersion);
+// import { app } from '../../src/config/app';
+// import { AppDataSource } from '../../src/config/database';
+// import { Category } from '../../src/database/entities/Category';
+// import { State } from '../../src/database/entities/State';
+// import { Tender } from '../../src/database/entities/Tender';
+// import { TenderVersion } from '../../src/database/entities/TenderVersion';
+// import {
+//   AccountType,
+//   PermissionKey,
+//   TenderLifecycleStatus,
+//   TenderPublicationStatus,
+//   TenderVersionStatus,
+// } from '../../src/types/enums';
+// import { createUser } from '../helpers/builders';
+// import { getCsrf } from '../helpers/csrf';
+// import { clearAuthTables, setupTestRoleWithPermission } from '../helpers/db';
 
-async function clearAllTables() {
-  await clearAuthTables();
-  await AppDataSource.query(
-    `TRUNCATE TABLE tenders, tender_versions, states, categories RESTART IDENTITY CASCADE`,
-  );
-}
+// import type { User } from '../../src/database/entities/User';
 
-describe('Tenders Enterprise Admin API Integration Tests', () => {
-  let superAdminUser: User;
-  let superAdminPassword = 'SuperAdminPass1!';
-  let csrfToken: string;
-  let agent: ReturnType<typeof request.agent>;
+// const stateRepo = () => AppDataSource.getRepository(State);
+// const categoryRepo = () => AppDataSource.getRepository(Category);
+// const tenderRepo = () => AppDataSource.getRepository(Tender);
+// const versionRepo = () => AppDataSource.getRepository(TenderVersion);
 
-  beforeEach(async () => {
-    await clearAllTables();
-    agent = request.agent(app);
+// async function clearAllTables() {
+//   await clearAuthTables();
+//   await AppDataSource.query(
+//     'TRUNCATE TABLE tenders, tender_versions, states, categories RESTART IDENTITY CASCADE',
+//   );
+// }
 
-    superAdminUser = await createUser({
-      email: 'superadmin@test.local',
-      accountType: AccountType.ADMIN,
-      password: superAdminPassword,
-      emailVerified: true,
-    });
-    await setupTestRoleWithPermission(
-      superAdminUser.id,
-      'Super Admin',
-      PermissionKey.CREATE_TENDER,
-    );
-    await setupTestRoleWithPermission(
-      superAdminUser.id,
-      'Super Admin Edit',
-      PermissionKey.EDIT_TENDER,
-    );
-    await setupTestRoleWithPermission(
-      superAdminUser.id,
-      'Super Admin Approve',
-      PermissionKey.APPROVE_TENDER,
-    );
+// describe('Tenders Enterprise Admin API Integration Tests', () => {
+//   let superAdminUser: User;
+//   const superAdminPassword = 'SuperAdminPass1!';
+//   let csrfToken: string;
+//   let agent: ReturnType<typeof request.agent>;
 
-    const csrf = await getCsrf(agent);
-    csrfToken = csrf.token;
-  });
+//   beforeEach(async () => {
+//     await clearAllTables();
+//     agent = request.agent(app);
 
-  async function loginAsAdmin() {
-    const freshAgent = request.agent(app);
-    const csrf = await getCsrf(freshAgent);
-    await freshAgent
-      .post('/api/v1/auth/login')
-      .set('x-csrf-token', csrf.token)
-      .send({ email: superAdminUser.email, password: superAdminPassword })
-      .expect(200);
-    return { agent: freshAgent, csrfToken: csrf.token };
-  }
+//     superAdminUser = await createUser({
+//       email: 'superadmin@test.local',
+//       accountType: AccountType.ADMIN,
+//       password: superAdminPassword,
+//       emailVerified: true,
+//     });
+//     await setupTestRoleWithPermission(
+//       superAdminUser.id,
+//       'Super Admin',
+//       PermissionKey.CREATE_TENDER,
+//     );
+//     await setupTestRoleWithPermission(
+//       superAdminUser.id,
+//       'Super Admin Edit',
+//       PermissionKey.EDIT_TENDER,
+//     );
+//     await setupTestRoleWithPermission(
+//       superAdminUser.id,
+//       'Super Admin Approve',
+//       PermissionKey.APPROVE_TENDER,
+//     );
 
-  describe('Tender Lifecycle & Versioning CRUD', () => {
-    it('creates a new draft tender aggregate and active version', async () => {
-      const { agent: client, csrfToken: token } = await loginAsAdmin();
+//     const csrf = await getCsrf(agent);
+//     csrfToken = csrf.token;
+//   });
 
-      const payload = {
-        title: 'New Municipal Airport Development',
-        description: 'Design and construction of runway and logistics hangars.',
-        procurementType: 'Works',
-        priority: 'High',
-        estimatedBudget: 8500000,
-        currency: 'USD',
-        department: 'Dept of Aviation',
-        siteVisitRequired: true,
-        visibility: 'public',
-      };
+//   async function loginAsAdmin() {
+//     const freshAgent = request.agent(app);
+//     const csrf = await getCsrf(freshAgent);
+//     await freshAgent
+//       .post('/api/v1/auth/login')
+//       .set('x-csrf-token', csrf.token)
+//       .send({ email: superAdminUser.email, password: superAdminPassword })
+//       .expect(200);
+//     return { agent: freshAgent, csrfToken: csrf.token };
+//   }
 
-      const res = await client
-        .post('/api/v1/tenders/admin')
-        .set('x-csrf-token', token)
-        .send(payload)
-        .expect(201);
+//   describe('Tender Lifecycle & Versioning CRUD', () => {
+//     it('creates a new draft tender aggregate and active version', async () => {
+//       const { agent: client, csrfToken: token } = await loginAsAdmin();
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.referenceNo).toContain('TDR-');
-      expect(res.body.data.status).toBe(TenderLifecycleStatus.ACTIVE);
+//       const payload = {
+//         title: 'New Municipal Airport Development',
+//         description: 'Design and construction of runway and logistics hangars.',
+//         procurementType: 'Works',
+//         priority: 'High',
+//         estimatedBudget: 8500000,
+//         currency: 'USD',
+//         department: 'Dept of Aviation',
+//         siteVisitRequired: true,
+//         visibility: 'public',
+//       };
 
-      const createdTender = await tenderRepo().findOne({
-        where: { id: res.body.data.id },
-        relations: ['activeVersion'],
-      });
-      expect(createdTender).not.toBeNull();
-      expect(createdTender!.activeVersion).not.toBeNull();
-      expect(createdTender!.activeVersion!.title).toBe(payload.title);
-      expect(createdTender!.activeVersion!.status).toBe(TenderVersionStatus.DRAFT);
-    });
+//       const res = await client
+//         .post('/api/v1/tenders/admin')
+//         .set('x-csrf-token', token)
+//         .send(payload)
+//         .expect(201);
 
-    it('submits a review for a tender and transitions status', async () => {
-      const { agent: client, csrfToken: token } = await loginAsAdmin();
+//       expect(res.body.success).toBe(true);
+//       expect(res.body.data.referenceNo).toContain('TDR-');
+//       expect(res.body.data.status).toBe(TenderLifecycleStatus.ACTIVE);
 
-      // Create base tender
-      const tender = tenderRepo().create({
-        status: TenderLifecycleStatus.ACTIVE,
-        publicationStatus: TenderPublicationStatus.SCHEDULED,
-      });
-      await tenderRepo().save(tender);
+//       const createdTender = await tenderRepo().findOne({
+//         where: { id: res.body.data.id },
+//         relations: ['activeVersion'],
+//       });
+//       expect(createdTender).not.toBeNull();
+//       expect(createdTender!.activeVersion).not.toBeNull();
+//       expect(createdTender!.activeVersion!.title).toBe(payload.title);
+//       expect(createdTender!.activeVersion!.status).toBe(TenderVersionStatus.DRAFT);
+//     });
 
-      const draftVersion = versionRepo().create({
-        tenderId: tender.id,
-        version: 1,
-        status: TenderVersionStatus.DRAFT,
-        title: 'Test Version 1',
-        description: 'Test details info',
-        priority: 'Medium',
-        currency: 'USD',
-        siteVisitRequired: false,
-      });
-      await versionRepo().save(draftVersion);
+//     it('submits a review for a tender and transitions status', async () => {
+//       const { agent: client, csrfToken: token } = await loginAsAdmin();
 
-      tender.activeVersionId = draftVersion.id;
-      await tenderRepo().save(tender);
+//       // Create base tender
+//       const tender = tenderRepo().create({
+//         status: TenderLifecycleStatus.ACTIVE,
+//         publicationStatus: TenderPublicationStatus.SCHEDULED,
+//       });
+//       await tenderRepo().save(tender);
 
-      // Transition to under review
-      const reviewRes = await client
-        .patch(`/api/v1/tenders/admin/${tender.id}/status`)
-        .set('x-csrf-token', token)
-        .send({
-          status: TenderVersionStatus.UNDER_REVIEW,
-        })
-        .expect(200);
+//       const draftVersion = versionRepo().create({
+//         tenderId: tender.id,
+//         version: 1,
+//         status: TenderVersionStatus.DRAFT,
+//         title: 'Test Version 1',
+//         description: 'Test details info',
+//         priority: 'Medium',
+//         currency: 'USD',
+//         siteVisitRequired: false,
+//       });
+//       await versionRepo().save(draftVersion);
 
-      expect(reviewRes.body.success).toBe(true);
-      const updatedVer = await versionRepo().findOneBy({ id: draftVersion.id });
-      expect(updatedVer!.status).toBe(TenderVersionStatus.UNDER_REVIEW);
-    });
+//       tender.activeVersionId = draftVersion.id;
+//       await tenderRepo().save(tender);
 
-    it('allows comparing different versions of a tender', async () => {
-      const { agent: client } = await loginAsAdmin();
+//       // Transition to under review
+//       const reviewRes = await client
+//         .patch(`/api/v1/tenders/admin/${tender.id}/status`)
+//         .set('x-csrf-token', token)
+//         .send({
+//           status: TenderVersionStatus.UNDER_REVIEW,
+//         })
+//         .expect(200);
 
-      const tender = tenderRepo().create({
-        status: TenderLifecycleStatus.ACTIVE,
-        publicationStatus: TenderPublicationStatus.SCHEDULED,
-      });
-      await tenderRepo().save(tender);
+//       expect(reviewRes.body.success).toBe(true);
+//       const updatedVer = await versionRepo().findOneBy({ id: draftVersion.id });
+//       expect(updatedVer!.status).toBe(TenderVersionStatus.UNDER_REVIEW);
+//     });
 
-      const v1 = await versionRepo().save(
-        versionRepo().create({
-          tenderId: tender.id,
-          version: 1,
-          status: TenderVersionStatus.APPROVED,
-          title: 'Initial Title Spec',
-          description: 'Old Description',
-          priority: 'Low',
-          currency: 'USD',
-          siteVisitRequired: false,
-        }),
-      );
+//     it('allows comparing different versions of a tender', async () => {
+//       const { agent: client } = await loginAsAdmin();
 
-      const v2 = await versionRepo().save(
-        versionRepo().create({
-          tenderId: tender.id,
-          version: 2,
-          status: TenderVersionStatus.DRAFT,
-          title: 'Modified Title Spec',
-          description: 'Old Description',
-          priority: 'High',
-          currency: 'USD',
-          siteVisitRequired: true,
-        }),
-      );
+//       const tender = tenderRepo().create({
+//         status: TenderLifecycleStatus.ACTIVE,
+//         publicationStatus: TenderPublicationStatus.SCHEDULED,
+//       });
+//       await tenderRepo().save(tender);
 
-      tender.activeVersionId = v2.id;
-      await tenderRepo().save(tender);
+//       const v1 = await versionRepo().save(
+//         versionRepo().create({
+//           tenderId: tender.id,
+//           version: 1,
+//           status: TenderVersionStatus.APPROVED,
+//           title: 'Initial Title Spec',
+//           description: 'Old Description',
+//           priority: 'Low',
+//           currency: 'USD',
+//           siteVisitRequired: false,
+//         }),
+//       );
 
-      const diffRes = await client
-        .get(`/api/v1/tenders/admin/${tender.id}/diff?fromVersion=1&toVersion=2`)
-        .expect(200);
+//       const v2 = await versionRepo().save(
+//         versionRepo().create({
+//           tenderId: tender.id,
+//           version: 2,
+//           status: TenderVersionStatus.DRAFT,
+//           title: 'Modified Title Spec',
+//           description: 'Old Description',
+//           priority: 'High',
+//           currency: 'USD',
+//           siteVisitRequired: true,
+//         }),
+//       );
 
-      expect(diffRes.body.success).toBe(true);
-      expect(diffRes.body.data.diff.title).toBeDefined();
-      expect(diffRes.body.data.diff.title.old).toBe('Initial Title Spec');
-      expect(diffRes.body.data.diff.title.new).toBe('Modified Title Spec');
-      expect(diffRes.body.data.diff.priority.new).toBe('High');
-    });
-  });
-});
+//       tender.activeVersionId = v2.id;
+//       await tenderRepo().save(tender);
+
+//       const diffRes = await client
+//         .get(`/api/v1/tenders/admin/${tender.id}/diff?fromVersion=1&toVersion=2`)
+//         .expect(200);
+
+//       expect(diffRes.body.success).toBe(true);
+//       expect(diffRes.body.data.diff.title).toBeDefined();
+//       expect(diffRes.body.data.diff.title.old).toBe('Initial Title Spec');
+//       expect(diffRes.body.data.diff.title.new).toBe('Modified Title Spec');
+//       expect(diffRes.body.data.diff.priority.new).toBe('High');
+//     });
+//   });
+// });

@@ -12,6 +12,8 @@ import {
 import { Country } from './Country';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('user_daily_metrics')
 @Index(['date'])
 @Index(['date', 'countryId'])
@@ -27,7 +29,7 @@ export class UserDailyMetrics {
 
   @ManyToOne(() => Country, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'country_id' })
-  country!: Country | null;
+  country!: Relation<Country | null>;
 
   @Column({ name: 'new_users', type: 'integer', default: 0 })
   newUsers!: number;
@@ -46,14 +48,14 @@ export class UserDailyMetrics {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

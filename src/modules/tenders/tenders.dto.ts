@@ -1,10 +1,6 @@
 import { z } from 'zod';
 
-import {
-  TenderLifecycleStatus,
-  TenderPublicationStatus,
-  TenderVersionStatus,
-} from '../../types/enums';
+import { TenderLifecycleStatus, TenderPublicationStatus, TenderVersionStatus } from '@/types/enums';
 
 export const TenderSearchQuerySchema = z.object({
   q: z.string().max(200).optional(),

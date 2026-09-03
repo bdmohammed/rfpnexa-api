@@ -15,6 +15,7 @@ import { Category } from './Category';
 import { CategoryReview } from './CategoryReview';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { CategoryVersionStatus } from '@/types/enums';
 
 @Entity('category_versions')
@@ -30,7 +31,7 @@ export class CategoryVersion {
 
   @ManyToOne(() => Category, (cat) => cat.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_id' })
-  category!: Category;
+  category!: Relation<Category>;
 
   @Column({ type: 'integer', default: 0 })
   majorVersion!: number;
@@ -58,7 +59,7 @@ export class CategoryVersion {
 
   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'parent_category_id' })
-  parentCategory!: Category | null;
+  parentCategory!: Relation<Category | null>;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
   displayOrder!: number;
@@ -77,14 +78,14 @@ export class CategoryVersion {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser!: User | null;
+  approvedByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
   approvedAt!: Date | null;
@@ -97,8 +98,8 @@ export class CategoryVersion {
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => CategoryReview, (review) => review.categoryVersion)
-  reviews!: CategoryReview[];
+  reviews!: Relation<CategoryReview[]>;
 
   @OneToMany(() => Category, (cat) => cat.activeVersion)
-  categoriesUsingThisVersion!: Category[];
+  categoriesUsingThisVersion!: Relation<Category[]>;
 }

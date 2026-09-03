@@ -23,7 +23,7 @@ services:
       - .env
       - .env.local
     volumes:
-      - ./src:/app/src     # Hot reload — ts-node watches src/
+      - ./src:/app/src # Hot reload — ts-node watches src/
     depends_on:
       db:
         condition: service_healthy
@@ -34,13 +34,13 @@ services:
     environment:
       POSTGRES_USER: rfp
       POSTGRES_PASSWORD: rfp
-      POSTGRES_DB: nexusbid_dev
+      POSTGRES_DB: rfpnexa_dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U rfp -d nexusbid_dev']
+      test: ['CMD-SHELL', 'pg_isready -U rfp -d rfpnexa_dev']
       interval: 5s
       timeout: 5s
       retries: 5

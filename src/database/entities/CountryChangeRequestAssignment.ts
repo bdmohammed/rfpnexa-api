@@ -12,6 +12,7 @@ import {
 import { CountryChangeRequest } from './CountryChangeRequest';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { CountryAssignmentStatus } from '@/types/enums';
 
 @Entity('country_change_request_assignments')
@@ -25,14 +26,14 @@ export class CountryChangeRequestAssignment {
 
   @ManyToOne(() => CountryChangeRequest, (req) => req.assignments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'request_id' })
-  request!: CountryChangeRequest;
+  request!: Relation<CountryChangeRequest>;
 
   @Column({ name: 'reviewer_id', type: 'uuid' })
   reviewerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: User;
+  reviewer!: Relation<User>;
 
   @Column({
     type: 'enum',
@@ -46,7 +47,7 @@ export class CountryChangeRequestAssignment {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'assigned_by_id' })
-  assignedBy!: User | null;
+  assignedBy!: Relation<User | null>;
 
   @Column({ name: 'assigned_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   assignedAt!: Date;

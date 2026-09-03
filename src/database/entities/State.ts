@@ -14,12 +14,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { StateType } from '../../types/enums';
-
 import { AlertPreference } from './AlertPreference';
 import { Country } from './Country';
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { StateType } from '@/types/enums';
 
 @Entity('states')
 @Check('"code" = UPPER("code")')
@@ -56,7 +57,7 @@ export class State {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'country_id' })
-  country!: Country;
+  country!: Relation<Country>;
 
   @Column({ name: 'display_order', type: 'integer', default: 0 })
   displayOrder!: number;
@@ -72,7 +73,7 @@ export class State {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User;
+  createdBy!: Relation<User>;
 
   @Column({
     name: 'updated_by',
@@ -86,7 +87,7 @@ export class State {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
@@ -99,10 +100,10 @@ export class State {
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => TenderVersion, (t) => t.state)
-  tenders!: TenderVersion[];
+  tenders!: Relation<TenderVersion[]>;
 
   @OneToMany(() => AlertPreference, (a) => a.state)
-  alertPreferences!: AlertPreference[];
+  alertPreferences!: Relation<AlertPreference[]>;
 
   // ─── Hooks ────────────────────────────────────────────────────────────
   @BeforeInsert()

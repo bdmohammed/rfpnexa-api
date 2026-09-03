@@ -1,6 +1,3 @@
-import { asyncHandler } from '../../core/asyncHandler';
-import { type ApiResponse, paginationMeta, sendCreated, sendOk } from '../../core/response';
-
 import {
   type AssignUserRolesBodyDto,
   type BlockUserDto,
@@ -29,9 +26,12 @@ import {
 } from './admin.dto';
 import * as service from './admin.service';
 
-import type { AuditLog } from '../../database/entities/AuditLog';
-import type { User } from '../../database/entities/User';
-import type { UserNote } from '../../database/entities/UserNote';
+import type { AuditLog } from '@/entities/AuditLog';
+import type { User } from '@/entities/User';
+import type { UserNote } from '@/entities/UserNote';
+import type { ApiResponse } from '@/types/types';
+import { asyncHandler } from '@/core/asyncHandler';
+import { paginationMeta, sendCreated, sendOk } from '@/core/response';
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 

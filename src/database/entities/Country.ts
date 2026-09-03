@@ -19,6 +19,8 @@ import { TenderDailyMetrics } from './TenderDailyMetrics';
 import { User } from './User';
 import { UserDailyMetrics } from './UserDailyMetrics';
 
+import type { Relation } from 'typeorm';
+
 @Entity('countries')
 @Check('"code" ~ \'^[A-Z]{2}$\'')
 @Check('"slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'')
@@ -71,7 +73,7 @@ export class Country {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User;
+  createdBy!: Relation<User>;
 
   @Column({
     name: 'updated_by',
@@ -87,7 +89,7 @@ export class Country {
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -103,16 +105,16 @@ export class Country {
 
   // ─── Relations ────────────────────────────────────────────────────────────
   @OneToMany(() => State, (state) => state.country)
-  states!: State[];
+  states!: Relation<State[]>;
 
   @OneToMany(() => User, (user) => user.country)
-  users!: User[];
+  users!: Relation<User[]>;
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.country)
-  tenderMetrics!: TenderDailyMetrics[];
+  tenderMetrics!: Relation<TenderDailyMetrics[]>;
 
   @OneToMany(() => UserDailyMetrics, (metrics) => metrics.country)
-  userMetrics!: UserDailyMetrics[];
+  userMetrics!: Relation<UserDailyMetrics[]>;
 
   // ─── Hooks ────────────────────────────────────────────────────────────
   @BeforeInsert()

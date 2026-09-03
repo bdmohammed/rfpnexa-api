@@ -13,6 +13,7 @@ import {
 import { ScheduledReportRecipient } from './ScheduledReportRecipient';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ReportFormat, ReportFrequency, ReportType } from '@/types/enums';
 
 export interface ScheduledReportFilters {
@@ -74,14 +75,14 @@ export class ScheduledReport {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User;
+  createdByUser!: Relation<User>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @Column({ name: 'locked_by', type: 'varchar', length: 100, nullable: true, default: null })
   lockedBy!: string | null;
@@ -96,5 +97,5 @@ export class ScheduledReport {
   updatedAt!: Date;
 
   @OneToMany(() => ScheduledReportRecipient, (recipient) => recipient.report, { cascade: true })
-  recipients!: ScheduledReportRecipient[];
+  recipients!: Relation<ScheduledReportRecipient[]>;
 }

@@ -1,11 +1,12 @@
 import { LessThanOrEqual } from 'typeorm';
 
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
 import { Tender } from '../../database/entities/Tender';
-import { TenderPublicationStatus } from '../../types/enums';
 
 import { TenderWorkflowService } from './TenderWorkflowService';
+
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { TenderPublicationStatus } from '@/types/enums';
 
 export class TenderScheduledPublisher {
   /**

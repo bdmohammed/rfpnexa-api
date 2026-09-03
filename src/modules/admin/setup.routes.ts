@@ -1,21 +1,21 @@
 import * as bcrypt from 'bcryptjs';
 import { Router } from 'express';
 
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
-import { asyncHandler } from '../../core/asyncHandler';
-import { BCRYPT_ROUNDS } from '../../core/constants';
 import { Permission } from '../../database/entities/Permission';
 import { Role } from '../../database/entities/Role';
 import { RoleVersion } from '../../database/entities/RoleVersion';
 import { RoleVersionPermission } from '../../database/entities/RoleVersionPermission';
 import { User } from '../../database/entities/User';
 import { UserRole } from '../../database/entities/UserRole';
-import { validate } from '../../middleware/validate';
-import { AccountType, RoleStatus, RoleVersionStatus } from '../../types/enums';
 import { SetupSchema } from '../rbac/rbac.dto';
 
 import type { SetupDto, SuccessResponse } from '../rbac/rbac.dto';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { asyncHandler } from '@/core/asyncHandler';
+import { BCRYPT_ROUNDS } from '@/core/constants';
+import { validate } from '@/middleware/validate';
+import { AccountType, RoleStatus, RoleVersionStatus } from '@/types/enums';
 
 const setupRouter = Router();
 
@@ -99,9 +99,7 @@ setupRouter.get(
  * /api/v1/admin/register:
  *   post:
  *     summary: Run the first-time system setup wizard
- *     description: Creates the first admin user, initializes the "Super Admin" role, assigns all
- *     system permissions to the role, and assigns the role to this admin user. Blocked if a super
- *     administrator already exists.
+ *     description: Creates the first admin user, initializes the "Super Admin" role, assigns all system permissions to the role, and assigns the role to this admin user. Blocked if a super administrator already exists.
  *     operationId: runSetupWizard
  *     tags: [Setup]
  *     security:
@@ -120,7 +118,7 @@ setupRouter.get(
  *               email:
  *                 type: string
  *                 format: email
- *                 example: admin@nexusbid.com
+ *                 example: admin@rfpnexa.com
  *               password:
  *                 type: string
  *                 format: password
@@ -147,13 +145,13 @@ setupRouter.get(
  *                         email:
  *                           type: string
  *                           format: email
- *                           example: "admin@nexusbid.com"
+ *                           example: "admin@rfpnexa.com"
  *             example:
  *               success: true
  *               message: "First Administrator created successfully and assigned the Super Admin role."
  *               data:
  *                 userId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
- *                 email: "admin@nexusbid.com"
+ *                 email: "admin@rfpnexa.com"
  *               traceId: "d3b07384-d113-4ec2-a5d6-c73e16723223"
  *       400:
  *         $ref: '#/components/responses/ValidationError'

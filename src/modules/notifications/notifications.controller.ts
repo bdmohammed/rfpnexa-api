@@ -1,16 +1,7 @@
-import { AppDataSource } from '../../config/database';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { asyncHandler } from '../../core/asyncHandler';
 import { NotificationAction } from '../../database/entities/NotificationAction';
 import { NotificationRecipient } from '../../database/entities/NotificationRecipient';
 import { RoleReview } from '../../database/entities/RoleReview';
 import { UserRole } from '../../database/entities/UserRole';
-import {
-  NotificationActionType,
-  NotificationRecipientStatus,
-  NotificationSeverity,
-  TenderVersionStatus,
-} from '../../types/enums';
 import { RbacService } from '../rbac/rbac.service';
 import { updateTenderStatus } from '../tenders/tenders.service';
 
@@ -22,6 +13,15 @@ import type {
   NotificationIdParamDto,
   UpdatePreferencesBodyDto,
 } from './notifications.dto';
+import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { asyncHandler } from '@/core/asyncHandler';
+import {
+  NotificationActionType,
+  NotificationRecipientStatus,
+  NotificationSeverity,
+  TenderVersionStatus,
+} from '@/types/enums';
 
 // Helpers to get user role IDs
 async function getUserRoleIds(userId: string): Promise<string[]> {
@@ -76,12 +76,12 @@ export const getNotifications = asyncHandler<{}, {}, {}, GetNotificationsQueryDt
 
     // Enterprise Priority Queue Sorting using addSelect aliases to bypass TypeORM parser
     qb.addSelect(
-      `CASE 
-    WHEN notification.severity = '${NotificationSeverity.CRITICAL}' THEN 1 
-    WHEN notification.severity = '${NotificationSeverity.HIGH}' THEN 2 
+      `CASE
+    WHEN notification.severity = '${NotificationSeverity.CRITICAL}' THEN 1
+    WHEN notification.severity = '${NotificationSeverity.HIGH}' THEN 2
     WHEN notification.severity = '${NotificationSeverity.MEDIUM}' THEN 3
     WHEN notification.severity = '${NotificationSeverity.LOW}' THEN 4
-    ELSE 5 
+    ELSE 5
   END`,
       'severity_priority',
     )

@@ -1,61 +1,88 @@
-import { getTraceId } from '../config/requestContext';
+import { getTraceId } from './requestContext';
 
+import type { ApiResponse, PaginationMeta } from '@/types/types';
 import type { Response } from 'express';
 
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  message: string;
-  data?: T | undefined;
-  meta?: Record<string, unknown> | undefined;
-  traceId?: string | undefined;
-}
-
 /**
- * Sends a 200 OK response.
+ * [WHAT]
+ * Internal helper that constructs a standardized success response object, attaching current trace context.
+ *
+ * [WHY]
+ * Centralizes response payload composition and automatically binds request correlation trace IDs.
+ *
+ * [SIDE EFFECTS]
+ * Reads active request context via `getTraceId()`.
  */
-export function sendOk<T>(
-  res: Response,
-  data: T,
-  message = 'Success',
-  meta?: Record<string, unknown>,
-): Response {
-  const body: ApiResponse<T> = {
+function buildSuccessResponse<T, U>(data: T, message: string, meta?: U): ApiResponse<T, U> {
+  const response: ApiResponse<T, U> = {
     success: true,
     message,
     data,
     traceId: getTraceId(),
   };
-  if (meta) body.meta = meta;
-  return res.status(200).json(body);
+
+  if (meta !== undefined) {
+    response.meta = meta;
+  }
+
+  return response;
 }
 
 /**
- * Sends a 201 Created response.
+ * [WHAT]
+ * Helper function for sending an HTTP 200 OK JSON response.
+ *
+ * [WHY]
+ * Streamlines successful data delivery across controller actions while keeping consistent JSON formatting.
+ *
+ * [SIDE EFFECTS]
+ * Writes status code 200 and JSON response payload to Express `Response`.
  */
-export function sendCreated<T>(res: Response, data: T, message = 'Created successfully'): Response {
-  return res.status(201).json({
-    success: true,
-    message,
-    data,
-    traceId: getTraceId(),
-  });
+export function sendOk<T, U>(res: Response, data: T, message = 'Success', meta?: U): Response {
+  return res.status(200).json(buildSuccessResponse<T, U>(data, message, meta));
 }
 
 /**
- * Sends a 204 No Content response.
+ * [WHAT]
+ * Helper function for sending an HTTP 201 Created JSON response.
+ *
+ * [WHY]
+ * Used upon successful resource creation to return the newly created entity and 201 status code.
+ *
+ * [SIDE EFFECTS]
+ * Writes status code 201 and JSON response payload to Express `Response`.
+ */
+export function sendCreated<T, U>(
+  res: Response,
+  data: T,
+  message = 'Created successfully',
+  meta?: U,
+): Response {
+  return res.status(201).json(buildSuccessResponse<T, U>(data, message, meta));
+}
+
+/**
+ * [WHAT]
+ * Helper function for sending an HTTP 204 No Content response.
+ *
+ * [WHY]
+ * Returns HTTP 204 status without a body for successful operations producing no content (e.g. DELETE).
+ *
+ * [SIDE EFFECTS]
+ * Sends an empty HTTP 204 response on Express `Response`.
  */
 export function sendNoContent(res: Response): Response {
   return res.status(204).send();
 }
 
 /**
- * Pagination meta builder — attach to sendOk's meta argument.
+ * [WHAT]
+ * Helper function that calculates pagination metadata for list responses.
+ *
+ * [WHY]
+ * Computes total pages and prev/next page flags from raw total counts, page numbers, and limits.
  */
-export function paginationMeta(
-  total: number,
-  page: number,
-  limit: number,
-): Record<string, unknown> {
+export function paginationMeta(total: number, page: number, limit: number): PaginationMeta {
   return {
     total,
     page,

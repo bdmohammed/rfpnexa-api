@@ -1,73 +1,86 @@
-import crypto from 'node:crypto';
-
 import { type EntityManager, IsNull, MoreThan } from 'typeorm';
 
-import { AppDataSource } from '../config/database';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
-import { EMAIL_TOKEN_TTL } from '../core/constants';
 import { EmailToken } from '../database/entities/EmailToken';
 import { EmailTokenType } from '../types/enums';
 
 import type { User } from '../database/entities/User';
+import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { EMAIL_TOKEN_TTL } from '@/core/constants';
+import { generateEmailVerificationToken, hashToken } from '@/utils/crypto';
 
 const emailTokenRepository = AppDataSource.getRepository(EmailToken);
 
 /**
- * Creates a new email token for the given user and type.
+ * [WHAT]
+ * Creates a single-use email verification or reset token.
  *
- * Returns the RAW token (plain text) — this is sent in the email link.
- * The SHA-256 HASH is stored in the database. Never store or return the raw token in the DB.
+ * [WHY]
+ * Guarantees that only one active token exists per user and token type by purging previous unused tokens.
  *
- * Single-use: tokens are marked usedAt on consumption.
+ * [CONSTRAINT]
+ * 1. Must delete any previous unused tokens of the same type for this user before issuing a new token.
+ * 2. Returns the RAW plain-text token (for email delivery) while storing only the SHA-256 hash in DB.
  */
-export async function createEmailToken(userId: string, type: EmailTokenType): Promise<string> {
-  const rawToken = crypto.randomBytes(32).toString('hex');
-  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+export async function createEmailToken(
+  userId: string,
+  type: EmailTokenType,
+  transactionManager?: EntityManager,
+): Promise<string> {
+  const repo = transactionManager
+    ? transactionManager.getRepository(EmailToken)
+    : emailTokenRepository;
+
+  // Purge any existing unused tokens of the same type for this user
+  await repo.delete({ userId, type });
+
+  const { rawToken, hashedToken } = generateEmailVerificationToken();
 
   const ttl =
     type === EmailTokenType.PASSWORD_RESET || type === EmailTokenType.SYSTEM_OWNER_APPROVAL
       ? EMAIL_TOKEN_TTL.PASSWORD_RESET
       : EMAIL_TOKEN_TTL.VERIFICATION;
 
-  const token = emailTokenRepository.create({
+  const token = repo.create({
     userId,
-    tokenHash,
+    tokenHash: hashedToken,
     type,
     expiresAt: new Date(Date.now() + ttl),
   });
 
-  await emailTokenRepository.save(token);
+  await repo.save(token);
   return rawToken;
 }
 
 /**
- * Verifies a raw token against the DB hash and marks it as used.
- * Throws AppError if the token is invalid, expired, or already used.
- * Accepts optional transactionManager so token consumption rolls back if transaction fails.
+ * [WHAT]
+ * Verifies a raw token against the stored SHA-256 database hash and marks it as used.
  *
- * For password reset: deletes ALL password_reset tokens for the user after success.
+ * [WHY]
+ * Single-use token enforcement preventing replay attacks.
  */
 export async function verifyAndConsumeToken(
   rawToken: string,
   type: EmailTokenType,
   transactionManager?: EntityManager,
 ): Promise<string> {
-  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-  const repo = transactionManager
-    ? transactionManager.getRepository(EmailToken)
-    : emailTokenRepository;
+  const tokenHash = hashToken(rawToken);
+  const manager = transactionManager ?? AppDataSource.manager;
+  const now = new Date();
 
-  // Find the exact non-expired, non-used token of this type matching the hash
-  const matched = await repo.findOne({
-    where: {
-      tokenHash,
-      type,
-      usedAt: IsNull() as unknown as Date,
-      expiresAt: MoreThan(new Date()),
-    },
-  });
+  const result = await manager
+    .getRepository(EmailToken)
+    .createQueryBuilder()
+    .update()
+    .set({ usedAt: now })
+    .where('token_hash = :tokenHash', { tokenHash })
+    .andWhere('type = :type', { type })
+    .andWhere('used_at IS NULL')
+    .andWhere('expires_at > :now', { now })
+    .returning('*')
+    .execute();
 
-  if (!matched) {
+  if (!result.affected || result.affected === 0) {
     throw new AppError(
       AppErrorMessage.INVALID_OR_EXPIRED_TOKEN,
       HttpStatusCode.BAD_REQUEST,
@@ -75,33 +88,44 @@ export async function verifyAndConsumeToken(
     );
   }
 
-  // Mark as used
-  await repo.update(matched.id, { usedAt: new Date() });
+  const updatedRecord = result.raw?.[0];
+  const userId = updatedRecord?.user_id ?? updatedRecord?.userId;
 
-  // For password reset — delete all reset tokens for this user
-  if (type === EmailTokenType.PASSWORD_RESET) {
-    await repo.delete({ userId: matched.userId, type });
+  if (!userId) {
+    throw new AppError(
+      AppErrorMessage.INVALID_OR_EXPIRED_TOKEN,
+      HttpStatusCode.BAD_REQUEST,
+      AppErrorCode.INVALID_TOKEN,
+    );
   }
 
-  return matched.userId;
+  if (type === EmailTokenType.PASSWORD_RESET) {
+    const repo = transactionManager
+      ? transactionManager.getRepository(EmailToken)
+      : emailTokenRepository;
+    await repo.delete({ userId, type });
+  }
+
+  return userId;
 }
 
 /**
+ * [WHAT]
  * Deletes all tokens of a given type for a user.
- * Called after successful password reset to prevent token reuse.
  */
 export async function deleteTokensByType(userId: string, type: EmailTokenType): Promise<void> {
   await emailTokenRepository.delete({ userId, type });
 }
 
 /**
- * Retrieves details for a valid, non-expired, non-used token along with the user relations.
+ * [WHAT]
+ * Retrieves details for a valid, non-expired, non-used token along with user relations.
  */
 export async function getValidTokenDetails(
   rawToken: string,
   type: EmailTokenType,
 ): Promise<EmailToken & { user: User }> {
-  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const tokenHash = hashToken(rawToken);
   const matched = await emailTokenRepository.findOne({
     where: {
       tokenHash,

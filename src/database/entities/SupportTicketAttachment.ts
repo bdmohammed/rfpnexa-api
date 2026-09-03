@@ -10,6 +10,8 @@ import {
 
 import { SupportTicketMessage } from './SupportTicketMessage';
 
+import type { Relation } from 'typeorm';
+
 @Entity('support_ticket_attachments')
 @Index('idx_ticket_attachments_message_id', ['messageId'])
 export class SupportTicketAttachment {
@@ -23,7 +25,7 @@ export class SupportTicketAttachment {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'message_id' })
-  message!: SupportTicketMessage;
+  message!: Relation<SupportTicketMessage>;
 
   @Column({ name: 'file_name', type: 'varchar', length: 255 })
   fileName!: string;

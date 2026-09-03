@@ -11,10 +11,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { TicketCategory, TicketPriority, TicketStatus } from '../../types/enums';
-
 import { SupportTicketMessage } from './SupportTicketMessage';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { TicketCategory, TicketPriority, TicketStatus } from '@/types/enums';
 
 @Entity('support_tickets')
 @Check('"status" <> \'closed\' OR "closed_at" IS NOT NULL')
@@ -31,7 +32,7 @@ export class SupportTicket {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'varchar', length: 255 })
   subject!: string;
@@ -56,14 +57,14 @@ export class SupportTicket {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy!: User;
+  updatedBy!: Relation<User>;
 
   @Column({ name: 'assigned_to_id', type: 'uuid', nullable: true, default: null })
   assignedToId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'assigned_to_id' })
-  assignedTo!: User | null;
+  assignedTo!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -87,5 +88,5 @@ export class SupportTicket {
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => SupportTicketMessage, (m) => m.ticket)
-  messages!: SupportTicketMessage[];
+  messages!: Relation<SupportTicketMessage[]>;
 }

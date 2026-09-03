@@ -1,26 +1,33 @@
 {
-  "name": "nexusbid-api",
+  "name": "rfpnexa-api",
   "version": "1.0.0",
   "description": "RFPNexa â€” USA Government RFP/Tender Marketplace REST API",
   "private": true,
   "scripts": {
-    "dev": "nodemon --exec tsx src/config/server.ts",
+    "dev": "nodemon --exec tsx -- tsconfig tsconfig.app.json src/config/server.ts",
     "start": "node dist/config/server.js",
     "clean": "rimraf dist",
-    "typecheck": "tsc --noEmit",
-    "typecheck:watch": "tsc --watch --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.test.json",
+    "typecheck:watch": "tsc --noEmit -p tsconfig.app.json --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format:write": "prettier --write './src/**/*.{ts,js}'",
-    "format": "prettier --check './src/**/*.{ts,js}'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
     "test:watch": "cross-env NODE_ENV=test jest --runInBand --watch",
     "test:coverage": "cross-env NODE_ENV=test jest --runInBand --coverage --detectOpenHandles",
     "test:ci": "jest --ci --coverage --runInBand",
+    "test:unit": "cross-env NODE_ENV=test jest --config jest.unit.config.ts --runInBand --detectOpenHandles",
+    "test:unit:watch": "cross-env NODE_ENV=test jest --config jest.unit.config.ts --watch",
+    "test:integration": "cross-env NODE_ENV=test jest --config jest.integration.config.ts --runInBand --detectOpenHandles",
+    "test:integration:coverage": "cross-env NODE_ENV=test jest --config jest.integration.config.ts --runInBand --coverage --detectOpenHandles",
+    "test:api": "cross-env NODE_ENV=test jest --config jest.api.config.ts --runInBand --detectOpenHandles",
+    "test:e2e": "cross-env NODE_ENV=test jest --config jest.e2e.config.ts --runInBand --detectOpenHandles",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:api && npm run test:e2e",
     "deps:unused": "knip",
     "deps:circular": "madge --circular --extensions ts src",
     "deps:graph": "dependency-cruiser src",
-    "typeorm": "tsx ./node_modules/typeorm/cli.js",
+    "typeorm": "tsx --tsconfig tsconfig.app.json ./node_modules/typeorm/cli.js",
     "migration:create": "npm run typeorm -- migration:create -d src/config/database.ts",
     "migration:create:local": "cross-env NODE_ENV=local npm run typeorm -- migration:create",
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/database.ts ",
@@ -32,8 +39,8 @@
     "migration:revert:local": "cross-env NODE_ENV=local npm run typeorm -- migration:revert -d src/config/database.ts",
     "migration:revert:prod": "cross-env NODE_ENV=prod npm run typeorm -- migration:revert -d src/config/database.ts",
     "db:reset:local": "cross-env NODE_ENV=local npm run typeorm -- schema:drop -d src/config/database.ts && npm run migration:run:local && npm run seed:local",
-    "seed": "tsx src/database/seeds/seed.ts",
-    "seed:local": "cross-env NODE_ENV=local tsx src/database/seeds/seed.ts",
+    "seed": "tsx --tsconfig tsconfig.app.json src/database/seeds/seed.ts",
+    "seed:local": "cross-env NODE_ENV=local tsx --tsconfig tsconfig.app.json src/database/seeds/seed.ts",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
@@ -42,14 +49,13 @@
     "prebuild": "rimraf dist",
     "preinstall": "",
     "prepare": "husky",
-    "fake": "cross-env NODE_ENV=local npx tsx src/database/generateMissingMigrations.ts",
-    "generate:errors": "tsx ts-morph-script.ts",
-    "dev:local": "cross-env NODE_ENV=local nodemon --exec tsx src/config/server.ts",
-    "dev:dev": "cross-env NODE_ENV=dev nodemon --exec tsx src/config/server.ts",
-    "build": "tsc -p tsconfig.json && tsc-alias",
+    "generate:errors": "tsx --tsconfig tsconfig.app.json ts-morph-script.ts",
+    "dev:local": "cross-env NODE_ENV=local nodemon --exec tsx --tsconfig tsconfig.app.json src/config/server.ts",
+    "dev:dev": "cross-env NODE_ENV=dev nodemon --exec tsx --tsconfig tsconfig.app.json src/config/server.ts",
+    "build": "tsc -p tsconfig.build.json && tsc-alias",
     "seed:prod": "node dist/database/seeds/seed.js",
     "test:auth": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles tests/auth",
-    "migration:run:test": "cross-env NODE_ENV=test tsx ./node_modules/typeorm/cli.js migration:run -d src/config/database.ts"
+    "migration:run:test": "cross-env NODE_ENV=test tsx --tsconfig tsconfig.app.json ./node_modules/typeorm/cli.js migration:run -d src/config/database.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1106.0",
@@ -77,8 +83,9 @@
     "slugify": "1.6.9",
     "swagger-jsdoc": "6.3.0",
     "swagger-ui-express": "5.0.1",
+    "tsconfig-paths": "^4.2.0",
     "typeorm": "1.1.0",
-    "uuid": "14.0.1",
+    "ua-parser-js": "^2.0.10",
     "zod": "4.4.3"
   },
   "devDependencies": {
@@ -86,6 +93,8 @@
     "@commitlint/config-conventional": "21.2.0",
     "@eslint/js": "10.0.1",
     "@jest/types": "30.4.1",
+    "@swc/core": "^1.16.0",
+    "@swc/jest": "^0.2.39",
     "@types/compression": "1.8.1",
     "@types/cookie-parser": "1.4.10",
     "@types/cors": "2.8.19",
@@ -98,7 +107,10 @@
     "@types/supertest": "7.2.1",
     "@types/swagger-jsdoc": "6.0.4",
     "@types/swagger-ui-express": "4.1.8",
-    "@typescript/typescript6": "^6.0.2",
+    "@typescript/typescript6": "6.0.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "chalk": "^6.0.0",
+    "commander": "^15.0.0",
     "cross-env": "10.1.0",
     "dependency-cruiser": "18.1.1",
     "eslint": "10.8.1",
@@ -116,12 +128,13 @@
     "jest": "30.4.2",
     "knip": "6.32.0",
     "lint-staged": "17.3.0",
-    "madge": "8.0.0",
+    "madge": "^8.0.0",
     "nodemon": "3.1.14",
     "prettier": "3.9.6",
     "prettier-plugin-organize-imports": "4.3.0",
     "rimraf": "6.1.3",
     "supertest": "7.2.2",
+    "testcontainers": "^12.1.0",
     "ts-jest": "29.4.12",
     "ts-morph": "28.0.0",
     "tsc-alias": "1.9.1",
@@ -151,61 +164,5 @@
     "*.{ts,tsx}": [
       "tsc --noEmit"
     ]
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ],
-    "rules": {
-      "scope-enum": [
-        2,
-        "always",
-        [
-          "feat",
-          "fix",
-          "docs",
-          "style",
-          "refactor",
-          "test",
-          "chore",
-          "perf",
-          "ci",
-          "build",
-          "revert"
-        ]
-      ],
-      "subject-case": [
-        2,
-        "always",
-        "lower-case"
-      ],
-      "subject-empty": [
-        2,
-        "never"
-      ],
-      "subject-full-stop": [
-        2,
-        "never",
-        "."
-      ],
-      "header-max-length": [
-        2,
-        "always",
-        72
-      ],
-      "body-leading-blank": [
-        1,
-        "always"
-      ],
-      "body-max-line-length": [
-        2,
-        "always",
-        100
-      ],
-      "footer-leading-blank": [
-        1,
-        "always"
-      ]
-    }
   }
 }

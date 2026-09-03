@@ -14,6 +14,8 @@ import { Country } from './Country';
 import { Tender } from './Tender';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_daily_metrics')
 @Index(['date'])
 @Index(['date', 'countryId', 'categoryId'])
@@ -29,21 +31,21 @@ export class TenderDailyMetrics {
 
   @ManyToOne(() => Country, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'country_id' })
-  country!: Country | null;
+  country!: Relation<Country | null>;
 
   @Column({ name: 'category_id', type: 'uuid', nullable: true, default: null })
   categoryId!: string | null;
 
   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
-  category!: Category | null;
+  category!: Relation<Category | null>;
 
   @Column({ name: 'tender_id', type: 'uuid', nullable: true, default: null })
   tenderId!: string | null;
 
   @ManyToOne(() => Tender, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender | null;
+  tender!: Relation<Tender | null>;
 
   @Column({ name: 'procurement_type', type: 'varchar', length: 100, nullable: true })
   procurementType!: string | null;
@@ -107,14 +109,14 @@ export class TenderDailyMetrics {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

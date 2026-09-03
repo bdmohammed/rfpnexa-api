@@ -10,6 +10,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { LogSource, SecurityEvent } from '@/types/enums';
 
 export interface SecurityLogDetails {
@@ -39,7 +40,7 @@ export class SecurityLog {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User | null;
+  user!: Relation<User | null>;
 
   @Column({ type: 'varchar', nullable: true, default: null })
   email!: string | null;

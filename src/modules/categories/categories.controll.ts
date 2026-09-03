@@ -14,9 +14,9 @@ import {
 } from './categories.dto';
 import * as service from './categories.service';
 
-import type { ApiResponse } from '@/core/response';
-import type { AuditLog } from '@/database/entities/AuditLog';
-import type { Category } from '@/database/entities/Category';
+import type { AuditLog } from '@/entities/AuditLog';
+import type { Category } from '@/entities/Category';
+import type { ApiResponse } from '@/types/types';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 import { asyncHandler } from '@/core/asyncHandler';
 import { paginationMeta, sendCreated, sendOk } from '@/core/response';

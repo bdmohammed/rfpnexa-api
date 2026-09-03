@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "noEmitOnError": true
+  },
+  "include": ["./src/**/*", "./scripts/**/*"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "node_modules", "dist"]
+}

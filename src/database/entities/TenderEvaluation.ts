@@ -12,6 +12,8 @@ import { TenderParticipant } from './TenderParticipant';
 import { TenderSubmission } from './TenderSubmission';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_evaluations')
 export class TenderEvaluation {
   @PrimaryGeneratedColumn('uuid')
@@ -22,7 +24,7 @@ export class TenderEvaluation {
 
   @ManyToOne(() => TenderParticipant, (part) => part.evaluations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'participant_id' })
-  participant!: TenderParticipant;
+  participant!: Relation<TenderParticipant>;
 
   @Column({ name: 'submission_id', type: 'uuid', nullable: true })
   submissionId!: string | null;
@@ -32,7 +34,7 @@ export class TenderEvaluation {
     nullable: true,
   })
   @JoinColumn({ name: 'submission_id' })
-  submission!: TenderSubmission | null;
+  submission!: Relation<TenderSubmission | null>;
 
   @Column({ type: 'varchar', name: 'evaluation_type', length: 50 })
   evaluationType!: string;
@@ -45,7 +47,7 @@ export class TenderEvaluation {
     nullable: true,
   })
   @JoinColumn({ name: 'evaluation_template_id' })
-  evaluationTemplate!: EvaluationTemplate | null;
+  evaluationTemplate!: Relation<EvaluationTemplate | null>;
 
   @Column({
     type: 'numeric',
@@ -82,7 +84,7 @@ export class TenderEvaluation {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'evaluated_by_id' })
-  evaluatedBy!: User | null;
+  evaluatedBy!: Relation<User | null>;
 
   @Column({ name: 'evaluated_by_id', type: 'uuid', nullable: true })
   evaluatedById!: string | null;

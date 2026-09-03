@@ -13,6 +13,7 @@ import { CountryChangeRequest } from './CountryChangeRequest';
 import { State } from './State';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ActorType, CountryActivityType } from '@/types/enums';
 
 @Entity('country_activities')
@@ -38,14 +39,14 @@ export class CountryActivity {
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
-  country!: Country;
+  country!: Relation<Country>;
 
   @Column({ name: 'state_id', type: 'smallint', nullable: true })
   stateId!: string | null;
 
   @ManyToOne(() => State, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'state_id' })
-  state!: State | null;
+  state!: Relation<State | null>;
 
   @Column({ name: 'request_id', type: 'uuid', nullable: true })
   requestId!: string | null;
@@ -55,14 +56,14 @@ export class CountryActivity {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'request_id' })
-  request!: CountryChangeRequest | null;
+  request!: Relation<CountryChangeRequest | null>;
 
   @Column({ name: 'actor_id', type: 'uuid', nullable: true })
   actorId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'actor_id' })
-  actor!: User | null;
+  actor!: Relation<User | null>;
 
   @Column({
     name: 'actor_type',

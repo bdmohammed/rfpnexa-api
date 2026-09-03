@@ -9,9 +9,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { CategoryReview } from './CategoryReview';
 import { User } from './User';
 
+import type { CategoryReview } from './CategoryReview';
+import type { Relation } from 'typeorm';
 import { ReviewAction } from '@/types/enums';
 
 @Entity('category_review_comments')
@@ -23,16 +24,16 @@ export class CategoryReviewComment {
   @Column({ name: 'category_review_id', type: 'uuid' })
   categoryReviewId!: string;
 
-  @ManyToOne(() => CategoryReview, (cr) => cr.comments, { onDelete: 'CASCADE' })
+  @ManyToOne('CategoryReview', 'comments', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_review_id' })
-  categoryReview!: CategoryReview;
+  categoryReview!: Relation<CategoryReview>;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'text' })
   comment!: string;

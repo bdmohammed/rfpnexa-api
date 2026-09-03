@@ -1,7 +1,6 @@
-import { logger } from '../../../config/logger';
-
 import type { EmailProvider } from '../email.provider';
 import type { EmailOptions } from '../types/email.types';
+import { logger } from '@/config/logger';
 
 export class DummyEmailProvider implements EmailProvider {
   async send(options: EmailOptions): Promise<void> {

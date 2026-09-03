@@ -2,13 +2,17 @@ import * as os from 'node:os';
 
 import pidusage from 'pidusage';
 
-import { AppDataSource } from '../../config/database';
 import { AuditLog } from '../../database/entities/AuditLog';
 import { Subscription } from '../../database/entities/Subscription';
 import { Tender } from '../../database/entities/Tender';
 import { TenderVersion } from '../../database/entities/TenderVersion';
 import { User } from '../../database/entities/User';
 import { UserDashboardLayout } from '../../database/entities/UserDashboardLayout';
+
+import type { DashboardWidget } from '../../database/entities/UserDashboardLayout';
+import type { PatchLayoutDto } from './dashboard.dto';
+import type { Response } from 'express';
+import { AppDataSource } from '@/config/database';
 import {
   AccountType,
   DashboardTheme,
@@ -19,11 +23,7 @@ import {
   TenderPublicationStatus,
   TenderVersionStatus,
   UserStatus,
-} from '../../types/enums';
-
-import type { DashboardWidget } from '../../database/entities/UserDashboardLayout';
-import type { PatchLayoutDto } from './dashboard.dto';
-import type { Response } from 'express';
+} from '@/types/enums';
 
 // ─── Widget Registry ─────────────────────────────────────────────────────────
 

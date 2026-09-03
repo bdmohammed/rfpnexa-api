@@ -16,6 +16,7 @@ import { RoleReview } from './RoleReview';
 import { RoleVersionPermission } from './RoleVersionPermission';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { RoleVersionStatus } from '@/types/enums';
 
 @Entity('role_versions')
@@ -35,7 +36,7 @@ export class RoleVersion {
 
   @ManyToOne(() => Role, (role) => role.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role!: Role;
+  role!: Relation<Role>;
 
   @Column({ type: 'integer', default: 1 })
   version!: number;
@@ -60,7 +61,7 @@ export class RoleVersion {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
-  lockedByUser!: User | null;
+  lockedByUser!: Relation<User | null>;
 
   @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
   lockedAt!: Date | null;
@@ -70,14 +71,14 @@ export class RoleVersion {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
-  approvedByUser!: User | null;
+  approvedByUser!: Relation<User | null>;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
   approvedAt!: Date | null;
@@ -90,11 +91,11 @@ export class RoleVersion {
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => RoleVersionPermission, (rvp) => rvp.roleVersion)
-  roleVersionPermissions!: RoleVersionPermission[];
+  roleVersionPermissions!: Relation<RoleVersionPermission[]>;
 
   @OneToMany(() => RoleReview, (rr) => rr.roleVersion)
-  reviews!: RoleReview[];
+  reviews!: Relation<RoleReview[]>;
 
   @OneToMany(() => Role, (role) => role.activeVersion)
-  rolesUsingThisVersion!: Role[];
+  rolesUsingThisVersion!: Relation<Role[]>;
 }

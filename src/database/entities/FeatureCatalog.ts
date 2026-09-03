@@ -12,9 +12,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { FeatureValueType } from '../../types/enums';
-
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { FeatureValueType } from '@/types/enums';
 
 @Entity('feature_catalog')
 @Check('"feature_key" ~ \'^[a-z0-9_.-]+$\'')
@@ -63,14 +64,14 @@ export class FeatureCatalog {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

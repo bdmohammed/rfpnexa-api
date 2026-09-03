@@ -1,4 +1,4 @@
-import { logger } from '../../../config/logger';
+import { logger } from '@/config/logger';
 
 interface CacheEntry {
   value: string | number | boolean | object | null | undefined;

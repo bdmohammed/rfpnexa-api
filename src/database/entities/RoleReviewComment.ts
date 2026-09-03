@@ -8,10 +8,11 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { ReviewAction } from '../../types/enums';
-
 import { RoleReview } from './RoleReview';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { ReviewAction } from '@/types/enums';
 
 @Entity('role_review_comments')
 @Index('idx_role_review_comments_review_id', ['reviewId', 'createdAt'])
@@ -26,14 +27,14 @@ export class RoleReviewComment {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'review_id' })
-  roleReview!: RoleReview;
+  roleReview!: Relation<RoleReview>;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'enum', enum: ReviewAction })
   action!: ReviewAction;
@@ -52,7 +53,7 @@ export class RoleReviewComment {
 
   @ManyToOne(() => RoleReviewComment, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'parent_comment_id' })
-  parentComment!: RoleReviewComment | null;
+  parentComment!: Relation<RoleReviewComment | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

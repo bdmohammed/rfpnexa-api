@@ -1,9 +1,9 @@
 import { Router } from 'express';
 
-import { validate } from '../../middleware/validate';
-
 import { handlePayPalWebhook } from './webhooks.controller';
 import { PayPalWebhookSchema } from './webhooks.dto';
+
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

@@ -10,6 +10,8 @@ import {
 import { Country } from './Country';
 import { PlanVersion } from './PlanVersion';
 
+import type { Relation } from 'typeorm';
+
 @Entity('plan_country_pricing')
 export class PlanCountryPricing {
   @PrimaryGeneratedColumn('uuid')
@@ -20,14 +22,14 @@ export class PlanCountryPricing {
 
   @ManyToOne(() => PlanVersion, (v) => v.countryPricing, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: PlanVersion;
+  planVersion!: Relation<PlanVersion>;
 
   @Column({ name: 'country_id', type: 'smallint' })
   countryId!: number;
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
-  country!: Country;
+  country!: Relation<Country>;
 
   @Column({ type: 'varchar', length: 10 })
   currency!: string;

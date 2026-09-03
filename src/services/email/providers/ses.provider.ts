@@ -2,12 +2,11 @@ import { performance } from 'node:perf_hooks';
 
 import { SendEmailCommand } from '@aws-sdk/client-sesv2';
 
-import { env } from '../../../config/env';
-import { logger } from '../../../config/logger';
-import { sesClient } from '../../../config/ses';
-
 import type { EmailProvider } from '../email.provider';
 import type { EmailOptions } from '../types/email.types';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
+import { sesClient } from '@/config/ses';
 
 export class SesProvider implements EmailProvider {
   async send(options: EmailOptions): Promise<void> {

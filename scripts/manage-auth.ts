@@ -1,10 +1,13 @@
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable no-console */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+
 import * as bcrypt from 'bcryptjs';
 
 const HTPASSWD_PATH = path.join(__dirname, '../docker/.htpasswd');
 
-function ensureDirectoryExistence(filePath: string) {
+function ensureDirectoryExistence(filePath: string): boolean | void {
   const dirname = path.dirname(filePath);
   if (fs.existsSync(dirname)) {
     return true;
@@ -28,7 +31,7 @@ function readHtpasswd(): Record<string, string> {
     }
     const parts = trimmed.split(':');
     if (parts.length >= 2) {
-      const username = parts[0].trim();
+      const username = parts[0]!.trim();
       const hash = parts.slice(1).join(':').trim();
       users[username] = hash;
     }
@@ -39,7 +42,7 @@ function readHtpasswd(): Record<string, string> {
 function writeHtpasswd(users: Record<string, string>) {
   ensureDirectoryExistence(HTPASSWD_PATH);
   const lines = Object.entries(users).map(([username, hash]) => `${username}:${hash}`);
-  fs.writeFileSync(HTPASSWD_PATH, lines.join('\n') + '\n', 'utf-8');
+  fs.writeFileSync(HTPASSWD_PATH, `${lines.join('\n')}\n`, 'utf-8');
 }
 
 function showUsage() {
@@ -59,7 +62,7 @@ function main() {
     process.exit(1);
   }
 
-  const command = args[0].toLowerCase();
+  const command = args[0]!.toLowerCase();
 
   switch (command) {
     case 'add': {
@@ -129,10 +132,10 @@ function main() {
           console.log(`User "${username}" already exists. Skipping.`);
         } else {
           // Generate a secure temporary password
-          const tempPassword =
-            Math.random().toString(36).substring(2, 10) +
-            '!' +
-            Math.random().toString(36).substring(2, 6).toUpperCase();
+          const tempPassword = `${Math.random().toString(36).substring(2, 10)}!${Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase()}`;
           const salt = bcrypt.genSaltSync(10);
           const hash = bcrypt.hashSync(tempPassword, salt);
           users[username] = hash;

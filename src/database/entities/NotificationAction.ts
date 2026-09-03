@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 
 import { Notification } from './Notification';
 
+import type { Relation } from 'typeorm';
 import { NotificationActionType } from '@/types/enums';
 
 @Entity('notification_actions')
@@ -35,5 +36,5 @@ export class NotificationAction {
 
   @ManyToOne(() => Notification, (n) => n.actions, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'notification_id' })
-  notification!: Notification;
+  notification!: Relation<Notification>;
 }

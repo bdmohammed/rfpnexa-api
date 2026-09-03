@@ -13,6 +13,8 @@ import {
 import { Role } from './Role';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 export enum UserApprovalRequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
@@ -27,14 +29,14 @@ export class UserApprovalRequest {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'target_user_id' })
-  targetUser!: User;
+  targetUser!: Relation<User>;
 
   @RelationId((req: UserApprovalRequest) => req.targetUser)
   targetUserId: string;
 
   @ManyToOne(() => Role, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'requested_role_id' })
-  requestedRole!: Role | null;
+  requestedRole!: Relation<Role | null>;
 
   @RelationId((req: UserApprovalRequest) => req.requestedRole)
   requestedRoleId: string | null;
@@ -44,14 +46,14 @@ export class UserApprovalRequest {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'submitted_by_id' })
-  submittedBy!: User | null;
+  submittedBy!: Relation<User | null>;
 
   @RelationId((req: UserApprovalRequest) => req.submittedBy)
   submittedById: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: User | null;
+  reviewer!: Relation<User | null>;
 
   @RelationId((req: UserApprovalRequest) => req.reviewer)
   reviewerId: string | null;

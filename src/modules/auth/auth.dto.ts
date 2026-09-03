@@ -1,20 +1,61 @@
 import { z } from 'zod';
 
+import { EMAIL_VERIFICATION_TOKEN_LENGTH } from '@/core/constants';
+
+// eslint-disable-next-line security/detect-non-literal-regexp
+const emailVerificationTokenRegex = new RegExp(`^[a-f0-9]{${EMAIL_VERIFICATION_TOKEN_LENGTH}}$`);
+
+export const PasswordSchema = z
+  .string()
+  .min(12, 'Password must be at least 12 characters long')
+  .max(128, 'Password must not exceed 128 characters')
+  .superRefine((password, ctx) => {
+    if (!/[A-Z]/.test(password)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least one uppercase letter',
+      });
+    }
+
+    if (!/[a-z]/.test(password)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least one lowercase letter',
+      });
+    }
+
+    if (!/[0-9]/.test(password)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least one number',
+      });
+    }
+
+    if (!/[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?`~]/.test(password)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Password must contain at least one special character',
+      });
+    }
+  });
+
+export const EmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ message: 'Invalid email address' }));
+
 export const RegisterSchema = z.object({
   name: z.string().min(2).max(120).trim(),
-  email: z.string().email().toLowerCase(),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  email: EmailSchema,
+  password: PasswordSchema,
   companyName: z.string().max(160).trim().optional(),
-  countryId: z.coerce.string().min(1, 'Country ID is required'),
+  countryId: z.string().min(1, 'Invalid country ID'),
 });
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 
 export const LoginSchema = z.object({
-  email: z.string().email().toLowerCase(),
+  email: EmailSchema,
   password: z.string().min(1),
   rememberMe: z.boolean().optional(),
   captchaToken: z.string().optional(),
@@ -22,64 +63,79 @@ export const LoginSchema = z.object({
 export type LoginDto = z.infer<typeof LoginSchema>;
 
 export const ForgotPasswordSchema = z.object({
-  email: z.string().email().toLowerCase(),
+  email: EmailSchema,
 });
 export type ForgotPasswordDto = z.infer<typeof ForgotPasswordSchema>;
 
 export const ResetPasswordSchema = z.object({
-  token: z.string().min(1),
-  password: z
+  token: z
     .string()
-    .min(8)
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .trim()
+    .length(EMAIL_VERIFICATION_TOKEN_LENGTH, 'Invalid verification token.')
+    .regex(emailVerificationTokenRegex, 'Invalid verification token.'),
+  password: PasswordSchema,
 });
 export type ResetPasswordDto = z.infer<typeof ResetPasswordSchema>;
 
-export const VerifyEmailSchema = z.object({
-  token: z.string().min(1),
-});
+export const VerifyEmailSchema = z
+  .object({
+    token: z
+      .string()
+      .trim()
+      .length(EMAIL_VERIFICATION_TOKEN_LENGTH, 'Invalid verification token.')
+      .regex(emailVerificationTokenRegex, 'Invalid verification token.'),
+  })
+  .strict();
+
 export type VerifyEmailDto = z.infer<typeof VerifyEmailSchema>;
 
 export const ResendVerificationSchema = z.object({
-  email: z.string().email().toLowerCase(),
+  email: EmailSchema,
 });
 export type ResendVerificationDto = z.infer<typeof ResendVerificationSchema>;
 
 export const EmailChangeSchema = z.object({
-  email: z.string().email().toLowerCase(),
+  email: EmailSchema,
 });
 export type EmailChangeDto = z.infer<typeof EmailChangeSchema>;
 
 export const ChangePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z
-    .string()
-    .min(8)
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  currentPassword: PasswordSchema,
+  newPassword: PasswordSchema,
 });
 export type ChangePasswordDto = z.infer<typeof ChangePasswordSchema>;
 
 export const OwnerReviewSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  token: z
+    .string()
+    .trim()
+    .length(EMAIL_VERIFICATION_TOKEN_LENGTH, 'Invalid verification token.')
+    .regex(emailVerificationTokenRegex, 'Invalid verification token.'),
   action: z.enum(['approve', 'reject'], { message: "Action must be either 'approve' or 'reject'" }),
 });
 export type OwnerReviewDto = z.infer<typeof OwnerReviewSchema>;
 
 export const VerifyBootstrapTokenSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  token: z
+    .string()
+    .trim()
+    .length(EMAIL_VERIFICATION_TOKEN_LENGTH, 'Invalid verification token.')
+    .regex(emailVerificationTokenRegex, 'Invalid verification token.'),
 });
 export type VerifyBootstrapTokenDto = z.infer<typeof VerifyBootstrapTokenSchema>;
 
 export const ApproveBootstrapAdminSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  token: z
+    .string()
+    .trim()
+    .length(EMAIL_VERIFICATION_TOKEN_LENGTH, 'Invalid verification token.')
+    .regex(emailVerificationTokenRegex, 'Invalid verification token.'),
   action: z.enum(['approve', 'reject']).optional().default('approve'),
 });
 export type ApproveBootstrapAdminDto = z.infer<typeof ApproveBootstrapAdminSchema>;
 
 export const IdParamSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 export type IdParamDto = z.infer<typeof IdParamSchema>;
 
@@ -90,6 +146,21 @@ export interface UserSessionDto {
   isCurrent: boolean;
   createdAt: Date;
   expiresAt: Date;
+}
+
+export interface UserDeviceDto {
+  id: string;
+  browser: string;
+  browserVersion: string | null;
+  os: string;
+  osVersion: string | null;
+  device:
+    'desktop' | 'mobile' | 'tablet' | 'smarttv' | 'wearable' | 'embedded' | 'console' | 'unknown';
+  ipAddress: string | null;
+  isTrusted: boolean;
+  isCurrent: boolean;
+  lastSeenAt: Date;
+  createdAt: Date;
 }
 
 export const OAuthProviderSchema = z.object({

@@ -1,11 +1,10 @@
 import { type DataSource, In } from 'typeorm';
 
-import { Permission } from '../../entities/Permission';
-import { PermissionModule } from '../../entities/PermissionModule';
-
 import type { SeedInterface } from '../seed.interface';
-import type { User } from '@/database/entities/User';
+import type { User } from '@/entities/User';
 import { systemPermissionModule, SystemPermissions } from '@/constants/permissions';
+import { Permission } from '@/entities/Permission';
+import { PermissionModule } from '@/entities/PermissionModule';
 
 const systemPermissions = Object.values(SystemPermissions);
 

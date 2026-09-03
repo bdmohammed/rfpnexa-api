@@ -10,13 +10,6 @@ import {
   VersionColumn,
 } from 'typeorm';
 
-import {
-  TenderBiddingStatus,
-  TenderLifecycleStatus,
-  TenderProcessStatus,
-  TenderPublicationStatus,
-} from '../../types/enums';
-
 import { DownloadHistory } from './DownloadHistory';
 import { TenderAmendment } from './TenderAmendment';
 import { TenderClarification } from './TenderClarification';
@@ -28,6 +21,14 @@ import { TenderQuestion } from './TenderQuestion';
 import { TenderVersion } from './TenderVersion';
 import { TenderWatcher } from './TenderWatcher';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import {
+  TenderBiddingStatus,
+  TenderLifecycleStatus,
+  TenderProcessStatus,
+  TenderPublicationStatus,
+} from '@/types/enums';
 
 @Entity('tenders')
 export class Tender {
@@ -42,7 +43,7 @@ export class Tender {
 
   @ManyToOne(() => TenderVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion!: TenderVersion | null;
+  activeVersion!: Relation<TenderVersion | null>;
 
   @Column({
     type: 'varchar',
@@ -89,7 +90,7 @@ export class Tender {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ type: 'varchar', name: 'created_by_id', nullable: true, default: null })
   createdById!: string | null;
@@ -97,32 +98,32 @@ export class Tender {
   // ─── Relations ─────────────────────────────────────────────────────────────
 
   @OneToMany(() => TenderVersion, (version) => version.tender)
-  versions!: TenderVersion[];
+  versions!: Relation<TenderVersion[]>;
 
   @OneToMany(() => TenderCommittee, (committee) => committee.tender)
-  committees!: TenderCommittee[];
+  committees!: Relation<TenderCommittee[]>;
 
   @OneToMany(() => TenderParticipant, (participant) => participant.tender)
-  participants!: TenderParticipant[];
+  participants!: Relation<TenderParticipant[]>;
 
   @OneToMany(() => TenderWatcher, (watcher) => watcher.tender)
-  watchers!: TenderWatcher[];
+  watchers!: Relation<TenderWatcher[]>;
 
   @OneToMany(() => TenderInvitation, (invitation) => invitation.tender)
-  invitations!: TenderInvitation[];
+  invitations!: Relation<TenderInvitation[]>;
 
   @OneToMany(() => TenderQuestion, (question) => question.tender)
-  questions!: TenderQuestion[];
+  questions!: Relation<TenderQuestion[]>;
 
   @OneToMany(() => TenderClarification, (clarification) => clarification.tender)
-  clarifications!: TenderClarification[];
+  clarifications!: Relation<TenderClarification[]>;
 
   @OneToMany(() => TenderAmendment, (amendment) => amendment.tender)
-  amendments!: TenderAmendment[];
+  amendments!: Relation<TenderAmendment[]>;
 
   @OneToMany(() => DownloadHistory, (downloadHistory) => downloadHistory.tender)
-  downloadHistory!: DownloadHistory[];
+  downloadHistory!: Relation<DownloadHistory[]>;
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.tender)
-  dailyMetrics!: TenderDailyMetrics[];
+  dailyMetrics!: Relation<TenderDailyMetrics[]>;
 }

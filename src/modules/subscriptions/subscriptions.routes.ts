@@ -1,14 +1,10 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { validate } from '../../middleware/validate';
-import { ListSubscriptionsQuerySchema } from '../admin/admin.dto';
-
 import * as controller from './subscriptions.controller';
 import { CreateSubscriptionSchema } from './subscriptions.dto';
 
-import { BillingPermissions } from '@/constants/permissions';
-import { requirePermission } from '@/middleware/permissions';
+import { authenticate } from '@/middleware/authenticate';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 
@@ -134,11 +130,11 @@ router.get('/plans', controller.getPlans);
  *               returnUrl:
  *                 type: string
  *                 format: uri
- *                 example: "https://nexusbid.com/payment/success"
+ *                 example: "https://rfpnexa.com/payment/success"
  *               cancelUrl:
  *                 type: string
  *                 format: uri
- *                 example: "https://nexusbid.com/payment/cancel"
+ *                 example: "https://rfpnexa.com/payment/cancel"
  *               targetStateId:
  *                 type: string
  *                 format: uuid
@@ -228,12 +224,12 @@ router.delete('/me', authenticate, controller.cancelMySubscription);
  *       200:
  *         description: Subscriptions list resolved
  */
-router.get(
-  '/',
-  authenticate,
-  requirePermission(BillingPermissions.VIEW.key),
-  validate(ListSubscriptionsQuerySchema, 'query'),
-  controller.listSubscriptions,
-);
+// router.get(
+//   '/',
+//   authenticate,
+//   requirePermission(BillingPermissions.VIEW.key),
+//   validate(ListSubscriptionsQuerySchema, 'query'),
+//   controller.listSubscriptions,
+// );
 
 export { router as subscriptionsRouter };

@@ -13,6 +13,8 @@ import { SupportTicket } from './SupportTicket';
 import { SupportTicketAttachment } from './SupportTicketAttachment';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('support_ticket_messages')
 @Index('idx_ticket_messages_ticket_id', ['ticketId'])
 @Index('idx_ticket_messages_ticket_created', ['ticketId', 'createdAt'])
@@ -28,7 +30,7 @@ export class SupportTicketMessage {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'ticket_id' })
-  ticket!: SupportTicket;
+  ticket!: Relation<SupportTicket>;
 
   @Column({ name: 'sender_id', type: 'uuid', nullable: true })
   senderId!: string | null;
@@ -38,7 +40,7 @@ export class SupportTicketMessage {
     nullable: true,
   })
   @JoinColumn({ name: 'sender_id' })
-  sender!: User | null;
+  sender!: Relation<User | null>;
 
   @Column({ type: 'text' })
   message!: string;
@@ -58,5 +60,5 @@ export class SupportTicketMessage {
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => SupportTicketAttachment, (a) => a.message)
-  attachments!: SupportTicketAttachment[];
+  attachments!: Relation<SupportTicketAttachment[]>;
 }

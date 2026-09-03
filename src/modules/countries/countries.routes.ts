@@ -4,14 +4,12 @@ import * as controller from './countries.controller';
 import {
   AddCommentSchema,
   AssignReviewerSchema,
-  ChangeRequestQuerySchema,
   CountryIdParamSchema,
   CountryTimelineQuerySchema,
   CreateCountryChangeRequestSchema,
   DependencyMatrixQuerySchema,
   IdParamSchema,
   ReviewChangeRequestSchema,
-  StateQuerySchema,
   UpdateCountryBodySchema,
   UpdateCountryParamsSchema,
   UpdateStateBodySchema,
@@ -22,7 +20,7 @@ import { StatePermissions } from '@/constants/permissions/state';
 import { auditLogger } from '@/middleware/auditLogger';
 import { authenticate } from '@/middleware/authenticate';
 import { requirePermission } from '@/middleware/permissions';
-import { requireRole } from '@/middleware/requireAccountType';
+import { requireAccountType } from '@/middleware/requireAccountType';
 import { validate } from '@/middleware/validate';
 import { AccountType } from '@/types/enums';
 
@@ -35,8 +33,7 @@ const router = Router();
  * /api/v1/countries:
  *   get:
  *     summary: List distinct countries (Public)
- *     description: Returns an array of objects with details for all unique country names
- *     stored in the database.
+ *     description: Returns an array of objects with details for all unique country names stored in the database.
  *     operationId: listCountries
  *     tags: [States]
  *     security: []
@@ -83,7 +80,7 @@ router.get('/', controller.listCountries);
 
 // All routes require authenticated Admin access
 router.use(authenticate);
-router.use(requireRole(AccountType.ADMIN));
+router.use(requireAccountType(AccountType.ADMIN));
 
 // Hierarchy & Operational Stats
 
@@ -234,12 +231,12 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
  */
-router.get(
-  '/change-requests',
-  requirePermission(StatePermissions.VIEW.key),
-  validate(ChangeRequestQuerySchema, 'query'),
-  controller.getReviewsQueue,
-);
+// router.get(
+//   '/change-requests',
+//   requirePermission(StatePermissions.VIEW.key),
+//   validate(ChangeRequestQuerySchema, 'query'),
+//   controller.getReviewsQueue,
+// );
 
 /**
  * @swagger
@@ -552,8 +549,7 @@ router.get(
  * /api/v1/countries/states:
  *   get:
  *     summary: List and search geographical states / locations (Public)
- *     description: Returns a paginated list of active states,
- * optionally filtered by code, slug, type, countryId, or partial text search.
+ *     description: Returns a paginated list of active states, optionally filtered by code, slug, type, countryId, or partial text search.
  *     operationId: listStates
  *     tags: [States]
  *     security: []
@@ -614,7 +610,7 @@ router.get(
  *                 currentPage: 1
  *               traceId: "uuid"
  */
-router.get('/states', validate(StateQuerySchema, 'query'), controller.listStates);
+// router.get('/states', validate(StateQuerySchema, 'query'), controller.listStates);
 
 /**
  * @swagger
@@ -656,7 +652,7 @@ router.get('/states', validate(StateQuerySchema, 'query'), controller.listStates
 router.patch(
   '/states/:id',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(StatePermissions.MANAGE.key),
   validate(UpdateStateParamsSchema, 'params'),
   validate(UpdateStateBodySchema, 'body'),
@@ -704,7 +700,7 @@ router.patch(
 router.patch(
   '/:id',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(StatePermissions.MANAGE.key),
   validate(UpdateCountryParamsSchema, 'params'),
   validate(UpdateCountryBodySchema, 'body'),

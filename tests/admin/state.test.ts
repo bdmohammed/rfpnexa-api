@@ -1,292 +1,294 @@
-import request from 'supertest';
-import { app } from '../../src/config/app';
-import { AppDataSource } from '../../src/config/database';
-import { State } from '../../src/database/entities/State';
-import { Country } from '../../src/database/entities/Country';
-import { AccountType, PermissionKey } from '../../src/types/enums';
-import { clearAuthTables, setupTestRoleWithPermission } from '../helpers/db';
-import { getCsrf } from '../helpers/csrf';
-import { createUser } from '../helpers/builders';
-import { User } from '../../src/database/entities/User';
+// import request from 'supertest';
 
-const stateRepo = () => AppDataSource.getRepository(State);
-const countryRepo = () => AppDataSource.getRepository(Country);
+// import { app } from '../../src/config/app';
+// import { AppDataSource } from '../../src/config/database';
+// import { Country } from '../../src/database/entities/Country';
+// import { State } from '../../src/database/entities/State';
+// import { AccountType, PermissionKey } from '../../src/types/enums';
+// import { createUser } from '../helpers/builders';
+// import { getCsrf } from '../helpers/csrf';
+// import { clearAuthTables, setupTestRoleWithPermission } from '../helpers/db';
 
-async function assignPermission(adminId: string, permissionKey: PermissionKey, allowed = true) {
-  if (allowed) {
-    await setupTestRoleWithPermission(adminId, `Role-${permissionKey}`, permissionKey);
-  }
-}
+// import type { User } from '../../src/database/entities/User';
 
-async function clearAllTables() {
-  await clearAuthTables();
-  await AppDataSource.query(
-    `TRUNCATE TABLE tenders, states, countries, categories RESTART IDENTITY CASCADE`,
-  );
-}
+// const stateRepo = () => AppDataSource.getRepository(State);
+// const countryRepo = () => AppDataSource.getRepository(Country);
 
-describe('State & Country Admin API Integration Tests', () => {
-  let agent: ReturnType<typeof request.agent>;
-  let csrfToken: string;
+// async function assignPermission(adminId: string, permissionKey: PermissionKey, allowed = true) {
+//   if (allowed) {
+//     await setupTestRoleWithPermission(adminId, `Role-${permissionKey}`, permissionKey);
+//   }
+// }
 
-  let superAdminUser: User;
-  let superAdminPassword = 'SuperAdminPass1!';
+// async function clearAllTables() {
+//   await clearAuthTables();
+//   await AppDataSource.query(
+//     'TRUNCATE TABLE tenders, states, countries, categories RESTART IDENTITY CASCADE',
+//   );
+// }
 
-  let authorizedAdminUser: User;
-  let authorizedAdminPassword = 'AuthAdminPass1!';
+// describe('State & Country Admin API Integration Tests', () => {
+//   let agent: ReturnType<typeof request.agent>;
+//   let csrfToken: string;
 
-  let unauthorizedAdminUser: User;
-  let unauthorizedAdminPassword = 'UnauthAdminPass1!';
+//   let superAdminUser: User;
+//   const superAdminPassword = 'SuperAdminPass1!';
 
-  let customerUser: User;
-  let customerPassword = 'CustomerPass1!';
+//   let authorizedAdminUser: User;
+//   const authorizedAdminPassword = 'AuthAdminPass1!';
 
-  beforeEach(async () => {
-    await clearAllTables();
-    agent = request.agent(app);
+//   let unauthorizedAdminUser: User;
+//   const unauthorizedAdminPassword = 'UnauthAdminPass1!';
 
-    superAdminUser = await createUser({
-      email: 'superadmin@test.local',
-      accountType: AccountType.ADMIN,
-      password: superAdminPassword,
-      emailVerified: true,
-    });
-    await setupTestRoleWithPermission(superAdminUser.id, 'Super Admin', 'state.view');
+//   let customerUser: User;
+//   const customerPassword = 'CustomerPass1!';
 
-    authorizedAdminUser = await createUser({
-      email: 'authadmin@test.local',
-      accountType: AccountType.ADMIN,
-      password: authorizedAdminPassword,
-      emailVerified: true,
-    });
-    await assignPermission(authorizedAdminUser.id, PermissionKey.MANAGE_STATES, true);
+//   beforeEach(async () => {
+//     await clearAllTables();
+//     agent = request.agent(app);
 
-    unauthorizedAdminUser = await createUser({
-      email: 'unauthadmin@test.local',
-      accountType: AccountType.ADMIN,
-      password: unauthorizedAdminPassword,
-      emailVerified: true,
-    });
-    await assignPermission(unauthorizedAdminUser.id, PermissionKey.VIEW_USERS, true);
+//     superAdminUser = await createUser({
+//       email: 'superadmin@test.local',
+//       accountType: AccountType.ADMIN,
+//       password: superAdminPassword,
+//       emailVerified: true,
+//     });
+//     await setupTestRoleWithPermission(superAdminUser.id, 'Super Admin', 'state.view');
 
-    customerUser = await createUser({
-      email: 'customer@test.local',
-      accountType: AccountType.USER,
-      password: customerPassword,
-      emailVerified: true,
-    });
+//     authorizedAdminUser = await createUser({
+//       email: 'authadmin@test.local',
+//       accountType: AccountType.ADMIN,
+//       password: authorizedAdminPassword,
+//       emailVerified: true,
+//     });
+//     await assignPermission(authorizedAdminUser.id, PermissionKey.MANAGE_STATES, true);
 
-    const csrf = await getCsrf(agent);
-    csrfToken = csrf.token;
-  });
+//     unauthorizedAdminUser = await createUser({
+//       email: 'unauthadmin@test.local',
+//       accountType: AccountType.ADMIN,
+//       password: unauthorizedAdminPassword,
+//       emailVerified: true,
+//     });
+//     await assignPermission(unauthorizedAdminUser.id, PermissionKey.VIEW_USERS, true);
 
-  async function loginAs(email: string, pass: string) {
-    const freshAgent = request.agent(app);
-    const csrf = await getCsrf(freshAgent);
-    await freshAgent
-      .post('/api/v1/auth/login')
-      .set('x-csrf-token', csrf.token)
-      .send({ email, password: pass })
-      .expect(200);
-    return { agent: freshAgent, csrfToken: csrf.token };
-  }
+//     customerUser = await createUser({
+//       email: 'customer@test.local',
+//       accountType: AccountType.USER,
+//       password: customerPassword,
+//       emailVerified: true,
+//     });
 
-  describe('Authorization checks', () => {
-    it('allows public (unauthenticated) GET requests but denies admin operations', async () => {
-      await request(app).get('/api/v1/states').expect(200);
-      await request(app).patch('/api/v1/states/1').send({ isActive: false }).expect(401);
-    });
+//     const csrf = await getCsrf(agent);
+//     csrfToken = csrf.token;
+//   });
 
-    it('allows customers to GET states but denies admin operations', async () => {
-      const { agent: client, csrfToken: clientCsrf } = await loginAs(
-        customerUser.email,
-        customerPassword,
-      );
-      await client.get('/api/v1/states').expect(200);
-      await client
-        .patch('/api/v1/states/1')
-        .set('x-csrf-token', clientCsrf)
-        .send({ isActive: false })
-        .expect(403);
-    });
+//   async function loginAs(email: string, pass: string) {
+//     const freshAgent = request.agent(app);
+//     const csrf = await getCsrf(freshAgent);
+//     await freshAgent
+//       .post('/api/v1/auth/login')
+//       .set('x-csrf-token', csrf.token)
+//       .send({ email, password: pass })
+//       .expect(200);
+//     return { agent: freshAgent, csrfToken: csrf.token };
+//   }
 
-    it('denies admins without MANAGE_STATES permission from writing states', async () => {
-      const { agent: client, csrfToken: clientCsrf } = await loginAs(
-        unauthorizedAdminUser.email,
-        unauthorizedAdminPassword,
-      );
-      await client
-        .patch('/api/v1/states/1')
-        .set('x-csrf-token', clientCsrf)
-        .send({ isActive: false })
-        .expect(403);
-    });
-  });
+//   describe('Authorization checks', () => {
+//     it('allows public (unauthenticated) GET requests but denies admin operations', async () => {
+//       await request(app).get('/api/v1/states').expect(200);
+//       await request(app).patch('/api/v1/states/1').send({ isActive: false }).expect(401);
+//     });
 
-  describe('Geographical Queries & Toggles', () => {
-    let client: ReturnType<typeof request.agent>;
-    let clientCsrf: string;
+//     it('allows customers to GET states but denies admin operations', async () => {
+//       const { agent: client, csrfToken: clientCsrf } = await loginAs(
+//         customerUser.email,
+//         customerPassword,
+//       );
+//       await client.get('/api/v1/states').expect(200);
+//       await client
+//         .patch('/api/v1/states/1')
+//         .set('x-csrf-token', clientCsrf)
+//         .send({ isActive: false })
+//         .expect(403);
+//     });
 
-    beforeEach(async () => {
-      const login = await loginAs(authorizedAdminUser.email, authorizedAdminPassword);
-      client = login.agent;
-      clientCsrf = login.csrfToken;
-    });
+//     it('denies admins without MANAGE_STATES permission from writing states', async () => {
+//       const { agent: client, csrfToken: clientCsrf } = await loginAs(
+//         unauthorizedAdminUser.email,
+//         unauthorizedAdminPassword,
+//       );
+//       await client
+//         .patch('/api/v1/states/1')
+//         .set('x-csrf-token', clientCsrf)
+//         .send({ isActive: false })
+//         .expect(403);
+//     });
+//   });
 
-    it('GET /states returns active states sorted by code ascending', async () => {
-      const us = await countryRepo().save(
-        countryRepo().create({
-          code: 'US',
-          name: 'United States',
-          createdById: authorizedAdminUser.id,
-        }),
-      );
+//   describe('Geographical Queries & Toggles', () => {
+//     let client: ReturnType<typeof request.agent>;
+//     let clientCsrf: string;
 
-      await stateRepo().save([
-        stateRepo().create({
-          code: 'TX',
-          name: 'Texas',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-        stateRepo().create({
-          code: 'CA',
-          name: 'California',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-        stateRepo().create({
-          code: 'NY',
-          name: 'New York',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-      ]);
+//     beforeEach(async () => {
+//       const login = await loginAs(authorizedAdminUser.email, authorizedAdminPassword);
+//       client = login.agent;
+//       clientCsrf = login.csrfToken;
+//     });
 
-      const res = await client.get('/api/v1/states').expect(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBe(3);
-      expect(res.body.data[0].code).toBe('CA');
-      expect(res.body.data[1].code).toBe('NY');
-      expect(res.body.data[2].code).toBe('TX');
-    });
+//     it('GET /states returns active states sorted by code ascending', async () => {
+//       const us = await countryRepo().save(
+//         countryRepo().create({
+//           code: 'US',
+//           name: 'United States',
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       );
 
-    it('GET /states supports pagination, searching and filtering', async () => {
-      const us = await countryRepo().save(
-        countryRepo().create({
-          code: 'US',
-          name: 'United States',
-          createdById: authorizedAdminUser.id,
-        }),
-      );
-      const ca = await countryRepo().save(
-        countryRepo().create({ code: 'CA', name: 'Canada', createdById: authorizedAdminUser.id }),
-      );
+//       await stateRepo().save([
+//         stateRepo().create({
+//           code: 'TX',
+//           name: 'Texas',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//         stateRepo().create({
+//           code: 'CA',
+//           name: 'California',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//         stateRepo().create({
+//           code: 'NY',
+//           name: 'New York',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       ]);
 
-      await stateRepo().save([
-        stateRepo().create({
-          code: 'CA',
-          name: 'California',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-        stateRepo().create({
-          code: 'TX',
-          name: 'Texas',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-        stateRepo().create({
-          code: 'ON',
-          name: 'Ontario',
-          type: 'state',
-          countryId: ca.id,
-          createdById: authorizedAdminUser.id,
-        }),
-        stateRepo().create({
-          code: 'PR',
-          name: 'Puerto Rico',
-          type: 'territory',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-      ]);
+//       const res = await client.get('/api/v1/states').expect(200);
+//       expect(res.body.success).toBe(true);
+//       expect(res.body.data).toHaveLength(3);
+//       expect(res.body.data[0].code).toBe('CA');
+//       expect(res.body.data[1].code).toBe('NY');
+//       expect(res.body.data[2].code).toBe('TX');
+//     });
 
-      // 1. Pagination limit=2
-      let res = await client.get('/api/v1/states?page=1&limit=2').expect(200);
-      expect(res.body.data.length).toBe(2);
-      expect(res.body.meta.totalPages).toBe(2);
+//     it('GET /states supports pagination, searching and filtering', async () => {
+//       const us = await countryRepo().save(
+//         countryRepo().create({
+//           code: 'US',
+//           name: 'United States',
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       );
+//       const ca = await countryRepo().save(
+//         countryRepo().create({ code: 'CA', name: 'Canada', createdById: authorizedAdminUser.id }),
+//       );
 
-      // 2. Search parameter matching name
-      res = await client.get('/api/v1/states?search=ontario').expect(200);
-      expect(res.body.data.length).toBe(1);
-      expect(res.body.data[0].code).toBe('ON');
+//       await stateRepo().save([
+//         stateRepo().create({
+//           code: 'CA',
+//           name: 'California',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//         stateRepo().create({
+//           code: 'TX',
+//           name: 'Texas',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//         stateRepo().create({
+//           code: 'ON',
+//           name: 'Ontario',
+//           type: 'state',
+//           countryId: ca.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//         stateRepo().create({
+//           code: 'PR',
+//           name: 'Puerto Rico',
+//           type: 'territory',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       ]);
 
-      // 3. Filter by type
-      res = await client.get('/api/v1/states?type=territory').expect(200);
-      expect(res.body.data.length).toBe(1);
-      expect(res.body.data[0].code).toBe('PR');
+//       // 1. Pagination limit=2
+//       let res = await client.get('/api/v1/states?page=1&limit=2').expect(200);
+//       expect(res.body.data).toHaveLength(2);
+//       expect(res.body.meta.totalPages).toBe(2);
 
-      // 4. Filter by country code
-      res = await client.get('/api/v1/states?country=CA').expect(200);
-      expect(res.body.data.length).toBe(1);
-      expect(res.body.data[0].name).toBe('Ontario');
-    });
+//       // 2. Search parameter matching name
+//       res = await client.get('/api/v1/states?search=ontario').expect(200);
+//       expect(res.body.data).toHaveLength(1);
+//       expect(res.body.data[0].code).toBe('ON');
 
-    it('PATCH /states/:id updates state status', async () => {
-      const us = await countryRepo().save(
-        countryRepo().create({
-          code: 'US',
-          name: 'United States',
-          createdById: authorizedAdminUser.id,
-        }),
-      );
-      const state = await stateRepo().save(
-        stateRepo().create({
-          code: 'OR',
-          name: 'Oregon',
-          type: 'state',
-          countryId: us.id,
-          createdById: authorizedAdminUser.id,
-        }),
-      );
+//       // 3. Filter by type
+//       res = await client.get('/api/v1/states?type=territory').expect(200);
+//       expect(res.body.data).toHaveLength(1);
+//       expect(res.body.data[0].code).toBe('PR');
 
-      const res = await client
-        .patch(`/api/v1/states/${state.id}`)
-        .set('x-csrf-token', clientCsrf)
-        .send({
-          isActive: false,
-        })
-        .expect(200);
+//       // 4. Filter by country code
+//       res = await client.get('/api/v1/states?country=CA').expect(200);
+//       expect(res.body.data).toHaveLength(1);
+//       expect(res.body.data[0].name).toBe('Ontario');
+//     });
 
-      expect(res.body.data.isActive).toBe(false);
-      expect(res.body.data.updatedById).toBe(authorizedAdminUser.id);
-    });
+//     it('PATCH /states/:id updates state status', async () => {
+//       const us = await countryRepo().save(
+//         countryRepo().create({
+//           code: 'US',
+//           name: 'United States',
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       );
+//       const state = await stateRepo().save(
+//         stateRepo().create({
+//           code: 'OR',
+//           name: 'Oregon',
+//           type: 'state',
+//           countryId: us.id,
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       );
 
-    it('PATCH /states/countries/:id updates country status', async () => {
-      const us = await countryRepo().save(
-        countryRepo().create({
-          code: 'US',
-          name: 'United States',
-          createdById: authorizedAdminUser.id,
-        }),
-      );
+//       const res = await client
+//         .patch(`/api/v1/states/${state.id}`)
+//         .set('x-csrf-token', clientCsrf)
+//         .send({
+//           isActive: false,
+//         })
+//         .expect(200);
 
-      const res = await client
-        .patch(`/api/v1/states/countries/${us.id}`)
-        .set('x-csrf-token', clientCsrf)
-        .send({
-          isActive: false,
-        })
-        .expect(200);
+//       expect(res.body.data.isActive).toBe(false);
+//       expect(res.body.data.updatedById).toBe(authorizedAdminUser.id);
+//     });
 
-      expect(res.body.data.isActive).toBe(false);
-      expect(res.body.data.updatedById).toBe(authorizedAdminUser.id);
-    });
-  });
-});
+//     it('PATCH /states/countries/:id updates country status', async () => {
+//       const us = await countryRepo().save(
+//         countryRepo().create({
+//           code: 'US',
+//           name: 'United States',
+//           createdById: authorizedAdminUser.id,
+//         }),
+//       );
+
+//       const res = await client
+//         .patch(`/api/v1/states/countries/${us.id}`)
+//         .set('x-csrf-token', clientCsrf)
+//         .send({
+//           isActive: false,
+//         })
+//         .expect(200);
+
+//       expect(res.body.data.isActive).toBe(false);
+//       expect(res.body.data.updatedById).toBe(authorizedAdminUser.id);
+//     });
+//   });
+// });

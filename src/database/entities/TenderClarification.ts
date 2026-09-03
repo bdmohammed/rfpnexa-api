@@ -10,6 +10,8 @@ import {
 import { Tender } from './Tender';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_clarifications')
 export class TenderClarification {
   @PrimaryGeneratedColumn('uuid')
@@ -20,7 +22,7 @@ export class TenderClarification {
 
   @ManyToOne(() => Tender, (tender) => tender.clarifications, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ type: 'varchar', length: 255 })
   title!: string;
@@ -30,7 +32,7 @@ export class TenderClarification {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById!: string | null;

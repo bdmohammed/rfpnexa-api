@@ -12,6 +12,7 @@ import {
 import { Tender } from './Tender';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { DownloadSource } from '@/types/enums';
 
 /**
@@ -34,7 +35,7 @@ export class DownloadHistory {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'uuid' })
   tenderId!: string;
@@ -43,7 +44,7 @@ export class DownloadHistory {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ name: 'file_name', type: 'varchar', length: 255 })
   fileName!: string;

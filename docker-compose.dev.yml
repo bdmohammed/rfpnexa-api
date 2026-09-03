@@ -14,8 +14,8 @@ services:
       DOCKER: 'true'
     env_file:
       - .env
-      - .env.dev     # Override with real credentials
+      - .env.dev # Override with real credentials
     labels:
-      com.nexusbid.env: "dev"
-      com.nexusbid.service: "api"
-      com.nexusbid.team: "backend"
+      com.rfpnexa.env: 'dev'
+      com.rfpnexa.service: 'api'
+      com.rfpnexa.team: 'backend'

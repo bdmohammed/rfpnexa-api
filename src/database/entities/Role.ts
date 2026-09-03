@@ -15,6 +15,7 @@ import { RoleVersion } from './RoleVersion';
 import { User } from './User';
 import { UserRole } from './UserRole';
 
+import type { Relation } from 'typeorm';
 import { RoleStatus } from '@/types/enums';
 
 @Entity('roles')
@@ -68,7 +69,7 @@ export class Role {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'active_version_id' })
-  activeVersion!: RoleVersion;
+  activeVersion!: Relation<RoleVersion>;
 
   @Column({ name: 'created_by', type: 'uuid' })
   createdBy!: string;
@@ -79,7 +80,7 @@ export class Role {
   @JoinColumn({
     name: 'created_by',
   })
-  createdByUser!: User;
+  createdByUser!: Relation<User>;
 
   @Column({ name: 'updated_by', type: 'uuid' })
   updatedBy!: string;
@@ -90,7 +91,7 @@ export class Role {
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedByUser!: User;
+  updatedByUser!: Relation<User>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -100,11 +101,11 @@ export class Role {
 
   // ─── Relations ───────────────────────────────────────────────────────────
   @OneToMany(() => UserRole, (userRole) => userRole.role)
-  userRoles!: UserRole[];
+  userRoles!: Relation<UserRole[]>;
 
   @OneToMany(() => RoleVersion, (roleVersion) => roleVersion.role)
-  versions!: RoleVersion[];
+  versions!: Relation<RoleVersion[]>;
 
   @OneToMany(() => NotificationRecipient, (recipient) => recipient.role)
-  receivedNotifications!: NotificationRecipient[];
+  receivedNotifications!: Relation<NotificationRecipient[]>;
 }

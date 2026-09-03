@@ -1,9 +1,5 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { validate } from '../../middleware/validate';
-import { AccountType } from '../../types/enums';
-
 import * as reportsController from './tenderReports.controller';
 import * as controller from './tenders.controller';
 import {
@@ -32,8 +28,11 @@ import {
 } from './tenders.dto';
 
 import { TenderPermissions } from '@/constants/permissions';
+import { authenticate } from '@/middleware/authenticate';
 import { requirePermission } from '@/middleware/permissions';
-import { requireRole } from '@/middleware/requireAccountType';
+import { requireAccountType } from '@/middleware/requireAccountType';
+import { validate } from '@/middleware/validate';
+import { AccountType } from '@/types/enums';
 
 const router = Router();
 
@@ -335,7 +334,7 @@ router.post(
 adminRouter.post(
   '/upload-url',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(UploadUrlSchema),
   controller.adminGetUploadUrl,
 );
@@ -363,7 +362,7 @@ adminRouter.post(
  *             properties:
  *               documentType: { type: string, example: "Specifications" }
  *               s3Key: { type: string, example: "tenders/123/specs.pdf" }
- *               bucket: { type: string, example: "nexusbid-tenders" }
+ *               bucket: { type: string, example: "rfpnexa-tenders" }
  *               originalName: { type: string, example: "specs.pdf" }
  *     responses:
  *       201:
@@ -372,7 +371,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/documents',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   validate(RegisterDocumentSchema),
   controller.adminRegisterDocument,
@@ -381,7 +380,7 @@ adminRouter.post(
 adminRouter.get(
   '/:id/documents',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   controller.adminGetDocuments,
 );
@@ -389,7 +388,7 @@ adminRouter.get(
 adminRouter.delete(
   '/documents/:docId',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.adminDeleteDocument,
 );
 
@@ -432,7 +431,7 @@ adminRouter.delete(
 adminRouter.get(
   '/',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   controller.adminList,
 );
@@ -440,7 +439,7 @@ adminRouter.get(
 adminRouter.post(
   '/',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(CreateTenderSchema),
   controller.adminCreate,
@@ -505,7 +504,7 @@ adminRouter.post(
 adminRouter.get(
   '/:id',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.adminGetById,
@@ -514,7 +513,7 @@ adminRouter.get(
 adminRouter.patch(
   '/:id',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(UpdateTenderSchema),
@@ -524,7 +523,7 @@ adminRouter.patch(
 adminRouter.delete(
   '/:id',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.adminDelete,
@@ -560,7 +559,7 @@ adminRouter.delete(
 adminRouter.patch(
   '/:id/status',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(UpdateTenderStatusSchema),
@@ -589,7 +588,7 @@ adminRouter.patch(
 adminRouter.post(
   '/:id/cancel',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.cancelTender,
@@ -617,7 +616,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/duplicate',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.duplicateTender,
@@ -642,7 +641,7 @@ adminRouter.post(
 adminRouter.get(
   '/:id/diff',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   controller.getDiff,
 );
@@ -666,7 +665,7 @@ adminRouter.get(
 adminRouter.get(
   '/:id/history',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   controller.getHistory,
 );
@@ -693,7 +692,7 @@ adminRouter.get(
 adminRouter.post(
   '/:id/schedule',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   controller.scheduleTender,
@@ -734,7 +733,7 @@ adminRouter.post(
 adminRouter.post(
   '/questions/:qId/answer',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(QuestionIdParamSchema, 'params'),
   validate(AnswerQuestionSchema),
@@ -770,7 +769,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/clarifications',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(CreateClarificationSchema),
@@ -805,7 +804,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/amendments',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(CreateAmendmentSchema),
@@ -841,7 +840,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/assign',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   requirePermission(TenderPermissions.MANAGE.key),
   validate(TenderIdParamSchema, 'params'),
   validate(AssignReviewerSchema),
@@ -878,7 +877,7 @@ adminRouter.post(
 adminRouter.post(
   '/reviews/:reviewId/comments',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(ReviewIdParamSchema, 'params'),
   validate(SubmitReviewCommentSchema),
   controller.submitReviewComment,
@@ -911,7 +910,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/committee',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   validate(TenderCommitteeSchema),
   controller.assignCommittee,
@@ -947,7 +946,7 @@ adminRouter.post(
 adminRouter.post(
   '/participants/:participantId/evaluate',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(ParticipantIdParamSchema, 'params'),
   validate(SubmitEvaluationSchema),
   controller.submitEvaluation,
@@ -980,7 +979,7 @@ adminRouter.post(
 adminRouter.post(
   '/:id/invitations',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderIdParamSchema, 'params'),
   validate(TenderInvitationSchema),
   controller.inviteVendor,
@@ -1011,7 +1010,7 @@ adminRouter.post(
 adminRouter.post(
   '/templates',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   validate(TenderTemplateSchema),
   controller.saveTemplate,
 );
@@ -1033,7 +1032,7 @@ adminRouter.post(
 adminRouter.get(
   '/reports/budget',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   reportsController.getBudgetReport,
 );
 
@@ -1054,7 +1053,7 @@ adminRouter.get(
 adminRouter.get(
   '/reports/status',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   reportsController.getStatusReport,
 );
 
@@ -1075,7 +1074,7 @@ adminRouter.get(
 adminRouter.get(
   '/reports/vendors',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   reportsController.getVendorsReport,
 );
 
@@ -1096,70 +1095,70 @@ adminRouter.get(
 adminRouter.get(
   '/reports/performance',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   reportsController.getPerformanceReport,
 );
 
 adminRouter.post(
   '/:id/submit-review',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.submitDraftForReview,
 );
 
 adminRouter.get(
   '/:id/reviews',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.getTenderReviews,
 );
 
 adminRouter.patch(
   '/reviews/:reviewId/decisions',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.submitReviewDecision,
 );
 
 adminRouter.get(
   '/:id/diff',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.getVersionDiff,
 );
 
 adminRouter.patch(
   '/:id/basic-info',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.updateBasicInfo,
 );
 
 adminRouter.patch(
   '/:id/location',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.updateLocation,
 );
 
 adminRouter.patch(
   '/:id/commercial',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.updateCommercial,
 );
 
 adminRouter.patch(
   '/:id/schedule',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.updateSchedule,
 );
 
 adminRouter.get(
   '/:id/completion',
   authenticate,
-  requireRole(AccountType.ADMIN),
+  requireAccountType(AccountType.ADMIN),
   controller.getCompletionStatus,
 );
 

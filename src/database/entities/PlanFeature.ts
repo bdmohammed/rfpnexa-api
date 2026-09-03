@@ -9,6 +9,7 @@ import {
 
 import { PlanVersion } from './PlanVersion';
 
+import type { Relation } from 'typeorm';
 import { FeatureValueType } from '@/types/enums';
 
 @Entity('plan_features')
@@ -21,7 +22,7 @@ export class PlanFeature {
 
   @ManyToOne(() => PlanVersion, (v) => v.features, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: PlanVersion;
+  planVersion!: Relation<PlanVersion>;
 
   @Column({ name: 'feature_key', type: 'varchar', length: 100 })
   featureKey!: string;

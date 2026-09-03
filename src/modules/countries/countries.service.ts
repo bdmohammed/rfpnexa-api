@@ -12,13 +12,13 @@ import type {
 } from './countries.dto';
 import { AppDataSource } from '@/config/database';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
-import { Country } from '@/database/entities/Country';
-import { CountryActivity } from '@/database/entities/CountryActivity';
-import { CountryChangeRequest } from '@/database/entities/CountryChangeRequest';
-import { CountryChangeRequestAssignment } from '@/database/entities/CountryChangeRequestAssignment';
-import { CountryChangeRequestComment } from '@/database/entities/CountryChangeRequestComment';
-import { State } from '@/database/entities/State';
-import { User } from '@/database/entities/User';
+import { Country } from '@/entities/Country';
+import { CountryActivity } from '@/entities/CountryActivity';
+import { CountryChangeRequest } from '@/entities/CountryChangeRequest';
+import { CountryChangeRequestAssignment } from '@/entities/CountryChangeRequestAssignment';
+import { CountryChangeRequestComment } from '@/entities/CountryChangeRequestComment';
+import { State } from '@/entities/State';
+import { User } from '@/entities/User';
 import {
   ActorType,
   CountryActivityType,

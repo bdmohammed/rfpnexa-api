@@ -9,6 +9,8 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_templates')
 export class TenderTemplate {
   @PrimaryGeneratedColumn('uuid')
@@ -22,7 +24,7 @@ export class TenderTemplate {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById!: string | null;

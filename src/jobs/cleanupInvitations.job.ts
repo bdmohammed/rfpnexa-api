@@ -1,6 +1,6 @@
-import { AppDataSource } from '../config/database';
-import { logger } from '../config/logger';
-import { TenderInvitation } from '../database/entities/TenderInvitation';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { TenderInvitation } from '@/entities/TenderInvitation';
 
 const invitationRepo = AppDataSource.getRepository(TenderInvitation);
 

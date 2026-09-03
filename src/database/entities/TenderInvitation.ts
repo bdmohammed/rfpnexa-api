@@ -9,6 +9,8 @@ import {
 
 import { Tender } from './Tender';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_invitations')
 export class TenderInvitation {
   @PrimaryGeneratedColumn('uuid')
@@ -19,7 +21,7 @@ export class TenderInvitation {
 
   @ManyToOne(() => Tender, (tender) => tender.invitations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ type: 'varchar', length: 255 })
   email!: string;

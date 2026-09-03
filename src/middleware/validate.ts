@@ -1,21 +1,33 @@
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
-
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import type { ZodSchema } from 'zod';
+import type { ZodType } from 'zod';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 
-type Target = 'body' | 'query' | 'params';
+export type Target = 'body' | 'query' | 'params';
 
 /**
- * Zod validation middleware factory.
- * Parses and validates the specified request target (body, query, params).
- * On success, attaches the parsed (and type-coerced) data to req.validated.
- * On failure, returns 422 Unprocessable Entity with all validation errors.
+ * [WHAT]
+ * Express request validation middleware factory that validates request data
+ * (`req.body`, `req.query`, or `req.params`) against a Zod schema.
  *
- * Usage:
- *   router.post('/register', validate(RegisterDto, 'body'), handler)
+ * [WHY]
+ * Ensures input payloads strictly conform to system contracts before reaching controllers,
+ * preventing unvalidated or malformed data processing.
+ *
+ * [CONSTRAINT]
+ * 1. Must replace `req[target]` with Zod's `result.data` output, ensuring defaults,
+ * transformations, and field stripping are preserved.
+ * 2. On failure, passes a 422 Unprocessable Entity `AppError` populated with field error details to `next()`.
+ * 3. Unknown fields are stripped by default unless the Zod schema explicitly uses `.passthrough()` or `.strict()`.
+ *
+ * [SIDE EFFECTS]
+ * Replaces `req.body`, `req.query`, or `req.params` with the parsed and cleansed Zod output.
+ *
+ * [ERRORS]
+ * Forwards an `AppError` with status 422 (`UNPROCESSABLE_ENTITY`), code `VALIDATION_ERROR`,
+ * and flattened field error metadata when validation fails.
  */
 export const validate =
-  (schema: ZodSchema, target: Target = 'body'): RequestHandler =>
+  (schema: ZodType<unknown>, target: Target = 'body'): RequestHandler =>
   (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req[target]);
 
@@ -26,17 +38,24 @@ export const validate =
       }));
 
       return next(
-        Object.assign(
-          new AppError(
-            AppErrorMessage.VALIDATION_FAILED,
-            HttpStatusCode.UNPROCESSABLE_ENTITY,
-            AppErrorCode.VALIDATION_ERROR,
-          ),
-          { errors },
+        new AppError(
+          AppErrorMessage.VALIDATION_FAILED,
+          HttpStatusCode.UNPROCESSABLE_ENTITY,
+          AppErrorCode.VALIDATION_ERROR,
+          errors,
         ),
       );
     }
 
-    req[target] = result.data;
+    try {
+      req[target] = result.data as any;
+    } catch {
+      Object.defineProperty(req, target, {
+        value: result.data,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    }
     next();
   };

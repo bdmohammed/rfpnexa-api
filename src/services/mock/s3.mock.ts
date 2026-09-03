@@ -6,10 +6,8 @@
  *
  * This file is conditionally re-exported by s3.service.ts when NODE_ENV=local.
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { logger } from '../../config/logger';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
+import { logger } from '@/config/logger';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 
 function assertAllowedExtension(fileName: string): void {
   const allowed = [
@@ -42,7 +40,7 @@ export async function generateUploadUrl(
   assertAllowedExtension(fileName);
 
   const sanitized = fileName.replace(/\s+/g, '_').toLowerCase();
-  const documentKey = `tenders/${uuidv4()}-${sanitized}`;
+  const documentKey = `tenders/${crypto.randomUUID()}-${sanitized}`;
   const uploadUrl = `http://localhost:3000/dummy-s3-upload/${documentKey}`;
 
   logger.info(

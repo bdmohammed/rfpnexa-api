@@ -8,9 +8,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { BrowserType, DeviceType } from '../../types/enums';
-
 import { Country } from './Country';
+
+import type { Relation } from 'typeorm';
+import { BrowserType, DeviceType } from '@/types/enums';
 
 @Entity('traffic_daily_metrics')
 @Index('ux_traffic_daily_metrics', ['date', 'countryId', 'device', 'browser'], { unique: true })
@@ -36,7 +37,7 @@ export class TrafficDailyMetrics {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'country_id' })
-  country!: Country | null;
+  country!: Relation<Country | null>;
 
   @Column({
     type: 'varchar',

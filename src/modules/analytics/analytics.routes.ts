@@ -1,9 +1,5 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middleware/authenticate';
-import { requirePermission } from '../../middleware/permissions';
-import { validate } from '../../middleware/validate';
-
 import * as controller from './analytics.controller';
 import {
   AlertIdParamSchema,
@@ -15,6 +11,9 @@ import {
 } from './analytics.dto';
 
 import { AnalyticsPermissions } from '@/constants/permissions';
+import { authenticate } from '@/middleware/authenticate';
+import { requirePermission } from '@/middleware/permissions';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 

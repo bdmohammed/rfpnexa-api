@@ -4,16 +4,16 @@ import * as path from 'node:path';
 
 import * as bcrypt from 'bcryptjs';
 
-import { AppDataSource } from '../../config/database';
-import { logger } from '../../config/logger';
-import { Country } from '../entities/Country';
-import { CountryActivity } from '../entities/CountryActivity';
-import { SeedHistory } from '../entities/SeedHistory';
-import { User } from '../entities/User';
-
 import type { DataSource, EntityTarget, ObjectLiteral } from 'typeorm';
+import { AppDataSource } from '@/config/database';
 import { env } from '@/config/env';
+import { logger } from '@/config/logger';
+import { Country } from '@/entities/Country';
+import { CountryActivity } from '@/entities/CountryActivity';
+import { SeedHistory } from '@/entities/SeedHistory';
+import { User } from '@/entities/User';
 import { AccountType, ActorType, CountryActivityType, SeedStatus, UserStatus } from '@/types/enums';
+import { hashToken } from '@/utils/crypto';
 
 import 'reflect-metadata';
 
@@ -21,11 +21,6 @@ interface ApplySeedResult {
   name: string;
   status: SeedStatus;
   durationMs?: number;
-}
-
-// Helper to compute sha256 checksum of seed metadata
-function computeChecksum(data: string): string {
-  return crypto.createHash('sha256').update(data).digest('hex');
 }
 
 async function applySeed(
@@ -45,7 +40,7 @@ async function applySeed(
   }
 
   const fileContent = fs.readFileSync(filePath, 'utf-8');
-  const checksum = computeChecksum(fileContent);
+  const checksum = hashToken(fileContent);
 
   const historyRepo = dataSource.getRepository(SeedHistory);
   const existing = await historyRepo.findOne({
@@ -181,7 +176,7 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
 
   const userRepo = dataSource.getRepository(User);
   const countryRepo = dataSource.getRepository(Country);
-  const email = env.NEXUSBID_SYSTEM_ADMIN_EMAIL;
+  const email = env.RFPNEXA_SYSTEM_ADMIN_EMAIL;
 
   let systemUser = await userRepo.findOne({ where: { email } });
   if (!systemUser) {

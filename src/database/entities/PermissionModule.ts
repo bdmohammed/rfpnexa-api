@@ -13,6 +13,8 @@ import {
 import { Permission } from './Permission';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('permission_modules')
 export class PermissionModule {
   @PrimaryGeneratedColumn('increment', {
@@ -56,7 +58,7 @@ export class PermissionModule {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User;
+  createdBy!: Relation<User>;
 
   @Column({
     name: 'updated_by',
@@ -72,9 +74,9 @@ export class PermissionModule {
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => Permission, (p) => p.module)
-  permissions!: Permission[];
+  permissions!: Relation<Permission[]>;
 }

@@ -1,7 +1,5 @@
-import { asyncHandler } from '../../../core/asyncHandler';
 import { RbacService } from '../rbac.service';
 
-import type { RoleVersion } from '../../../database/entities/RoleVersion';
 import type {
   CompareVersionsParamsDto,
   CompareVersionsResult,
@@ -9,6 +7,8 @@ import type {
   RoleIdParamDto,
   SuccessResponse,
 } from '../rbac.dto';
+import type { RoleVersion } from '@/entities/RoleVersion';
+import { asyncHandler } from '@/core/asyncHandler';
 
 export class RbacVersionController {
   public static getRoleVersions = asyncHandler<RoleIdParamDto, SuccessResponse<RoleVersion[]>>(

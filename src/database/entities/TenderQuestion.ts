@@ -10,6 +10,8 @@ import {
 import { Tender } from './Tender';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_questions')
 export class TenderQuestion {
   @PrimaryGeneratedColumn('uuid')
@@ -20,14 +22,14 @@ export class TenderQuestion {
 
   @ManyToOne(() => Tender, (tender) => tender.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ name: 'vendor_id', type: 'uuid' })
   vendorId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vendor_id' })
-  vendor!: User;
+  vendor!: Relation<User>;
 
   @Column({ name: 'question_text', type: 'text' })
   questionText!: string;
@@ -40,7 +42,7 @@ export class TenderQuestion {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'answered_by_id' })
-  answeredBy!: User | null;
+  answeredBy!: Relation<User | null>;
 
   @Column({ name: 'answered_by_id', type: 'uuid', nullable: true })
   answeredById!: string | null;

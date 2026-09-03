@@ -7,12 +7,10 @@ import {
   type S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { v4 as uuidv4 } from 'uuid';
 
-import { env } from '../config/env';
-import { S3_URL_EXPIRY } from '../core/constants';
-
+import { env } from '@/config/env';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { S3_URL_EXPIRY } from '@/core/constants';
 
 // ─── Local env: swap in dummy implementation (no real AWS calls) ─────────────
 if (env.NODE_ENV === 'local') {
@@ -100,7 +98,7 @@ export async function generateUploadUrl(fileName: string): Promise<{
   originalFileName: string;
 }> {
   const sanitized = sanitizeFileName(fileName);
-  const documentKey = `tenders/${uuidv4()}-${sanitized}`;
+  const documentKey = `tenders/${crypto.randomUUID()}-${sanitized}`;
 
   const command = new PutObjectCommand({
     Bucket: env.AWS_S3_BUCKET,

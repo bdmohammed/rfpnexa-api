@@ -15,6 +15,7 @@ import { CategoryReviewAssignment } from './CategoryReviewAssignment';
 import { CategoryReviewComment } from './CategoryReviewComment';
 import { CategoryVersion } from './CategoryVersion';
 
+import type { Relation } from 'typeorm';
 import { ReviewStatus } from '@/types/enums';
 
 @Entity('category_reviews')
@@ -28,14 +29,14 @@ export class CategoryReview {
 
   @ManyToOne(() => Category, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_id' })
-  category!: Category;
+  category!: Relation<Category>;
 
   @Column({ name: 'category_version_id', type: 'uuid' })
   categoryVersionId!: string;
 
   @ManyToOne(() => CategoryVersion, (version) => version.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'category_version_id' })
-  categoryVersion!: CategoryVersion;
+  categoryVersion!: Relation<CategoryVersion>;
 
   @Index('idx_category_reviews_status')
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
@@ -60,8 +61,8 @@ export class CategoryReview {
   updatedAt!: Date;
 
   @OneToMany(() => CategoryReviewAssignment, (assignment) => assignment.review)
-  assignments!: CategoryReviewAssignment[];
+  assignments!: Relation<CategoryReviewAssignment[]>;
 
   @OneToMany(() => CategoryReviewComment, (comment) => comment.categoryReview)
-  comments!: CategoryReviewComment[];
+  comments!: Relation<CategoryReviewComment[]>;
 }

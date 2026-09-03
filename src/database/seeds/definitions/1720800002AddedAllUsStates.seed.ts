@@ -1,11 +1,10 @@
 import { type DataSource, In } from 'typeorm';
 
-import { Country } from '../../entities/Country';
-import { CountryActivity } from '../../entities/CountryActivity';
-import { State } from '../../entities/State';
-
 import type { SeedInterface } from '../seed.interface';
-import type { User } from '@/database/entities/User';
+import type { User } from '@/entities/User';
+import { Country } from '@/entities/Country';
+import { CountryActivity } from '@/entities/CountryActivity';
+import { State } from '@/entities/State';
 import { ActorType, CountryActivityType, StateType } from '@/types/enums';
 
 type StateSeed = Required<Pick<State, 'code' | 'name' | 'slug' | 'type'>>;

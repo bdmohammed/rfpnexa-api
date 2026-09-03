@@ -19,6 +19,7 @@ import { CountryChangeRequestComment } from './CountryChangeRequestComment';
 import { State } from './State';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import {
   CountryChangeRequestAction,
   CountryChangeRequestStatus,
@@ -58,14 +59,14 @@ export class CountryChangeRequest {
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
-  country!: Country;
+  country!: Relation<Country>;
 
   @Column({ name: 'state_id', type: 'smallint', nullable: true })
   stateId!: string | null;
 
   @ManyToOne(() => State, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'state_id' })
-  state!: State | null;
+  state!: Relation<State | null>;
 
   @Column({
     type: 'enum',
@@ -85,7 +86,7 @@ export class CountryChangeRequest {
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'requested_by_id' })
-  requestedBy!: User;
+  requestedBy!: Relation<User>;
 
   @Column({ type: 'text' })
   reason!: string;
@@ -110,11 +111,11 @@ export class CountryChangeRequest {
   // ─── Relations ────────────────────────────────────────────────────────────
 
   @OneToMany(() => CountryChangeRequestAssignment, (assignment) => assignment.request)
-  assignments!: CountryChangeRequestAssignment[];
+  assignments!: Relation<CountryChangeRequestAssignment[]>;
 
   @OneToMany(() => CountryChangeRequestComment, (comment) => comment.request)
-  comments!: CountryChangeRequestComment[];
+  comments!: Relation<CountryChangeRequestComment[]>;
 
   @OneToMany(() => CountryActivity, (activity) => activity.request)
-  activities!: CountryActivity[];
+  activities!: Relation<CountryActivity[]>;
 }

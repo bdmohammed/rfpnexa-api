@@ -1,16 +1,102 @@
 import slugify from 'slugify';
 import { In } from 'typeorm';
 
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../core/AppError';
-import { Permission } from '../database/entities/Permission';
-import { RoleVersionPermission } from '../database/entities/RoleVersionPermission';
-import { UserRole } from '../database/entities/UserRole';
-import { CacheService } from '../services/cache.service';
-import { AccountType, RoleStatus } from '../types/enums';
-
 import type { NextFunction, Request, Response } from 'express';
 import { AppDataSource } from '@/config/database';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { SUPER_ADMIN } from '@/core/constants';
+import { Permission } from '@/entities/Permission';
+import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+import { UserRole } from '@/entities/UserRole';
+import { CacheService } from '@/services/cache.service';
+import { AccountType, RoleStatus } from '@/types/enums';
 
+/**
+ * Resolves active role slugs and permission keys from PostgreSQL database for an admin user.
+ */
+async function fetchUserRolesAndPermissions(
+  userId: string,
+): Promise<{ roles: string[]; permissions: string[] }> {
+  const userRoleRepo = AppDataSource.getRepository(UserRole);
+
+  const userRoles = await userRoleRepo.find({
+    where: { userId },
+    relations: {
+      role: {
+        activeVersion: true,
+      },
+    },
+  });
+
+  const activeUserRoles = userRoles.filter((ur) => {
+    if (ur.role.status !== RoleStatus.ACTIVE) return false;
+    if (ur.expiresAt && ur.expiresAt.getTime() < Date.now()) return false;
+    return true;
+  });
+
+  if (activeUserRoles.length === 0) {
+    throw new AppError(
+      'Admin account has no active roles assigned',
+      HttpStatusCode.FORBIDDEN,
+      AppErrorCode.FORBIDDEN,
+    );
+  }
+
+  const roleSlugs = activeUserRoles
+    .map((userRole) => {
+      if (userRole.role.isSystemRole) return SUPER_ADMIN;
+      const roleName = userRole.role.activeVersion.name;
+      return roleName ? slugify(roleName, { lower: true, strict: true }) : null;
+    })
+    .filter((slug): slug is string => Boolean(slug));
+
+  const hasSuperAdmin = activeUserRoles.some((ur) => ur.role.isSystemRole);
+  let permissionKeys: string[] = [];
+
+  if (hasSuperAdmin) {
+    const permissionRepo = AppDataSource.getRepository(Permission);
+    const allPermissions = await permissionRepo.find({ select: { key: true } });
+    permissionKeys = allPermissions.map((p) => p.key);
+  } else {
+    const activeVersionIds = activeUserRoles
+      .map((ur) => ur.role.activeVersionId)
+      .filter((id): id is string => Boolean(id));
+
+    if (activeVersionIds.length > 0) {
+      const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
+      const rvpList = await rvpRepo.find({
+        where: { roleVersionId: In(activeVersionIds) },
+        select: { permissionKey: true },
+      });
+      permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
+    }
+  }
+
+  return { roles: roleSlugs, permissions: permissionKeys };
+}
+
+/**
+ * [WHAT]
+ * Middleware that resolves and attaches assigned roles and permissions to `req.roles` and `req.permissions`.
+ *
+ * [WHY]
+ * Powers Role-Based Access Control (RBAC) authorization checks across all administrative API routes.
+ *
+ * [CONSTRAINT]
+ * 1. Non-admin users (`accountType !== ADMIN`) receive empty arrays `req.roles = []` and `req.permissions = []`.
+ * 2. Caches resolved permissions in Redis for 300s to avoid database queries on every request.
+ * 3. Super Admin system role automatically resolves ALL database permissions.
+ *
+ * [SIDE EFFECTS]
+ * 1. Reads from Redis cache (`permissions:<userId>`).
+ * 2. On cache miss, queries `UserRole`, `RoleVersionPermission`, and `Permission` entities from PostgreSQL.
+ * 3. Populates `req.roles` and `req.permissions`.
+ *
+ * [ERRORS]
+ * 1. Returns 401 Unauthorized if request is unauthenticated (`!req.user`).
+ * 2. Returns 403 Forbidden if admin user has no active assigned roles.
+ * 3. Returns 500 Internal Server Error if database/cache resolution fails (fails closed).
+ */
 export const loadPermissions = async (
   req: Request,
   _res: Response,
@@ -43,82 +129,14 @@ export const loadPermissions = async (
       return next();
     }
 
-    // Cache miss - resolve from DB
-    const userRoleRepo = AppDataSource.getRepository(UserRole);
+    const { roles, permissions } = await fetchUserRolesAndPermissions(userId);
+    req.roles = roles;
+    req.permissions = permissions;
 
-    // Find all active, non-expired role assignments for user
-    const userRoles = await userRoleRepo.find({
-      where: { userId },
-      relations: {
-        role: {
-          activeVersion: true,
-        },
-      },
-    });
-
-    const activeUserRoles = userRoles.filter((ur) => {
-      if (ur.role.status !== RoleStatus.ACTIVE) return false;
-      if (ur.expiresAt && ur.expiresAt.getTime() < Date.now()) return false;
-      return true;
-    });
-
-    if (activeUserRoles.length === 0) {
-      return next(
-        new AppError(
-          'Admin account has no active roles assigned',
-          HttpStatusCode.FORBIDDEN,
-          AppErrorCode.FORBIDDEN,
-        ),
-      );
-    }
-
-    const roleSlugs = activeUserRoles
-      .map((ur) => {
-        if (ur.role.isSystemRole) return 'super-admin';
-        return ur.role.activeVersion.name
-          ? slugify(ur.role.activeVersion.name, { lower: true, strict: true })
-          : '';
-      })
-      .filter(Boolean);
-    let permissionKeys: string[] = [];
-
-    // If user has Super Admin role, they get ALL permissions
-    const hasSuperAdmin = activeUserRoles.some((ur) => ur.role.isSystemRole);
-
-    if (hasSuperAdmin) {
-      const permissionRepo = AppDataSource.getRepository(Permission);
-      const allPermissions = await permissionRepo.find({
-        select: {
-          key: true,
-        },
-      });
-      permissionKeys = allPermissions.map((p) => p.key);
-    } else if (activeUserRoles.length > 0) {
-      const activeVersionIds = activeUserRoles
-        .map((ur) => ur.role.activeVersionId)
-        .filter((id): id is string => !!id);
-
-      if (activeVersionIds.length > 0) {
-        const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
-        const rvpList = await rvpRepo.find({
-          where: { roleVersionId: In(activeVersionIds) },
-          select: {
-            permissionKey: true,
-          },
-        });
-        permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
-      }
-    }
-
-    req.roles = roleSlugs;
-    req.permissions = permissionKeys;
-
-    // Cache the resolved roles and permissions
-    await CacheService.set(cacheKey, { roles: roleSlugs, permissions: permissionKeys }, 300);
-
+    await CacheService.set(cacheKey, { roles, permissions }, 300);
     next();
-  } catch {
-    // Fail closed: return 500 error response to prevent any unauthorized bypass
+  } catch (err: unknown) {
+    if (err instanceof AppError) return next(err);
     return next(
       new AppError(
         AppErrorMessage.PERMISSIONS_LOAD_FAILED,
@@ -129,12 +147,24 @@ export const loadPermissions = async (
   }
 };
 
+/**
+ * [WHAT]
+ * Higher-order middleware factory requiring a specific permission key for route execution.
+ *
+ * [WHY]
+ * Restricts access to administrative endpoints requiring a single explicit permission.
+ *
+ * [CONSTRAINT]
+ * Super Admin role (`roles.includes(SUPER_ADMIN)`) automatically bypasses permission key checks.
+ *
+ * [ERRORS]
+ * Returns 403 Forbidden if user lacks the required permission key.
+ */
 export const requirePermission = (permissionKey: string) => {
   return [
     loadPermissions,
     (req: Request, _res: Response, next: NextFunction): void => {
-      // Super Admin bypasses all checks
-      if (req.roles?.includes('super-admin')) {
+      if (req.roles?.includes(SUPER_ADMIN)) {
         return next();
       }
 
@@ -153,11 +183,24 @@ export const requirePermission = (permissionKey: string) => {
   ];
 };
 
+/**
+ * [WHAT]
+ * Higher-order middleware factory requiring at least ONE permission key from a specified list.
+ *
+ * [WHY]
+ * Enables flexible authorization for endpoints accessible by users with any of multiple roles/permissions.
+ *
+ * [CONSTRAINT]
+ * Super Admin role (`roles.includes(SUPER_ADMIN)`) automatically bypasses permission key checks.
+ *
+ * [ERRORS]
+ * Returns 403 Forbidden if user lacks all specified permission keys.
+ */
 export const requireAnyPermission = (permissionKeys: string[]) => {
   return [
     loadPermissions,
     (req: Request, _res: Response, next: NextFunction): void => {
-      if (req.roles?.includes('super-admin')) {
+      if (req.roles?.includes(SUPER_ADMIN)) {
         return next();
       }
 
@@ -180,11 +223,24 @@ export const requireAnyPermission = (permissionKeys: string[]) => {
   ];
 };
 
+/**
+ * [WHAT]
+ * Higher-order middleware factory requiring ALL permission keys from a specified list.
+ *
+ * [WHY]
+ * Enforces strict multi-permission authorization requirements for high-security administrative endpoints.
+ *
+ * [CONSTRAINT]
+ * Super Admin role (`roles.includes(SUPER_ADMIN)`) automatically bypasses permission key checks.
+ *
+ * [ERRORS]
+ * Returns 403 Forbidden if user lacks any of the required permission keys.
+ */
 export const requireAllPermissions = (permissionKeys: string[]) => {
   return [
     loadPermissions,
     (req: Request, _res: Response, next: NextFunction): void => {
-      if (req.roles?.includes('super-admin')) {
+      if (req.roles?.includes(SUPER_ADMIN)) {
         return next();
       }
 
@@ -207,12 +263,22 @@ export const requireAllPermissions = (permissionKeys: string[]) => {
   ];
 };
 
+/**
+ * [WHAT]
+ * Higher-order middleware factory enforcing Super Admin system role access.
+ *
+ * [WHY]
+ * Restricts super-administrative routes (system maintenance, global RBAC management) to Super Admins.
+ *
+ * [ERRORS]
+ * Returns 403 Forbidden if user does not possess the Super Admin system role.
+ */
 export const requireSuperAdmin = () => {
   return [
     loadPermissions,
     (req: Request, _res: Response, next: NextFunction): void => {
-      if (!req.roles?.includes('super-admin')) {
-        req.log.warn({ requiredRole: 'super-admin' }, 'Forbidden: Super Admin Access Required');
+      if (!req.roles?.includes(SUPER_ADMIN)) {
+        req.log.warn({ requiredRole: SUPER_ADMIN }, 'Forbidden: Super Admin Access Required');
         return next(
           new AppError(
             AppErrorMessage.FORBIDDEN_SUPER_ADMIN_REQUIRED,

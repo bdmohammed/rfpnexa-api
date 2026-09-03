@@ -12,8 +12,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { AccountType, UserStatus } from '../../types/enums';
-
 import { AlertPreference } from './AlertPreference';
 import { AnalyticsAlert } from './AnalyticsAlert';
 import { AnalyticsEvent } from './AnalyticsEvent';
@@ -47,6 +45,9 @@ import { UserDailyMetrics } from './UserDailyMetrics';
 import { UserDashboardLayout } from './UserDashboardLayout';
 import { UserRole } from './UserRole';
 
+import type { Relation } from 'typeorm';
+import { AccountType, UserStatus } from '@/types/enums';
+
 @Entity('users')
 @Index(['email'])
 @Index(['accountType'])
@@ -72,7 +73,7 @@ export class User {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'country_id' })
-  country!: Country;
+  country!: Relation<Country>;
 
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   passwordHash!: string;
@@ -177,155 +178,155 @@ export class User {
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
   @OneToMany(() => Subscription, (subscriptions) => subscriptions.user)
-  subscriptions!: Subscription[];
+  subscriptions!: Relation<Subscription[]>;
 
   @OneToMany(() => Transaction, (transactions) => transactions.user)
-  transactions!: Transaction[];
+  transactions!: Relation<Transaction[]>;
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
-  userRoles!: UserRole[];
+  userRoles!: Relation<UserRole[]>;
 
   @OneToMany(() => Role, (role) => role.createdByUser)
-  rolesCreated!: Role[];
+  rolesCreated!: Relation<Role[]>;
 
   @OneToMany(() => Role, (role) => role.updatedByUser)
-  rolesUpdated!: Role[];
+  rolesUpdated!: Relation<Role[]>;
 
   @OneToMany(() => UserRole, (assignedRoles) => assignedRoles.assignedBy)
-  assignedRoles!: UserRole[];
+  assignedRoles!: Relation<UserRole[]>;
 
   @OneToMany(() => Country, (country) => country.createdBy)
-  CountriesCreated!: Country[];
+  CountriesCreated!: Relation<Country[]>;
 
   @OneToMany(() => Country, (country) => country.updatedBy)
-  CountriesUpdated!: Country[];
+  CountriesUpdated!: Relation<Country[]>;
 
   @OneToMany(() => State, (state) => state.createdBy)
-  StatesCreated!: State[];
+  StatesCreated!: Relation<State[]>;
 
   @OneToMany(() => State, (state) => state.updatedBy)
-  StatesUpdated!: State[];
+  StatesUpdated!: Relation<State[]>;
 
   @OneToMany(() => PermissionModule, (permissionModule) => permissionModule.createdBy)
-  PermissionModulesCreated!: PermissionModule[];
+  PermissionModulesCreated!: Relation<PermissionModule[]>;
 
   @OneToMany(() => PermissionModule, (permissionModule) => permissionModule.updatedBy)
-  PermissionModulesUpdated!: PermissionModule[];
+  PermissionModulesUpdated!: Relation<PermissionModule[]>;
 
   @OneToMany(() => Permission, (permission) => permission.createdBy)
-  PermissionsCreated!: Permission[];
+  PermissionsCreated!: Relation<Permission[]>;
 
   @OneToMany(() => Permission, (permission) => permission.updatedBy)
-  PermissionsUpdated!: Permission[];
+  PermissionsUpdated!: Relation<Permission[]>;
 
   @OneToMany(() => EmailToken, (emailToken) => emailToken.user)
-  EmailTokensCreated!: EmailToken[];
+  EmailTokensCreated!: Relation<EmailToken[]>;
 
   @OneToMany(() => PasswordHistory, (passwordHistory) => passwordHistory.user)
-  PasswordHistoryCreated!: PasswordHistory[];
+  PasswordHistoryCreated!: Relation<PasswordHistory[]>;
 
   @OneToMany(() => SupportTicket, (t) => t.user)
-  supportTickets!: SupportTicket[];
+  supportTickets!: Relation<SupportTicket[]>;
 
   @OneToMany(() => SupportTicket, (t) => t.assignedTo)
-  assignedTickets!: SupportTicket[];
+  assignedTickets!: Relation<SupportTicket[]>;
 
   @OneToMany(() => SupportTicketMessage, (m) => m.sender)
-  supportTicketMessages!: SupportTicketMessage[];
+  supportTicketMessages!: Relation<SupportTicketMessage[]>;
 
   @OneToOne(() => UserDashboardLayout, (userDashboardLayout) => userDashboardLayout.user)
-  userDashboardLayout!: UserDashboardLayout | null;
+  userDashboardLayout!: Relation<UserDashboardLayout | null>;
 
   @OneToMany(() => ScheduledReport, (report) => report.createdByUser)
-  scheduledReports!: ScheduledReport[];
+  scheduledReports!: Relation<ScheduledReport[]>;
 
   @OneToMany(() => ExportJob, (job) => job.userId)
-  exportJobs!: ExportJob[];
+  exportJobs!: Relation<ExportJob[]>;
 
   @OneToMany(() => AuditRetentionPolicy, (policy) => policy.updatedBy)
-  retentionPoliciesUpdated!: AuditRetentionPolicy[];
+  retentionPoliciesUpdated!: Relation<AuditRetentionPolicy[]>;
 
   @OneToMany(() => AuditRetentionPolicy, (policy) => policy.createdBy)
-  retentionPoliciesCreated!: AuditRetentionPolicy[];
+  retentionPoliciesCreated!: Relation<AuditRetentionPolicy[]>;
 
   @OneToMany(() => DownloadHistory, (downloadHistory) => downloadHistory.user)
-  downloadHistory!: DownloadHistory[];
+  downloadHistory!: Relation<DownloadHistory[]>;
 
   @OneToMany(() => NotificationRecipient, (recipient) => recipient.user)
-  receivedNotifications!: NotificationRecipient[];
+  receivedNotifications!: Relation<NotificationRecipient[]>;
 
   @OneToMany(() => Notification, (notification) => notification.senderUser)
-  sentNotifications!: Notification[];
+  sentNotifications!: Relation<Notification[]>;
 
   @OneToMany(() => PlanVersion, (version) => version.lockedByUser)
-  lockedPlanVersions!: PlanVersion[];
+  lockedPlanVersions!: Relation<PlanVersion[]>;
 
   @OneToMany(() => PlanVersion, (version) => version.createdByUser)
-  createdPlanVersions!: PlanVersion[];
+  createdPlanVersions!: Relation<PlanVersion[]>;
 
   @OneToMany(() => PlanVersion, (version) => version.updatedByUser)
-  updatedPlanVersions!: PlanVersion[];
+  updatedPlanVersions!: Relation<PlanVersion[]>;
 
   @OneToMany(() => PlanVersion, (version) => version.approvedByUser)
-  approvedPlanVersions!: PlanVersion[];
+  approvedPlanVersions!: Relation<PlanVersion[]>;
 
   @OneToMany(() => PlanReviewAssignment, (assignment) => assignment.reviewer)
-  planReviewAssignments!: PlanReviewAssignment[];
+  planReviewAssignments!: Relation<PlanReviewAssignment[]>;
 
   @OneToMany(() => Coupon, (coupon) => coupon.createdByUser)
-  createdCoupons!: Coupon[];
+  createdCoupons!: Relation<Coupon[]>;
 
   @OneToMany(() => Coupon, (coupon) => coupon.updatedByUser)
-  updatedCoupons!: Coupon[];
+  updatedCoupons!: Relation<Coupon[]>;
 
   @OneToMany(() => AnalyticsEvent, (event) => event.actor)
-  analyticsEvents!: AnalyticsEvent[];
+  analyticsEvents!: Relation<AnalyticsEvent[]>;
 
   @OneToMany(() => AnalyticsAlert, (alert) => alert.resolvedByUser)
-  resolvedAlerts!: AnalyticsAlert[];
+  resolvedAlerts!: Relation<AnalyticsAlert[]>;
 
   @OneToMany(() => AlertPreference, (alertPreference) => alertPreference.user)
-  alertPreferences!: AlertPreference[];
+  alertPreferences!: Relation<AlertPreference[]>;
 
   @OneToMany(() => EvaluationTemplate, (template) => template.createdByUser)
-  createdEvaluationTemplates!: EvaluationTemplate[];
+  createdEvaluationTemplates!: Relation<EvaluationTemplate[]>;
 
   @OneToMany(() => EvaluationTemplate, (template) => template.updatedByUser)
-  updatedEvaluationTemplates!: EvaluationTemplate[];
+  updatedEvaluationTemplates!: Relation<EvaluationTemplate[]>;
 
   @OneToMany(() => FeatureCatalog, (fc) => fc.createdByUser)
-  createdFeatureCatalogs!: FeatureCatalog[];
+  createdFeatureCatalogs!: Relation<FeatureCatalog[]>;
 
   @OneToMany(() => FeatureCatalog, (fc) => fc.updatedByUser)
-  updatedFeatureCatalogs!: FeatureCatalog[];
+  updatedFeatureCatalogs!: Relation<FeatureCatalog[]>;
 
   @OneToMany(() => AuditLog, (log) => log.actorUser)
-  actorAuditLogs!: AuditLog[];
+  actorAuditLogs!: Relation<AuditLog[]>;
 
   @OneToMany(() => AuditLog, (log) => log.targetUser)
-  targetAuditLogs!: AuditLog[];
+  targetAuditLogs!: Relation<AuditLog[]>;
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.createdBy)
-  createdTenderMetrics!: TenderDailyMetrics[];
+  createdTenderMetrics!: Relation<TenderDailyMetrics[]>;
 
   @OneToMany(() => TenderDailyMetrics, (metrics) => metrics.updatedBy)
-  updatedTenderMetrics!: TenderDailyMetrics[];
+  updatedTenderMetrics!: Relation<TenderDailyMetrics[]>;
 
   @OneToMany(() => UserDailyMetrics, (metrics) => metrics.createdBy)
-  createdUserMetrics!: UserDailyMetrics[];
+  createdUserMetrics!: Relation<UserDailyMetrics[]>;
 
   @OneToMany(() => UserDailyMetrics, (metrics) => metrics.updatedBy)
-  updatedUserMetrics!: UserDailyMetrics[];
+  updatedUserMetrics!: Relation<UserDailyMetrics[]>;
 
   @OneToMany(() => SubscriptionDailyMetrics, (metrics) => metrics.createdBy)
-  createdSubscriptionMetrics!: SubscriptionDailyMetrics[];
+  createdSubscriptionMetrics!: Relation<SubscriptionDailyMetrics[]>;
 
   @OneToMany(() => SubscriptionDailyMetrics, (metrics) => metrics.updatedBy)
-  updatedSubscriptionMetrics!: SubscriptionDailyMetrics[];
+  updatedSubscriptionMetrics!: Relation<SubscriptionDailyMetrics[]>;
 
   @OneToMany(() => Category, (category) => category.createdByUser)
-  createdCategories!: Category[];
+  createdCategories!: Relation<Category[]>;
 
   @OneToMany(() => Category, (category) => category.updatedByUser)
-  updatedCategories!: Category[];
+  updatedCategories!: Relation<Category[]>;
 }

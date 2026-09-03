@@ -10,6 +10,8 @@ import {
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('tender_documents')
 export class TenderDocument {
   @PrimaryGeneratedColumn('uuid')
@@ -20,7 +22,7 @@ export class TenderDocument {
 
   @ManyToOne(() => TenderVersion, (version) => version.documents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion!: TenderVersion;
+  tenderVersion!: Relation<TenderVersion>;
 
   @Column({ type: 'varchar', name: 'document_type', length: 50 })
   documentType!: string;
@@ -57,7 +59,7 @@ export class TenderDocument {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'uploaded_by_id' })
-  uploadedBy!: User | null;
+  uploadedBy!: Relation<User | null>;
 
   @Column({ name: 'uploaded_by_id', type: 'uuid', nullable: true })
   uploadedById!: string | null;

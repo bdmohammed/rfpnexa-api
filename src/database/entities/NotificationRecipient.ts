@@ -12,6 +12,7 @@ import { Notification } from './Notification';
 import { Role } from './Role';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { NotificationChannel, NotificationRecipientStatus } from '@/types/enums';
 
 @Entity('notification_recipients')
@@ -57,19 +58,19 @@ export class NotificationRecipient {
 
   @ManyToOne(() => Notification, (n) => n.recipients, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'notification_id' })
-  notification!: Notification;
+  notification!: Relation<Notification>;
 
   @ManyToOne(() => User, (user) => user.receivedNotifications, {
     onDelete: 'CASCADE',
     nullable: true,
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User | null;
+  user!: Relation<User | null>;
 
   @ManyToOne(() => Role, (role) => role.receivedNotifications, {
     onDelete: 'CASCADE',
     nullable: true,
   })
   @JoinColumn({ name: 'role_id' })
-  role!: Role | null;
+  role!: Relation<Role | null>;
 }

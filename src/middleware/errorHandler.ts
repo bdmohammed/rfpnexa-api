@@ -1,16 +1,19 @@
 import { QueryFailedError } from 'typeorm';
 import { ZodError } from 'zod';
 
-import { env } from '../config/env';
-import { getContext } from '../config/requestContext';
-import { AppError, AppErrorCode } from '../core/AppError';
-
 import type { NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
+import { AppError, AppErrorCode } from '@/core/AppError';
+import { getContext } from '@/core/requestContext';
 import { firstDefined } from '@/utils';
 
 interface AppErrorWithErrors extends AppError {
-  errors?: Array<{ field: string; message: string }>;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
 }
 
 interface ErrorContext {
@@ -23,15 +26,26 @@ interface ErrorContext {
   path: string;
 }
 
+/** PostgreSQL error codes for constraint violation mapping */
+const PG_ERROR_CODES = {
+  UNIQUE_VIOLATION: '23505',
+  FOREIGN_KEY_VIOLATION: '23503',
+} as const;
+
 /**
- * Global error handler — MUST be registered last in app.ts.
+ * [WHAT]
+ * Global Express error handling middleware catching and formatting operational and unhandled exceptions.
  *
- * Handles:
- *   - AppError (operational errors) → structured JSON with code
- *   - ZodError → 422 with field-level errors
- *   - TypeORM QueryFailedError → 409 for unique constraint violations
- *   - csrf-csrf errors → 403
- *   - Unknown errors → 500 (stack hidden in production)
+ * [WHY]
+ * Guarantees a unified JSON error contract across all endpoints while logging errors with trace correlation.
+ *
+ * [CONSTRAINT]
+ * 1. MUST be registered as the last middleware in `app.ts` (requires 4 parameters: `(err, req, res, next)`).
+ * 2. MUST NOT leak stack traces or raw database credentials in production.
+ * 3. MUST include `traceId` in every JSON error response.
+ *
+ * [SIDE EFFECTS]
+ * Logs warning (`logger.warn`) or error (`logger.error`) telemetry to Pino.
  */
 export const errorHandler = (
   err: unknown,
@@ -45,12 +59,10 @@ export const errorHandler = (
     return handleAppError(err, context);
   }
 
-  // ── Zod (should be caught by validate middleware, but belt-and-suspenders) ──
   if (err instanceof ZodError) {
     return handleZodError(err, context);
   }
 
-  // ── TypeORM unique constraint violation ─────────────────────────────────────
   if (err instanceof QueryFailedError) {
     return handleQueryFailedError(err, context);
   }
@@ -62,11 +74,18 @@ export const errorHandler = (
   return handleUnknownError(err, context);
 };
 
+/**
+ * [WHAT]
+ * Extracts request correlation context (`traceId`, `requestId`, `userId`, `method`, `path`) for error handling.
+ *
+ * [WHY]
+ * Correlates error logs and response payloads directly with AsyncLocalStorage request context.
+ */
 function getErrorContext(req: Request, res: Response): ErrorContext {
   const ctx = getContext();
 
   return {
-    activeLogger: req.log,
+    activeLogger: req.log ?? logger,
     traceId: firstDefined<string>(ctx?.traceId, req.traceId, 'unknown'),
     requestId: firstDefined<string>(ctx?.requestId, req.requestId, req.id, 'unknown'),
     userId: firstDefined<string>(ctx?.userId, req.user?.userId),
@@ -76,6 +95,13 @@ function getErrorContext(req: Request, res: Response): ErrorContext {
   };
 }
 
+/**
+ * [WHAT]
+ * Formats expected operational `AppError` exceptions (e.g. 400, 401, 403, 404, 422).
+ *
+ * [WHY]
+ * Returns structured JSON responses containing human-readable messages, error codes, and validation lists.
+ */
 function handleAppError(err: AppError, context: ErrorContext): void {
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   const appErr = err as AppErrorWithErrors;
@@ -100,6 +126,13 @@ function handleAppError(err: AppError, context: ErrorContext): void {
   });
 }
 
+/**
+ * [WHAT]
+ * Formats unhandled Zod schema validation errors into HTTP 422 Unprocessable Entity responses.
+ *
+ * [WHY]
+ * Safety fallback ensuring Zod issues produce a standardized field-level validation error structure.
+ */
 function handleZodError(err: ZodError, context: ErrorContext): void {
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   const validationErrors = err.issues.map((i) => ({
@@ -133,10 +166,27 @@ type PgQueryFailedError = QueryFailedError<Error> & {
   detail?: string;
 };
 
+/** Extracts PostgreSQL error code from QueryFailedError */
+function getPostgresCode(error: PgQueryFailedError): string | undefined {
+  return typeof error.code === 'string' ? error.code : undefined;
+}
+
+/**
+ * [WHAT]
+ * Translates PostgreSQL constraint failures (unique key `23505`, foreign key `23503`) to HTTP 409.
+ *
+ * [WHY]
+ * Provides user-friendly error messages for database duplication errors without exposing schema internals.
+ *
+ * [CONSTRAINT]
+ * Detail strings are only included in JSON payloads in non-production environments (`local`, `dev`).
+ */
 function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext): void {
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   const pgError = err;
-  if (pgError.code === '23505') {
+  const code = getPostgresCode(err);
+
+  if (code === PG_ERROR_CODES.UNIQUE_VIOLATION) {
     let friendlyMessage = 'A record with this value already exists';
     if (pgError.detail) {
       const match = pgError.detail.match(/Key \(([^)]+)\)=\(([^)]+)\)/);
@@ -158,7 +208,7 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
         code: 'CONFLICT',
         detail: pgError.detail,
       },
-      'Database record conflict',
+      'Database unique constraint violation',
     );
     res.status(409).json({
       success: false,
@@ -169,7 +219,8 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
     });
     return;
   }
-  if (pgError.code === '23503') {
+
+  if (code === PG_ERROR_CODES.FOREIGN_KEY_VIOLATION) {
     activeLogger.warn(
       {
         requestId,
@@ -180,7 +231,7 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
         statusCode: 409,
         code: 'FK_VIOLATION',
       },
-      'Database foreign key violation',
+      'Database foreign key constraint violation',
     );
     res.status(409).json({
       success: false,
@@ -190,12 +241,32 @@ function handleQueryFailedError(err: PgQueryFailedError, context: ErrorContext):
     });
     return;
   }
+
+  return handleUnknownError(err, context);
 }
 
+/** Checks if error represents a CSRF token verification failure */
 function isCsrfError(err: unknown): boolean {
-  return err instanceof Error && err.message === 'invalid csrf token';
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    const { code } = err as { code?: string };
+    return (
+      msg.includes('csrf') ||
+      msg.includes('invalid csrf token') ||
+      code === 'EBADCSRFTOKEN' ||
+      code === 'invalid_csrf_token'
+    );
+  }
+  return false;
 }
 
+/**
+ * [WHAT]
+ * Formats invalid CSRF token exceptions into HTTP 403 Forbidden responses.
+ *
+ * [WHY]
+ * Informs clients to refresh anti-CSRF tokens when session validation fails.
+ */
 function handleCsrfError(context: ErrorContext): void {
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   activeLogger.warn(
@@ -218,6 +289,16 @@ function handleCsrfError(context: ErrorContext): void {
   });
 }
 
+/**
+ * [WHAT]
+ * Catches unhandled 500 server crashes and returns a safe HTTP 500 Internal Server Error response.
+ *
+ * [WHY]
+ * Prevents technical stack trace leaks in production while logging full error details for diagnostics.
+ *
+ * [CONSTRAINT]
+ * Stack traces are strictly suppressed in non-development environments (`prod`, `uat`).
+ */
 function handleUnknownError(err: unknown, context: ErrorContext): void {
   const { activeLogger, traceId, requestId, userId, res, method, path } = context;
   const error = err instanceof Error ? err : new Error(String(err));

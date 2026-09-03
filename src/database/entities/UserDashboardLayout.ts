@@ -11,6 +11,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { DashboardTheme } from '@/types/enums';
 
 export interface DashboardWidget {
@@ -35,7 +36,7 @@ export class UserDashboardLayout {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'widgets', type: 'jsonb', default: () => "'[]'::jsonb" })
   widgets!: DashboardWidget[];

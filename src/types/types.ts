@@ -1,5 +1,6 @@
 import type { PermissionActions } from '@/authorization/registry/types';
-import type { PermissionModule } from '@/database/entities/PermissionModule';
+import type { PermissionModule } from '@/entities/PermissionModule';
+import type { User } from '@/entities/User';
 
 export const PermissionModules = {
   DASHBOARD: 'dashboard',
@@ -42,4 +43,40 @@ export type PermissionModuleSeed = Required<
     PermissionModule,
     'name' | 'key' | 'displayOrder' | 'description' | 'isSystemModule' | 'isActive'
   >
+>;
+
+/**
+ * [WHAT]
+ * Standardized API success response payload structure.
+ *
+ * [WHY]
+ * Guarantees a consistent JSON contract across all API endpoints for clients and SDK consumers.
+ */
+export interface ApiResponse<T = unknown, U = unknown> {
+  success: boolean;
+  message: string;
+  data?: T;
+  meta?: U;
+  traceId?: string | undefined;
+}
+
+/**
+ * [WHAT]
+ * Standardized metadata structure for paginated list responses.
+ *
+ * [WHY]
+ * Provides pagination navigation metrics (total items, page count, prev/next flags) for UI components.
+ */
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export type SanitizedUser = Omit<
+  User,
+  'passwordHash' | 'tokenVersion' | 'failedLoginAttempts' | 'lockoutUntil'
 >;

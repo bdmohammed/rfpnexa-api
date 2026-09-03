@@ -1,64 +1,57 @@
-import { Project, SyntaxKind } from "ts-morph";
+import { Project, SyntaxKind } from 'ts-morph';
 
 const project = new Project({
-  tsConfigFilePath: "tsconfig.json",
+  tsConfigFilePath: 'tsconfig.json',
 });
 
-const sourceFiles = project.getSourceFiles("src/database/entities/**/*.ts");
+const relationDecorators = new Set(['ManyToOne', 'OneToMany', 'OneToOne', 'ManyToMany']);
 
-for (const sourceFile of sourceFiles) {
-  let changed = false;
+for (const sourceFile of project.addSourceFilesAtPaths('src/database/entities/**/*.ts')) {
+  let modified = false;
 
-  for (const property of sourceFile.getDescendantsOfKind(
-    SyntaxKind.PropertyDeclaration,
-  )) {
-    // Only properties that have TypeORM decorators
-    const decorators = property.getDecorators();
+  // Find the typeorm import
+  const typeormImport = sourceFile.getImportDeclaration(
+    (d) => d.getModuleSpecifierValue() === 'typeorm',
+  );
 
-    const isTypeOrmProperty = decorators.some((decorator) =>
-      [
-        "Column",
-        "PrimaryColumn",
-        "PrimaryGeneratedColumn",
-        "CreateDateColumn",
-        "UpdateDateColumn",
-        "DeleteDateColumn",
-        "VersionColumn",
-        "ManyToOne",
-        "OneToMany",
-        "OneToOne",
-        "ManyToMany",
-        "JoinColumn",
-        "JoinTable",
-      ].includes(decorator.getName()),
-    );
+  if (!typeormImport) continue;
 
-    if (!isTypeOrmProperty) {
-      continue;
+  const namedImports = typeormImport.getNamedImports();
+
+  const hasRelationImport = namedImports.some((i) => i.getName() === 'Relation');
+
+  for (const cls of sourceFile.getClasses()) {
+    for (const property of cls.getProperties()) {
+      const decorators = property.getDecorators();
+
+      const isRelation = decorators.some((d) => relationDecorators.has(d.getName()));
+
+      if (!isRelation) continue;
+
+      const typeNode = property.getTypeNode();
+
+      if (!typeNode) continue;
+
+      const text = typeNode.getText();
+
+      if (text.startsWith('Relation<') || text.startsWith('Promise<')) {
+        continue;
+      }
+
+      property.setType(`Relation<${text}>`);
+      modified = true;
     }
-
-    // Don't touch properties that already have ! or ?
-    if (
-      property.hasExclamationToken() ||
-      property.hasQuestionToken()
-    ) {
-      continue;
-    }
-
-    // Don't add ! to initialized properties
-    if (property.hasInitializer()) {
-      continue;
-    }
-
-    property.setHasExclamationToken(true);
-    changed = true;
   }
 
-  if (changed) {
-    sourceFile.save().then(() => {
-      console.log(`Updated: ${sourceFile.getFilePath()}`);
-    }).catch((error) => {
-      console.error(`Error saving file ${sourceFile.getFilePath()}:`, error);
-    });
+  if (modified && !hasRelationImport) {
+    typeormImport.addNamedImport('Relation');
+  }
+
+  if (modified) {
+    console.log(`✔ ${sourceFile.getBaseName()}`);
   }
 }
+
+project.saveSync();
+
+console.log('Done.');

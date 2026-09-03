@@ -1,7 +1,8 @@
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
 import { AnalyticsEvent } from '../../../database/entities/AnalyticsEvent';
-import { AnalyticsEventType } from '../../../types/enums';
+
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AnalyticsEventType } from '@/types/enums';
 
 const eventRepo = AppDataSource.getRepository(AnalyticsEvent);
 

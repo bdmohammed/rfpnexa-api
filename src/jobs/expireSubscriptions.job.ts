@@ -1,7 +1,7 @@
-import { AppDataSource } from '../config/database';
-import { logger } from '../config/logger';
-import { Subscription } from '../database/entities/Subscription';
-import { SubscriptionStatus } from '../types/enums';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { Subscription } from '@/entities/Subscription';
+import { SubscriptionStatus } from '@/types/enums';
 
 const subRepo = AppDataSource.getRepository(Subscription);
 

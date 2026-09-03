@@ -10,6 +10,8 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('password_histories')
 @Index('idx_password_histories_user_created', ['userId', 'createdAt'])
 export class PasswordHistory {
@@ -23,7 +25,7 @@ export class PasswordHistory {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   passwordHash!: string;

@@ -1,8 +1,8 @@
 import { AppDataSource } from '@/config/database';
-import { State } from '@/database/entities/State';
-import { Tender } from '@/database/entities/Tender';
-import { TenderDocument } from '@/database/entities/TenderDocument';
-import { User } from '@/database/entities/User';
+import { State } from '@/entities/State';
+import { Tender } from '@/entities/Tender';
+import { TenderDocument } from '@/entities/TenderDocument';
+import { User } from '@/entities/User';
 import { CountryChangeRequestTargetType } from '@/types/enums';
 
 export interface DependencyMatrix {

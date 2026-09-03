@@ -16,6 +16,7 @@ import {
 import { Plan } from './Plan';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { CouponDiscountType } from '@/types/enums';
 
 @Entity('coupons')
@@ -87,14 +88,14 @@ export class Coupon {
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
-  createdByUser!: User | null;
+  createdByUser!: Relation<User | null>;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
-  updatedByUser!: User | null;
+  updatedByUser!: Relation<User | null>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -112,5 +113,5 @@ export class Coupon {
     joinColumn: { name: 'coupon_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'plan_id', referencedColumnName: 'id' },
   })
-  restrictedPlans!: Plan[];
+  restrictedPlans!: Relation<Plan[]>;
 }

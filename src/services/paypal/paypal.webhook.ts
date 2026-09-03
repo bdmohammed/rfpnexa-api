@@ -1,9 +1,8 @@
-import { env } from '../../config/env';
-import { logger } from '../../config/logger';
-
 import { paypalRequest } from './paypal.client';
 
 import type { Request } from 'express';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
 
 interface VerifyWebhookPayload {
   auth_algo: string;
@@ -44,7 +43,7 @@ export async function verifyPayPalWebhook(req: Request): Promise<boolean> {
       transmission_id: headers['paypal-transmission-id'] as string,
       transmission_sig: headers['paypal-transmission-sig'] as string,
       transmission_time: headers['paypal-transmission-time'] as string,
-      webhook_id: env.PAYPAL_WEBHOOK_ID,
+      webhook_id: env.PAYPAL_WEBHOOK_ID!,
       webhook_event: req.body as Record<string, unknown>,
     };
 

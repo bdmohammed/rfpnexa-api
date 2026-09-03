@@ -1,5 +1,5 @@
-import { env } from '../../config/env';
-import { logger } from '../../config/logger';
+import { env } from '@/config/env';
+import { logger } from '@/config/logger';
 
 const PAYPAL_BASE =
   env.PAYPAL_ENV === 'prod' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';

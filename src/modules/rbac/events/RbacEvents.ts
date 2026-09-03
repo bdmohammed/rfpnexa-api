@@ -3,15 +3,14 @@ import { EventEmitter } from 'node:events';
 import slugify from 'slugify';
 import { In } from 'typeorm';
 
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
-import { AuditLog } from '../../../database/entities/AuditLog';
-import { Permission } from '../../../database/entities/Permission';
-import { RoleVersionPermission } from '../../../database/entities/RoleVersionPermission';
-import { User } from '../../../database/entities/User';
-import { UserRole } from '../../../database/entities/UserRole';
-import { CacheService } from '../../../services/cache.service';
-
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AuditLog } from '@/entities/AuditLog';
+import { Permission } from '@/entities/Permission';
+import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+import { User } from '@/entities/User';
+import { UserRole } from '@/entities/UserRole';
+import { CacheService } from '@/services/cache.service';
 import { RoleStatus } from '@/types/enums';
 
 export class RbacEventEmitter extends EventEmitter {}
@@ -104,7 +103,7 @@ async function rebuildUserPermissionsCache(userId: string) {
     const roleSlugs = activeUserRoles
       .map((ur) => {
         if (ur.role.isSystemRole) return 'super-admin';
-        return ur.role.activeVersion?.name
+        return ur.role.activeVersion.name
           ? slugify(ur.role.activeVersion.name, { lower: true, strict: true })
           : '';
       })
@@ -134,6 +133,7 @@ async function rebuildUserPermissionsCache(userId: string) {
             permissionKey: true,
           },
         });
+
         permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
       }
     }

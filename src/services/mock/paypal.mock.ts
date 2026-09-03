@@ -7,15 +7,13 @@
  * Exported from the same paths as the real PayPal modules so the rest
  * of the codebase is unaffected.
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { logger } from '../../config/logger';
+import { logger } from '@/config/logger';
 
 // ─── Mock PayPal Orders ────────────────────────────────────────────────────────
 export async function createOrder(
   amountCents: number,
 ): Promise<{ id: string; approveUrl: string }> {
-  const id = `DUMMY-ORDER-${uuidv4().toUpperCase().slice(0, 12)}`;
+  const id = `DUMMY-ORDER-${crypto.randomUUID().toUpperCase().slice(0, 12)}`;
   logger.info({ mock: true, id, amountCents }, '💳 [DUMMY TEST] PayPal createOrder (local env)');
   return {
     id,
@@ -33,7 +31,7 @@ export async function captureOrder(orderId: string): Promise<{
   return {
     id: orderId,
     status: 'COMPLETED',
-    captureId: `DUMMY-CAPTURE-${uuidv4().toUpperCase().slice(0, 12)}`,
+    captureId: `DUMMY-CAPTURE-${crypto.randomUUID().toUpperCase().slice(0, 12)}`,
     amountCents: 999,
   };
 }
@@ -42,7 +40,7 @@ export async function captureOrder(orderId: string): Promise<{
 export async function createSubscription(
   planId: string,
 ): Promise<{ id: string; approveUrl: string }> {
-  const id = `I-DUMMY-${uuidv4().toUpperCase().slice(0, 12)}`;
+  const id = `I-DUMMY-${crypto.randomUUID().toUpperCase().slice(0, 12)}`;
   logger.info({ mock: true, id, planId }, '🔁 [DUMMY TEST] PayPal createSubscription (local env)');
   return {
     id,

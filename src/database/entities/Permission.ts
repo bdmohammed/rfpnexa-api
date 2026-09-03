@@ -14,6 +14,8 @@ import { PermissionActions } from '../../authorization/registry/types';
 import { PermissionModule } from './PermissionModule';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 @Entity('permissions')
 export class Permission {
   @PrimaryGeneratedColumn('increment', {
@@ -27,7 +29,7 @@ export class Permission {
 
   @ManyToOne(() => PermissionModule, (m) => m.permissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'module_id' })
-  module!: PermissionModule;
+  module!: Relation<PermissionModule>;
 
   @Column({ type: 'varchar', length: 100 })
   name!: string;
@@ -71,7 +73,7 @@ export class Permission {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: User;
+  createdBy!: Relation<User>;
 
   @Column({
     name: 'updated_by',
@@ -87,7 +89,7 @@ export class Permission {
   @JoinColumn({
     name: 'updated_by',
   })
-  updatedBy!: User | null;
+  updatedBy!: Relation<User | null>;
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
 }

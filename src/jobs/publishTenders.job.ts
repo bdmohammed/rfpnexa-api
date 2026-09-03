@@ -1,12 +1,12 @@
-import { AppDataSource } from '../config/database';
-import { logger } from '../config/logger';
-import { Tender } from '../database/entities/Tender';
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { Tender } from '@/entities/Tender';
 import {
   TenderBiddingStatus,
   TenderLifecycleStatus,
   TenderProcessStatus,
   TenderPublicationStatus,
-} from '../types/enums';
+} from '@/types/enums';
 
 const tenderRepo = AppDataSource.getRepository(Tender);
 

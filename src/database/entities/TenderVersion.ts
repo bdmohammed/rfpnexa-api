@@ -9,14 +9,15 @@ import {
   VersionColumn,
 } from 'typeorm';
 
-import { TenderVersionStatus } from '../../types/enums';
-
 import { Category } from './Category';
 import { State } from './State';
 import { Tender } from './Tender';
 import { TenderDocument } from './TenderDocument';
 import { TenderReview } from './TenderReview';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { TenderVersionStatus } from '@/types/enums';
 
 @Entity('tender_versions')
 export class TenderVersion {
@@ -28,7 +29,7 @@ export class TenderVersion {
 
   @ManyToOne(() => Tender, (tender) => tender.versions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tender_id' })
-  tender!: Tender;
+  tender!: Relation<Tender>;
 
   @Column({ type: 'int', default: 1 })
   version!: number;
@@ -162,21 +163,21 @@ export class TenderVersion {
 
   @ManyToOne(() => Category, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'category_id' })
-  category!: Category;
+  category!: Relation<Category>;
 
   @Column({ name: 'category_id', type: 'uuid', nullable: true })
   categoryId!: string | null;
 
   @ManyToOne(() => State, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'state_id' })
-  state!: State;
+  state!: Relation<State>;
 
   @Column({ name: 'state_id', type: 'smallint', nullable: true })
   stateId!: number | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy!: User | null;
+  createdBy!: Relation<User | null>;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true, default: null })
   createdById!: string | null;
@@ -187,8 +188,8 @@ export class TenderVersion {
   // ─── Relations ─────────────────────────────────────────────────────────────
 
   @OneToMany(() => TenderDocument, (doc) => doc.tenderVersion)
-  documents!: TenderDocument[];
+  documents!: Relation<TenderDocument[]>;
 
   @OneToMany(() => TenderReview, (review) => review.tenderVersion)
-  reviews!: TenderReview[];
+  reviews!: Relation<TenderReview[]>;
 }

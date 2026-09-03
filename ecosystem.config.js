@@ -8,7 +8,7 @@
 module.exports = {
   apps: [
     {
-      name: 'nexusbid-api',
+      name: 'rfpnexa-api',
       script: 'dist/config/server.js',
       instances: 'max',
       exec_mode: 'cluster',

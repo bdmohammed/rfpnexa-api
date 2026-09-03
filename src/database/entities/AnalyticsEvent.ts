@@ -10,6 +10,7 @@ import {
 
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { AnalyticsEventType, LogSource } from '@/types/enums';
 
 @Entity('analytics_events')
@@ -34,7 +35,7 @@ export class AnalyticsEvent {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'actor_id' })
-  actor!: User | null;
+  actor!: Relation<User | null>;
 
   @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true, default: null })
   entityType!: string | null;

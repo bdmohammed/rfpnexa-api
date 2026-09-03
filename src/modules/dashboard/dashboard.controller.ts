@@ -1,11 +1,10 @@
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '../../core/AppError';
-import { asyncHandler } from '../../core/asyncHandler';
-import { sendOk } from '../../core/response';
-
 import { type PatchLayoutDto } from './dashboard.dto';
 import * as dashboardService from './dashboard.service';
 
 import { logger } from '@/config/logger';
+import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
+import { asyncHandler } from '@/core/asyncHandler';
+import { sendOk } from '@/core/response';
 
 // ─── Config & Layout ──────────────────────────────────────────────────────────
 

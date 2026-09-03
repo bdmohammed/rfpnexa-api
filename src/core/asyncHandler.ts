@@ -3,12 +3,39 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 
 /**
- * Wraps an async route handler to forward any rejected promise to next(err).
- * Also catches synchronous throws (e.g. a non-async handler that throws directly).
- * Eliminates try/catch boilerplate in every controller.
+ * [WHAT]
+ * Type definition for asynchronous Express request handler functions.
  *
- * Usage:
- *   router.get('/path', asyncHandler(async (req, res) => { ... }));
+ * [WHY]
+ * Provides strongly-typed generic signatures for request parameters, bodies, queries, and response types.
+ */
+type AsyncRequestHandler<
+  P = ParamsDictionary,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = ParsedQs,
+  Locals extends Record<string, unknown> = Record<string, unknown>,
+> = (
+  req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
+  res: Response<ResBody, Locals>,
+  next: NextFunction,
+) => unknown | Promise<unknown>;
+
+/**
+ * [WHAT]
+ * Higher-order function wrapper for Express route handlers catching promise rejections and synchronous throws.
+ *
+ * [WHY]
+ * Eliminates repetitive try/catch boilerplate in controllers by routing unhandled errors directly to `next(err)`.
+ *
+ * [CONSTRAINT]
+ * Must forward all thrown or rejected errors to Express `next(error)` for processing by global `errorHandler`.
+ *
+ * [SIDE EFFECTS]
+ * Wraps handler execution in `Promise.resolve().catch(next)` alongside synchronous exception safety.
+ *
+ * [ERRORS]
+ * Forwards any unhandled synchronous or asynchronous error to Express error handling middleware.
  */
 export const asyncHandler = <
   P = ParamsDictionary,
@@ -17,20 +44,17 @@ export const asyncHandler = <
   ReqQuery = ParsedQs,
   Locals extends Record<string, unknown> = Record<string, unknown>,
 >(
-  fn: (
+  handler: AsyncRequestHandler<P, ResBody, ReqBody, ReqQuery, Locals>,
+): RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals> => {
+  return (
     req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
     res: Response<ResBody, Locals>,
     next: NextFunction,
-  ) => Promise<unknown>,
-): RequestHandler => {
-  const wrapped: RequestHandler = (req, res, next) => {
+  ) => {
     try {
-      Promise.resolve(
-        fn(req as never, res as never, next), // single cast point, contained here
-      ).catch(next);
-    } catch (err) {
-      next(err);
+      Promise.resolve(handler(req, res, next)).catch(next);
+    } catch (error) {
+      next(error);
     }
   };
-  return wrapped;
 };

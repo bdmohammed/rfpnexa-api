@@ -10,11 +10,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { AlertFrequency } from '../../types/enums';
-
 import { Category } from './Category';
 import { State } from './State';
 import { User } from './User';
+
+import type { Relation } from 'typeorm';
+import { AlertFrequency } from '@/types/enums';
 
 @Entity('alert_preferences')
 @Index('idx_alert_preferences_user', ['userId'])
@@ -32,21 +33,21 @@ export class AlertPreference {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   /** Match tenders in this category. Null = any category. */
   @Column({ type: 'uuid', nullable: true, default: null })
   categoryId!: string | null;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
-  category!: Category | null;
+  category!: Relation<Category | null>;
 
   /** Match tenders in this state. Null = any state. */
   @Column({ type: 'smallint', nullable: true, default: null })
   stateId!: number | null;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
-  state!: State | null;
+  state!: Relation<State | null>;
 
   /** Optional keyword filter applied to title/description */
   @Column({ type: 'varchar', length: 150, nullable: true, default: null })

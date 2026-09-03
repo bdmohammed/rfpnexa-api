@@ -10,6 +10,7 @@ import {
 import { PlanVersion } from './PlanVersion';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { SubscriptionMigrationStatus } from '@/types/enums';
 
 @Entity('subscription_migrations')
@@ -22,14 +23,14 @@ export class SubscriptionMigration {
 
   @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'source_plan_version_id' })
-  sourceVersion!: PlanVersion;
+  sourceVersion!: Relation<PlanVersion>;
 
   @Column({ name: 'target_plan_version_id', type: 'uuid' })
   targetPlanVersionId!: string;
 
   @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'target_plan_version_id' })
-  targetVersion!: PlanVersion;
+  targetVersion!: Relation<PlanVersion>;
 
   @Column({
     type: 'enum',
@@ -49,7 +50,7 @@ export class SubscriptionMigration {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy!: User;
+  createdBy!: Relation<User>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

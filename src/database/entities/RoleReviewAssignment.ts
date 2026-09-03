@@ -12,6 +12,7 @@ import {
 import { RoleReview } from './RoleReview';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
 import { ReviewAssignmentStatus } from '@/types/enums';
 
 @Entity('role_review_assignments')
@@ -27,21 +28,21 @@ export class RoleReviewAssignment {
 
   @ManyToOne(() => RoleReview, (r) => r.roleReviewAssignments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
-  review!: RoleReview;
+  review!: Relation<RoleReview>;
 
   @Column({ name: 'reviewer_id', type: 'uuid' })
   reviewerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: User;
+  reviewer!: Relation<User>;
 
   @Column({ name: 'assigned_by', type: 'uuid', nullable: true, default: null })
   assignedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'assigned_by' })
-  assignedByUser!: User | null;
+  assignedByUser!: Relation<User | null>;
 
   @Column({ type: 'enum', enum: ReviewAssignmentStatus, default: ReviewAssignmentStatus.PENDING })
   status!: ReviewAssignmentStatus;

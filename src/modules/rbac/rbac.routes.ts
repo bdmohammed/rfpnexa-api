@@ -1,12 +1,5 @@
 import { Router } from 'express';
 
-import { RolePermissions } from '../../constants/permissions/role';
-import { authenticate } from '../../middleware/authenticate';
-import { requirePermission } from '../../middleware/permissions';
-import { requireAccountType } from '../../middleware/requireAccountType';
-import { validate } from '../../middleware/validate';
-import { AccountType } from '../../types/enums';
-
 import { RbacExportController as ExportController } from './controllers/RbacExportController';
 import { RbacReviewController } from './controllers/RbacReviewController';
 import { RbacRoleController } from './controllers/RbacRoleController';
@@ -14,11 +7,9 @@ import { RbacStatsController } from './controllers/RbacStatsController';
 import { RbacVersionController } from './controllers/RbacVersionController';
 import {
   AssignRoleSchema,
-  CompareVersionsParamsSchema,
   CreateRoleSchema,
   DuplicateRoleBodySchema,
   IdParamSchema,
-  ListRolesQuerySchema,
   ReviewActionSchema,
   ReviewIdParamSchema,
   RoleIdParamSchema,
@@ -27,6 +18,13 @@ import {
   UpdateRoleSchema,
   VersionIdParamSchema,
 } from './rbac.dto';
+
+import { RolePermissions } from '@/constants/permissions/role';
+import { authenticate } from '@/middleware/authenticate';
+import { requirePermission } from '@/middleware/permissions';
+import { requireAccountType } from '@/middleware/requireAccountType';
+import { validate } from '@/middleware/validate';
+import { AccountType } from '@/types/enums';
 
 const router = Router();
 
@@ -191,12 +189,12 @@ router.use(requireAccountType(AccountType.ADMIN));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.get(
-  '/roles',
-  requirePermission(RolePermissions.VIEW.key),
-  validate(ListRolesQuerySchema, 'query'),
-  RbacRoleController.getRoles,
-);
+// router.get(
+//   '/roles',
+//   requirePermission(RolePermissions.VIEW.key),
+//   validate(ListRolesQuerySchema, 'query'),
+//   RbacRoleController.getRoles,
+// );
 
 /**
  * @swagger
@@ -862,12 +860,12 @@ router.post(
  *                           type: array
  *                           items: { type: string }
  */
-router.get(
-  '/roles/:id/versions/:v1/compare/:v2',
-  requirePermission(RolePermissions.MANAGE.key),
-  validate(CompareVersionsParamsSchema, 'params'),
-  RbacVersionController.compareVersions,
-);
+// router.get(
+//   '/roles/:id/versions/:v1/compare/:v2',
+//   requirePermission(RolePermissions.MANAGE.key),
+//   validate(CompareVersionsParamsSchema, 'params'),
+//   RbacVersionController.compareVersions,
+// );
 
 // ─── Approval Workflows ──────────────────────────────────────────────────────
 

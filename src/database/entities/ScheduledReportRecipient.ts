@@ -10,6 +10,7 @@ import {
 
 import { ScheduledReport } from './ScheduledReport';
 
+import type { Relation } from 'typeorm';
 import { RecipientType } from '@/types/enums';
 
 @Entity('scheduled_report_recipients')
@@ -35,7 +36,7 @@ export class ScheduledReportRecipient {
 
   @ManyToOne(() => ScheduledReport, (report) => report.recipients, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'report_id' })
-  report!: ScheduledReport;
+  report!: Relation<ScheduledReport>;
 
   @Column({ name: 'recipient_type', type: 'enum', enum: RecipientType })
   recipientType!: RecipientType;

@@ -2,18 +2,14 @@ import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { AppDataSource } from '../../../config/database';
-import { logger } from '../../../config/logger';
 import { AuditLog } from '../../../database/entities/AuditLog';
 import { AuditRetentionPolicy } from '../../../database/entities/AuditRetentionPolicy';
 import { ExportJob } from '../../../database/entities/ExportJob';
 import { SecurityLog } from '../../../database/entities/SecurityLog';
-import {
-  AuditSeverity,
-  AuditStatus,
-  ExportJobStatus,
-  RetentionCategory,
-} from '../../../types/enums';
+
+import { AppDataSource } from '@/config/database';
+import { logger } from '@/config/logger';
+import { AuditSeverity, AuditStatus, ExportJobStatus, RetentionCategory } from '@/types/enums';
 
 // ─── Task 1: Audit Archival ──────────────────────────────────────────────────
 

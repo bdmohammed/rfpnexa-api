@@ -1,8 +1,11 @@
 import { emailFooterHtml, emailFooterText } from './footer';
 
+import { escapeHtml } from '@/utils/html';
+
 export function getVerificationTemplate(opts: { name: string; link: string; userId: string }) {
+  const safeName = escapeHtml(opts.name);
   const html = `
-    <h2>Welcome to RFPNexa, ${opts.name}!</h2>
+    <h2>Welcome to RFPNexa, ${safeName}!</h2>
     <p>Please verify your email address to activate your account.</p>
     <a href="${opts.link}" style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">
       Verify Email Address

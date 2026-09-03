@@ -12,6 +12,8 @@ import { Role } from './Role';
 import { RoleVersion } from './RoleVersion';
 import { User } from './User';
 
+import type { Relation } from 'typeorm';
+
 export enum RoleActivityType {
   ROLE_CREATED = 'ROLE_CREATED',
   ROLE_UPDATED = 'ROLE_UPDATED',
@@ -40,21 +42,21 @@ export class RoleActivity {
 
   @ManyToOne(() => Role, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
-  role!: Role;
+  role!: Relation<Role>;
 
   @Column({ name: 'role_version_id', type: 'uuid', nullable: true })
   roleVersionId!: string | null;
 
   @ManyToOne(() => RoleVersion, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'role_version_id' })
-  roleVersion!: RoleVersion | null;
+  roleVersion!: Relation<RoleVersion | null>;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({
     name: 'activity_type',
@@ -64,13 +66,13 @@ export class RoleActivity {
   activityType!: RoleActivityType;
 
   @Column({ name: 'old_value', type: 'jsonb', nullable: true })
-  oldValue!: Record<string, any> | null;
+  oldValue!: Record<string, unknown> | null;
 
   @Column({ name: 'new_value', type: 'jsonb', nullable: true })
-  newValue!: Record<string, any> | null;
+  newValue!: Record<string, unknown> | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata!: Record<string, any> | null;
+  metadata!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
