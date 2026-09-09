@@ -504,6 +504,106 @@ All responses use a consistent envelope:
             format: 'uuid',
             example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           },
+
+          DashboardLayout: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                example: 'mrr_arr',
+              },
+              x: {
+                type: 'integer',
+                example: 0,
+              },
+              y: {
+                type: 'integer',
+                example: 0,
+              },
+              w: {
+                type: 'integer',
+                example: 3,
+              },
+              h: {
+                type: 'integer',
+                example: 2,
+              },
+              hidden: {
+                type: 'boolean',
+                example: false,
+              },
+              collapsed: {
+                type: 'boolean',
+                example: false,
+              },
+            },
+            required: ['id', 'x', 'y', 'w', 'h', 'collapsed', 'hidden'],
+          },
+
+          DashboardWidget: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                example: 'mrr_arr',
+              },
+              title: {
+                type: 'string',
+                example: 'Revenue & Subscriptions',
+              },
+              description: {
+                type: 'string',
+                example: 'Displays Monthly and Annual Recurring Revenue.',
+              },
+              enabled: {
+                type: 'boolean',
+                example: true,
+              },
+              defaultLayout: {
+                $ref: '#/components/schemas/DashboardLayout',
+              },
+            },
+            required: ['id', 'title', 'enabled', 'defaultLayout'],
+          },
+
+          DashboardConfig: {
+            type: 'object',
+            properties: {
+              theme: { type: 'string', enum: ['default', 'light', 'dark'], default: 'default' },
+              layoutVersion: {
+                type: 'number',
+                example: 1,
+              },
+              widgets: {
+                type: 'array',
+                items: {
+                  $ref: '#/components/schemas/DashboardWidget',
+                },
+              },
+            },
+            required: ['widgets', 'theme', 'layoutVersion'],
+          },
+
+          UpdateDashboardLayoutRequest: {
+            type: 'object',
+            properties: {
+              widgets: {
+                type: 'array',
+                items: {
+                  $ref: '#/components/schemas/DashboardLayout',
+                },
+              },
+            },
+            required: ['widgets'],
+          },
+
+          UpdateDashboardThemeRequest: {
+            type: 'object',
+            properties: {
+              theme: { type: 'string', enum: ['default', 'light', 'dark'], default: 'default' },
+            },
+            required: ['theme'],
+          },
         },
 
         // ── Reusable Parameters ───────────────────────────────────────────────────

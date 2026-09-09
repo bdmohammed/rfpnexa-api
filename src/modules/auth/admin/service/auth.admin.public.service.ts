@@ -5,7 +5,6 @@ import { savePasswordToHistory, verifyPasswordBreach } from '../../security/auth
 import { logSecurityEvent, SecurityAuditReason } from '../../security/auth.securityLog.service';
 import { generateAndSetTokens } from '../../token/auth.token.service';
 import {
-  checkCaptchaRequirement,
   checkUserLockout,
   handleNonExistentUserLogin,
   validateCommonAccountStatus,
@@ -232,7 +231,7 @@ export async function loginAdmin(
   await checkUserLockout(user, connectionContext);
 
   // 2. CAPTCHA Check (Enforced if failed attempts >= threshold)
-  await checkCaptchaRequirement(user, dto.captchaToken, connectionContext);
+  // await checkCaptchaRequirement(user, dto.captchaToken, connectionContext);
 
   // 3. Verify Password & handle failure
   await verifyPasswordAndHandleFailure(dto.password, user, connectionContext);

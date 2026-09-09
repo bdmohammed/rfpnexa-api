@@ -1,148 +1,141 @@
+import crypto from 'node:crypto';
+
+import { updateTheme as updateAppTheme } from './layout/services/layout.service';
 import { type PatchLayoutDto } from './dashboard.dto';
 import * as dashboardService from './dashboard.service';
 
-import { logger } from '@/config/logger';
+import type { UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
+import type { DashboardTheme } from '@/types/enums';
+import type { AuthenticatedUser } from '@/types/express';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 import { asyncHandler } from '@/core/asyncHandler';
 import { sendOk } from '@/core/response';
 
-// ─── Config & Layout ──────────────────────────────────────────────────────────
-
-export const getConfig = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(
-      AppErrorMessage.AUTHENTICATION_REQUIRED,
-      HttpStatusCode.UNAUTHORIZED,
-      AppErrorCode.UNAUTHENTICATED,
-    );
-  }
-
+export const getConfig = asyncHandler<{}, object, {}>(async (req, res) => {
   const config = await dashboardService.getDashboardConfig(
-    req.user.userId,
-    req.roles ?? [],
-    req.permissions ?? [],
+    (req.user as AuthenticatedUser).userId,
+    req.permissions as string[],
+    req.roles as string[],
   );
 
   return sendOk(res, config);
 });
 
 export const updateLayout = asyncHandler<{}, object, PatchLayoutDto>(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(
-      AppErrorMessage.AUTHENTICATION_REQUIRED,
-      HttpStatusCode.UNAUTHORIZED,
-      AppErrorCode.UNAUTHENTICATED,
-    );
-  }
-
   const { widgets, theme } = req.body;
 
-  const layout = await dashboardService.updateDashboardLayout(req.user.userId, widgets, theme);
+  const layout = await dashboardService.updateDashboardLayout(
+    (req.user as AuthenticatedUser).userId,
+    widgets,
+    theme,
+  );
 
   return sendOk(res, layout);
 });
 
-export const resetLayout = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(
-      AppErrorMessage.AUTHENTICATION_REQUIRED,
-      HttpStatusCode.UNAUTHORIZED,
-      AppErrorCode.UNAUTHENTICATED,
-    );
-  }
+export const updateTheme = asyncHandler<{}, object, { theme: DashboardTheme }>(async (req, res) => {
+  const theme = await updateAppTheme((req.user as AuthenticatedUser).userId, req.body.theme);
 
-  const layout = await dashboardService.resetDashboardLayout(req.user.userId, req.roles ?? []);
+  return sendOk(res, theme);
+});
+
+export const resetLayout = asyncHandler<{}, UserDashboardLayout, {}>(async (req, res) => {
+  const layout = await dashboardService.resetDashboardLayout(
+    (req.user as AuthenticatedUser).userId,
+    req.permissions as string[],
+    req.roles as string[],
+  );
 
   return sendOk(res, layout);
 });
 
 // ─── Widget Specific Composition Endpoints ────────────────────────────────────
 
-export const getTenderStats = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getTenderData();
-  return sendOk(res, data);
-});
+// export const getTenderStats = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getTenderData();
+//   return sendOk(res, data);
+// });
 
-export const getRevenueStats = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getRevenueData();
-  return sendOk(res, data);
-});
+// export const getRevenueStats = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getRevenueData();
+//   return sendOk(res, data);
+// });
 
-export const getUsersStats = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getUsersData();
-  return sendOk(res, data);
-});
+// export const getUsersStats = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getUsersData();
+//   return sendOk(res, data);
+// });
 
-export const getReviewQueue = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getReviewQueueData();
-  return sendOk(res, data);
-});
+// export const getReviewQueue = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getReviewQueueData();
+//   return sendOk(res, data);
+// });
 
-export const getCriticalAlerts = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getCriticalAlertsData();
-  return sendOk(res, data);
-});
+// export const getCriticalAlerts = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getCriticalAlertsData();
+//   return sendOk(res, data);
+// });
 
-export const getRecentActivity = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getRecentActivityData();
-  return sendOk(res, data);
-});
+// export const getRecentActivity = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getRecentActivityData();
+//   return sendOk(res, data);
+// });
 
-export const getSystemHealth = asyncHandler(async (req, res) => {
-  const data = await dashboardService.getSystemHealthData();
-  return sendOk(res, data);
-});
-
-export const getQuickActionsList = asyncHandler(async (req, res) => {
-  const data = dashboardService.getQuickActions(req.permissions ?? []);
-  return sendOk(res, data);
-});
+// export const getSystemHealth = asyncHandler(async (req, res) => {
+//   const data = await dashboardService.getSystemHealthData();
+//   return sendOk(res, data);
+// });
 
 // ─── Real-Time Stream (SSE) ───────────────────────────────────────────────────
 
-export const streamDashboardUpdates = asyncHandler(async (req, res, next) => {
+export const streamDashboardUpdates = asyncHandler(async (req, res) => {
   if (!req.user) {
-    return next(
-      new AppError(
-        AppErrorMessage.AUTHENTICATION_REQUIRED,
-        HttpStatusCode.UNAUTHORIZED,
-        AppErrorCode.UNAUTHENTICATED,
-      ),
+    throw new AppError(
+      AppErrorMessage.AUTHENTICATION_REQUIRED,
+      HttpStatusCode.UNAUTHORIZED,
+      AppErrorCode.UNAUTHENTICATED,
     );
   }
 
+  const userId = req.user.userId || req.user.sub;
+  const roles = Array.isArray(req.roles) ? req.roles : [];
+  const permissions = Array.isArray(req.permissions) ? req.permissions : [];
+
   // Setup Server-Sent Events headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.status(200);
   res.flushHeaders();
 
-  const clientId = `client_${Date.now()}`;
+  const clientId = crypto.randomUUID();
+  const lastEventId =
+    (req.headers['last-event-id'] as string) ||
+    (typeof req.query['lastEventId'] === 'string' ? req.query['lastEventId'] : undefined);
+
+  // Initial connection acknowledgement with event ID
+  res.write(
+    `id: ${clientId}\nevent: connection\ndata: ${JSON.stringify({ status: 'connected', clientId })}\n\n`,
+  );
+
+  // Flush compression buffer if middleware is enabled
+  if (typeof (res as unknown as { flush?: () => void }).flush === 'function') {
+    (res as unknown as { flush: () => void }).flush();
+  }
 
   dashboardService.addSSEClient({
     id: clientId,
     res,
-    userId: req.user.userId,
-    roles: req.roles ?? [],
-    permissions: req.permissions ?? [],
+    req,
+    lastEventId,
+    userId,
+    roles,
+    permissions,
   });
+});
 
-  // Push immediate connection acknowledgement
-  res.write(`event: connection\ndata: ${JSON.stringify({ status: 'connected', clientId })}\n\n`);
-
-  // Emulating typed live data push on connection
-  setTimeout(async () => {
-    try {
-      const reviewQueue = await dashboardService.getReviewQueueData();
-      const alerts = await dashboardService.getCriticalAlertsData();
-      const health = dashboardService.getSystemHealthData();
-
-      res.write(`event: review_queue\ndata: ${JSON.stringify(reviewQueue)}\n\n`);
-      res.write(`event: alerts\ndata: ${JSON.stringify(alerts)}\n\n`);
-      res.write(`event: health\ndata: ${JSON.stringify(health)}\n\n`);
-    } catch (err) {
-      // Slently ignore push failure
-      logger.error(err, 'Failed to push dashboard updates');
-    }
-  }, 1000);
+export const getStreamStatus = asyncHandler(async (_req, res) => {
+  const diagnostics = dashboardService.getStreamDiagnostics();
+  return sendOk(res, diagnostics);
 });

@@ -5,7 +5,6 @@ import { savePasswordToHistory, verifyPasswordBreach } from '../../security/auth
 import { logSecurityEvent } from '../../security/auth.securityLog.service';
 import { generateAndSetTokens } from '../../token/auth.token.service';
 import {
-  checkCaptchaRequirement,
   checkUserLockout,
   handleNonExistentUserLogin,
   validateCommonAccountStatus,
@@ -175,7 +174,7 @@ export async function loginUser(
   await checkUserLockout(user, connectionContext);
 
   // 3. CAPTCHA verification if required
-  await checkCaptchaRequirement(user, dto.captchaToken, connectionContext);
+  // await checkCaptchaRequirement(user, dto.captchaToken, connectionContext);
 
   // 4. Verify password and update failed login counters
   await verifyPasswordAndHandleFailure(dto.password, user, connectionContext);

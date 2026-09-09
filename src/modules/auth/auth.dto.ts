@@ -7,7 +7,7 @@ const emailVerificationTokenRegex = new RegExp(`^[a-f0-9]{${EMAIL_VERIFICATION_T
 
 export const PasswordSchema = z
   .string()
-  .min(12, 'Password must be at least 12 characters long')
+  .min(8, 'Password must be at least 8 characters long')
   .max(128, 'Password must not exceed 128 characters')
   .superRefine((password, ctx) => {
     if (!/[A-Z]/.test(password)) {

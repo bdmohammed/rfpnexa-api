@@ -19,3 +19,11 @@ export const PatchLayoutSchema = z.object({
 });
 
 export type PatchLayoutDto = z.infer<typeof PatchLayoutSchema>;
+
+export const updateDashboardLayoutSchema = PatchLayoutSchema;
+
+export const updateDashboardThemeSchema = z.object({
+  theme: z.enum(DashboardTheme),
+});
+
+export type UpdateDashboardThemeDto = z.infer<typeof updateDashboardThemeSchema>;

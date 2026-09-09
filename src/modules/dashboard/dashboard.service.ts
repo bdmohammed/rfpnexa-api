@@ -1,158 +1,63 @@
 import * as os from 'node:os';
+import { performance } from 'node:perf_hooks';
 
 import pidusage from 'pidusage';
+import { In } from 'typeorm';
 
 import { AuditLog } from '../../database/entities/AuditLog';
+import { ExportJob } from '../../database/entities/ExportJob';
+import { SecurityLog } from '../../database/entities/SecurityLog';
 import { Subscription } from '../../database/entities/Subscription';
-import { Tender } from '../../database/entities/Tender';
 import { TenderVersion } from '../../database/entities/TenderVersion';
+import { Transaction } from '../../database/entities/Transaction';
 import { User } from '../../database/entities/User';
 import { UserDashboardLayout } from '../../database/entities/UserDashboardLayout';
 
+import * as layoutService from './layout/services/layout.service';
+import * as migrationService from './layout/services/migration.service';
+import * as widgetService from './layout/services/widget.service';
+import { dashboardPublisher, type SSEClient } from './services/publisher.service';
+
 import type { DashboardWidget } from '../../database/entities/UserDashboardLayout';
 import type { PatchLayoutDto } from './dashboard.dto';
-import type { Response } from 'express';
+import type { DashboardTheme } from '@/types/enums';
 import { AppDataSource } from '@/config/database';
+import { Tender } from '@/database/entities/Tender';
+import { CacheService } from '@/services/cache.service';
 import {
   AccountType,
-  DashboardTheme,
+  AuditSeverity,
+  AuditStatus,
+  ExportJobStatus,
+  SecurityEvent,
   SubscriptionStatus,
   TenderBiddingStatus,
   TenderLifecycleStatus,
   TenderProcessStatus,
   TenderPublicationStatus,
   TenderVersionStatus,
+  TransactionStatus,
   UserStatus,
 } from '@/types/enums';
 
-// ─── Widget Registry ─────────────────────────────────────────────────────────
-
-export interface WidgetDefinition {
-  id: string;
-  title: string;
-  requiredPermission: string;
-  defaultSize: { w: number; h: number };
-  component: string;
-  enabled: boolean;
-}
-
-export const WIDGET_REGISTRY: WidgetDefinition[] = [
-  {
-    id: 'mrr_arr',
-    title: 'Revenue & Subscriptions',
-    requiredPermission: 'subscription.view',
-    defaultSize: { w: 3, h: 2 },
-    component: 'RevenueWidget',
-    enabled: true,
-  },
-  {
-    id: 'tender_workflow',
-    title: 'Tender Lifecycle Workflow',
-    requiredPermission: 'tender.view',
-    defaultSize: { w: 3, h: 2 },
-    component: 'TenderWorkflowWidget',
-    enabled: true,
-  },
-  {
-    id: 'users',
-    title: 'User Access Console',
-    requiredPermission: 'user.view',
-    defaultSize: { w: 2, h: 2 },
-    component: 'UsersWidget',
-    enabled: true,
-  },
-  {
-    id: 'review_queue',
-    title: 'Compliance Review Queue',
-    requiredPermission: 'rbac.view',
-    defaultSize: { w: 2, h: 2 },
-    component: 'ReviewQueueWidget',
-    enabled: true,
-  },
-  {
-    id: 'system_health',
-    title: 'Real-time System Diagnostics',
-    requiredPermission: 'system.view',
-    defaultSize: { w: 3, h: 2 },
-    component: 'SystemHealthWidget',
-    enabled: true,
-  },
-  {
-    id: 'critical_alerts',
-    title: 'Operational Warnings',
-    requiredPermission: 'dashboard.view',
-    defaultSize: { w: 2, h: 2 },
-    component: 'AlertWidget',
-    enabled: true,
-  },
-  {
-    id: 'recent_activity',
-    title: 'Audit Access Activity Feed',
-    requiredPermission: 'audit.view',
-    defaultSize: { w: 2, h: 2 },
-    component: 'ActivityWidget',
-    enabled: true,
-  },
-  {
-    id: 'quick_actions',
-    title: 'Quick Operations Console',
-    requiredPermission: 'dashboard.view',
-    defaultSize: { w: 2, h: 1 },
-    component: 'QuickActionsWidget',
-    enabled: true,
-  },
-  {
-    id: 'notifications',
-    title: 'System Notifications Logs',
-    requiredPermission: 'dashboard.view',
-    defaultSize: { w: 2, h: 2 },
-    component: 'NotificationsWidget',
-    enabled: true,
-  },
-];
-
-// ─── Role Defaults ───────────────────────────────────────────────────────────
-
-const ROLE_DEFAULT_LAYOUTS: Record<string, string[]> = {
-  'super-admin': [
-    'mrr_arr',
-    'tender_workflow',
-    'users',
-    'system_health',
-    'critical_alerts',
-    'recent_activity',
-    'quick_actions',
-    'notifications',
-  ],
-  finance: ['mrr_arr', 'quick_actions', 'notifications'],
-  reviewer: ['tender_workflow', 'review_queue', 'recent_activity', 'notifications'],
-  support: ['users', 'critical_alerts', 'notifications'],
-};
-
-// ─── SSE Client Connections Registry ─────────────────────────────────────────
-
-interface SSEClient {
-  id: string;
-  res: Response;
-  userId: string;
-  roles: string[];
-  permissions: string[];
-}
-
-let sseClients: SSEClient[] = [];
+const tenderRepo = AppDataSource.getRepository(Tender);
+const tenderVersionRepo = AppDataSource.getRepository(TenderVersion);
+const auditLogsRepo = AppDataSource.getRepository(AuditLog);
+const subscriptionRepo = AppDataSource.getRepository(Subscription);
+const transactionRepo = AppDataSource.getRepository(Transaction);
+const securityLogRepo = AppDataSource.getRepository(SecurityLog);
+const exportJobRepo = AppDataSource.getRepository(ExportJob);
 
 export function addSSEClient(client: SSEClient) {
-  sseClients.push(client);
+  dashboardPublisher.addClient(client);
+}
 
-  // Heartbeat keep-alive every 15 seconds
-  const interval = setInterval(() => {
-    client.res.write(':\n\n');
-  }, 15000);
+export function shutdownDashboardPublisher() {
+  dashboardPublisher.shutdown();
+}
 
-  client.res.on('close', () => {
-    clearInterval(interval);
-    sseClients = sseClients.filter((c) => c.id !== client.id);
-  });
+export function getStreamDiagnostics() {
+  return dashboardPublisher.getDiagnostics();
 }
 
 // export function broadcastSSE(event: string, data: any, requiredPermission?: string) {
@@ -172,59 +77,42 @@ export function addSSEClient(client: SSEClient) {
 
 const layoutRepo = AppDataSource.getRepository(UserDashboardLayout);
 
-export async function getDashboardConfig(
-  userId: string,
+async function buildDashboardResponse(
+  layout: UserDashboardLayout,
+  adminPermissions: string[],
   roles: string[],
-  userPermissions: string[],
 ) {
-  let layout = await layoutRepo.findOne({ where: { userId } });
+  // Upgrade if needed
+  layout = migrationService.migrateLayout(layout);
 
-  if (!layout) {
-    // Find matching role default
-    let defaultWidgets: string[] = [];
-    for (const role of roles) {
-      if (ROLE_DEFAULT_LAYOUTS[role]) {
-        defaultWidgets = ROLE_DEFAULT_LAYOUTS[role];
-        break;
-      }
-    }
-    if (defaultWidgets.length === 0) {
-      defaultWidgets = ROLE_DEFAULT_LAYOUTS['support'] as string[]; // fallback
-    }
-
-    const initialLayoutWidgets: DashboardWidget[] = defaultWidgets.map((wId, index) => ({
-      id: wId,
-      x: (index % 3) * 2,
-      y: Math.floor(index / 3) * 2,
-      w: WIDGET_REGISTRY.find((w) => w.id === wId)?.defaultSize.w ?? 2,
-      h: WIDGET_REGISTRY.find((w) => w.id === wId)?.defaultSize.h ?? 2,
-      collapsed: false,
-    }));
-
-    layout = layoutRepo.create({
-      userId,
-      widgets: initialLayoutWidgets,
-      filters: {},
-      theme: DashboardTheme.DEFAULT,
-    });
-
-    await layoutRepo.save(layout);
-  }
-
-  // Filter registry based on user permissions
-  const isSuperAdmin = roles.includes('super-admin');
-  const authorizedWidgets = WIDGET_REGISTRY.filter((w) => {
-    if (!w.enabled) return false;
-    if (isSuperAdmin) return true;
-    return userPermissions.includes(w.requiredPermission);
-    // ?? w.requiredPermission === 'dashboard.view'
-  });
+  // Merge registry with user layout
+  const dashboard = widgetService.buildDashboardWidgets(layout, adminPermissions, roles);
 
   return {
-    widgets: authorizedWidgets,
-    layout: layout.widgets,
     theme: layout.theme,
+    layoutVersion: layout.layoutVersion,
+    widgets: dashboard,
   };
+}
+
+export async function getDashboardConfig(
+  userId: string,
+  adminPermissions: string[],
+  roles: string[],
+) {
+  const layout = await layoutService.getOrCreateLayout(userId);
+
+  return buildDashboardResponse(layout, adminPermissions, roles);
+}
+
+export async function resetDashboardLayout(
+  userId: string,
+  adminPermissions: string[],
+  roles: string[],
+) {
+  const layout = await layoutService.resetToDefault(userId);
+
+  return buildDashboardResponse(layout, adminPermissions, roles);
 }
 
 export async function updateDashboardLayout(
@@ -232,48 +120,19 @@ export async function updateDashboardLayout(
   widgets: PatchLayoutDto['widgets'],
   theme?: DashboardTheme,
 ) {
-  let layout = await layoutRepo.findOne({ where: { userId } });
-  layout ??= layoutRepo.create({ userId, widgets: [], filters: {} });
+  const layout = await layoutRepo.findOneOrFail({ where: { userId } });
 
-  layout.widgets = widgets.map((w) => ({
-    id: w.widgetId ?? w.id,
-    x: w.x,
-    y: w.y,
-    w: w.w,
-    h: w.h,
-    collapsed: w.collapsed,
-  })) as unknown as DashboardWidget[];
-  if (theme) layout.theme = theme;
-
-  return layoutRepo.save(layout);
-}
-
-export async function resetDashboardLayout(userId: string, roles: string[]) {
-  let defaultWidgets: string[] = [];
-  for (const role of roles) {
-    if (ROLE_DEFAULT_LAYOUTS[role]) {
-      defaultWidgets = ROLE_DEFAULT_LAYOUTS[role];
-      break;
+  layout.widgets = layout.widgets.map((w: DashboardWidget) => {
+    const updated = widgets.find((uw) => uw.id === w.id);
+    if (updated) {
+      return {
+        ...w,
+        ...updated,
+      } as DashboardWidget;
     }
-  }
-  if (defaultWidgets.length === 0) {
-    defaultWidgets = ROLE_DEFAULT_LAYOUTS.support as string[];
-  }
-
-  const initialLayoutWidgets: DashboardWidget[] = defaultWidgets.map((wId, index) => ({
-    id: wId,
-    x: (index % 3) * 2,
-    y: Math.floor(index / 3) * 2,
-    w: WIDGET_REGISTRY.find((w) => w.id === wId)?.defaultSize.w ?? 2,
-    h: WIDGET_REGISTRY.find((w) => w.id === wId)?.defaultSize.h ?? 2,
-    collapsed: false,
-  }));
-
-  let layout = await layoutRepo.findOne({ where: { userId } });
-  layout ??= layoutRepo.create({ userId, widgets: [] });
-
-  layout.widgets = initialLayoutWidgets;
-  layout.theme = DashboardTheme.DEFAULT;
+    return w;
+  });
+  if (theme) layout.theme = theme;
 
   return layoutRepo.save(layout);
 }
@@ -281,11 +140,10 @@ export async function resetDashboardLayout(userId: string, roles: string[]) {
 // ─── Composition Widgets Data APIs ──────────────────────────────────────────
 
 export async function getTenderData() {
-  const tenderRepo = AppDataSource.getRepository(Tender);
-  const versionRepo = AppDataSource.getRepository(TenderVersion);
-
-  const draftCount = await versionRepo.count({ where: { status: TenderVersionStatus.DRAFT } });
-  const underReviewCount = await versionRepo.count({
+  const draftCount = await tenderVersionRepo.count({
+    where: { status: TenderVersionStatus.DRAFT },
+  });
+  const underReviewCount = await tenderVersionRepo.count({
     where: { status: TenderVersionStatus.UNDER_REVIEW },
   });
 
@@ -389,120 +247,282 @@ export async function getUsersData() {
   };
 }
 
-export async function getReviewQueueData() {
-  const versionRepo = AppDataSource.getRepository(TenderVersion);
-
-  const pendingTenderReviews = await versionRepo.count({
-    where: { status: TenderVersionStatus.UNDER_REVIEW },
-  });
-
-  // Mock roles, categories, and subscriptions review queues
-  return {
-    pendingRoleReviews: 4,
-    pendingTenderReviews,
-    pendingSubscriptionReviews: 2,
-    pendingCategoryReviews: 5,
-  };
-}
-
 export async function getCriticalAlertsData() {
-  // Centralized notifications alerts resolver
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
 
-  const failedLogins = await AppDataSource.getRepository(AuditLog).count({
-    where: {
-      action: 'auth.login_failed',
-      createdAt: todayStart,
-    },
+  // 1. Security Threats: dynamic count of suspicious activities, failed logins, or critical audits today
+  const securityThreatsCount = await securityLogRepo
+    .createQueryBuilder('sec')
+    .where('sec.createdAt >= :todayStart', { todayStart })
+    .andWhere('sec.event IN (:...threatEvents)', {
+      threatEvents: [
+        SecurityEvent.LOGIN_FAILED,
+        SecurityEvent.UNAUTHORIZED_ACCESS,
+        SecurityEvent.SUSPICIOUS_ACTIVITY,
+        SecurityEvent.ACCOUNT_LOCKED,
+      ],
+    })
+    .getCount();
+
+  const criticalAuditsCount = await auditLogsRepo
+    .createQueryBuilder('audit')
+    .where('audit.createdAt >= :todayStart', { todayStart })
+    .andWhere('audit.severity = :criticalSeverity', {
+      criticalSeverity: AuditSeverity.CRITICAL,
+    })
+    .getCount();
+
+  const securityAlerts = securityThreatsCount + criticalAuditsCount;
+
+  // 2. Failed Payments: dynamic count of failed transactions
+  const failedPayments = await transactionRepo.count({
+    where: { status: TransactionStatus.FAILED },
   });
 
-  const expiredSubs = await AppDataSource.getRepository(Subscription).count({
+  // 3. Expired Subscriptions: dynamic count of expired subscriptions
+  const expiredSubscriptions = await subscriptionRepo.count({
     where: { status: SubscriptionStatus.EXPIRED },
   });
 
-  return {
-    securityAlerts: failedLogins > 5 ? 2 : 0,
-    failedPayments: 6,
-    expiredSubscriptions: expiredSubs,
-    closingTenders: 9,
-    systemErrors: 1,
-  };
+  // 4. Closing Tenders Today: dynamic count of published & open tenders closing today
+  const closingTenders = await tenderRepo
+    .createQueryBuilder('tender')
+    .leftJoin('tender.activeVersion', 'activeVersion')
+    .where('tender.publicationStatus = :publishedStatus', {
+      publishedStatus: TenderPublicationStatus.PUBLISHED,
+    })
+    .andWhere('tender.biddingStatus = :biddingOpenStatus', {
+      biddingOpenStatus: TenderBiddingStatus.OPEN,
+    })
+    .andWhere('activeVersion.closingDate BETWEEN :todayStart AND :todayEnd', {
+      todayStart,
+      todayEnd,
+    })
+    .getCount();
+
+  // 5. Database System Errors: dynamic count of audit logs with ERROR/FAILURE plus DB connectivity state
+  const auditErrorsCount = await auditLogsRepo
+    .createQueryBuilder('log')
+    .where('log.createdAt >= :todayStart', { todayStart })
+    .andWhere('(log.severity = :errorSeverity OR log.status = :failureStatus)', {
+      errorSeverity: AuditSeverity.ERROR,
+      failureStatus: AuditStatus.FAILURE,
+    })
+    .getCount();
+
+  const dbOfflineWarning = AppDataSource.isInitialized ? 0 : 1;
+  const systemErrors = auditErrorsCount + dbOfflineWarning;
+
+  return [
+    {
+      type: 'security',
+      label: 'Security Threats',
+      value: securityAlerts,
+    },
+    {
+      type: 'billing',
+      label: 'Failed Payments',
+      value: failedPayments,
+    },
+    {
+      label: 'Expired Subscriptions',
+      value: expiredSubscriptions,
+      type: 'billing',
+    },
+    {
+      label: 'Closing Tenders Today',
+      value: closingTenders,
+      type: 'tender',
+    },
+    {
+      label: 'Database System Errors',
+      value: systemErrors,
+      type: 'system',
+    },
+  ];
 }
 
-export async function getRecentActivityData() {
-  const logRepo = AppDataSource.getRepository(AuditLog);
-  const rawLogs = await logRepo.find({
-    order: { createdAt: 'DESC' },
-    take: 10,
-  });
+// export async function getRecentActivityData() {
+//   const logRepo = AppDataSource.getRepository(AuditLog);
+//   const rawLogs = await logRepo.find({
+//     order: { createdAt: 'DESC' },
+//     take: 10,
+//   });
 
-  return rawLogs.map((log) => {
-    const friendlyText = (() => {
-      switch (log.action) {
-        case 'auth.login':
-          return `User logged in from IP ${log.ipAddress}`;
+//   return rawLogs.map((log) => {
+//     const friendlyText = (() => {
+//       switch (log.action) {
+//         case 'auth.login':
+//           return `User logged in from IP ${log.ipAddress}`;
 
-        case 'auth.login_failed':
-          return `Failed login attempt from IP ${log.ipAddress}`;
+//         case 'auth.login_failed':
+//           return `Failed login attempt from IP ${log.ipAddress}`;
 
-        case 'tender.create':
-          return 'New Tender registered';
+//         case 'tender.create':
+//           return 'New Tender registered';
 
-        case 'tender.publish':
-          return 'Tender published successfully';
+//         case 'tender.publish':
+//           return 'Tender published successfully';
 
-        case 'role.create':
-          return 'New security role created';
+//         case 'role.create':
+//           return 'New security role created';
 
-        case 'subscription.create':
-          return 'Subscription purchased';
+//         case 'subscription.create':
+//           return 'Subscription purchased';
 
-        case 'subscription.upgrade':
-          return 'Subscription upgraded';
+//         case 'subscription.upgrade':
+//           return 'Subscription upgraded';
 
-        default:
-          return `${log.action} performed in ${log.module}`;
-      }
-    })();
+//         default:
+//           return `${log.action} performed in ${log.module}`;
+//       }
+//     })();
 
-    return {
-      id: log.id,
-      timestamp: log.createdAt,
-      description: friendlyText,
-    };
-  });
-}
+//     return {
+//       id: log.id,
+//       timestamp: log.createdAt,
+//       description: friendlyText,
+//     };
+//   });
+// }
+
+const getUsageStatus = (value: number) => {
+  if (value >= 90) return 'critical';
+  if (value >= 75) return 'warning';
+  return 'healthy';
+};
 
 export async function getSystemHealthData() {
-  // Memory, CPU load and status indicators
+  // 1. Dynamic Database Status & Ping Latency
+  const dbStart = performance.now();
+  let databaseStatus = 'Healthy';
+  try {
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.query('SELECT 1');
+    } else {
+      databaseStatus = 'Offline';
+    }
+  } catch {
+    databaseStatus = 'Degraded';
+  }
+  const dbLatencyMs = Math.round(performance.now() - dbStart);
+  const apiLatencyMs = Math.max(1, dbLatencyMs);
+
+  // 2. Dynamic Background Queue Size (Pending or running background jobs)
+  let queueSize: number;
+  try {
+    queueSize = await exportJobRepo.count({
+      where: {
+        status: In([ExportJobStatus.PENDING, ExportJobStatus.PROCESSING, ExportJobStatus.RUNNING]),
+      },
+    });
+  } catch {
+    queueSize = 0;
+  }
+
+  // 3. Dynamic Redis Cache Status
+  let redisStatus: string;
+  try {
+    const pingKey = 'health_check_ping';
+    await CacheService.set(pingKey, 'pong', 5);
+    const pingRes = await CacheService.get<string>(pingKey);
+    redisStatus = pingRes === 'pong' ? 'Healthy' : 'Degraded';
+  } catch {
+    redisStatus = 'Degraded';
+  }
+
+  // 4. Memory Usage
   const freeMem = os.freemem();
   const totalMem = os.totalmem();
   const memoryUsagePercent = Math.round(((totalMem - freeMem) / totalMem) * 100);
-  const stats = await pidusage(process.pid);
+
+  // 5. CPU Usage & Process Memory
+  let cpuUsagePercent: number;
+  let memoryUsageMb: number;
+
+  try {
+    const stats = await pidusage(process.pid);
+    cpuUsagePercent = Math.min(100, Math.max(0, Math.round(stats.cpu)));
+    memoryUsageMb = Math.round(stats.memory / 1024 / 1024);
+  } catch {
+    const mem = process.memoryUsage();
+    memoryUsageMb = Math.round(mem.rss / 1024 / 1024);
+    cpuUsagePercent = Math.min(100, Math.round((os.loadavg()[0] ?? 0) * 10));
+  }
+
+  // 6. 1-minute load average (with Windows fallback)
+  const rawLoad = os.loadavg()[0] ?? 0;
+  const loadAverage1m =
+    rawLoad > 0 ? Number(rawLoad.toFixed(2)) : Number((cpuUsagePercent / 100).toFixed(2));
+
+  // 7. Storage Usage Percentage (estimated based on host metrics)
+  const storageUsagePercent = Math.min(
+    95,
+    Math.max(10, Math.round(((totalMem - freeMem) / totalMem) * 80)),
+  );
 
   return {
-    apiLatencyMs: 98,
-    queueSize: 3,
-    redisStatus: 'Healthy',
-    storageUsagePercent: 62,
-    databaseStatus: 'Healthy',
-    memoryUsagePercent,
-    loadAverage1m: Math.round((os.loadavg()[0] ?? 0) * 10),
-    cpuUsagePercent: Math.round(stats.cpu), // e.g. 12
-    memoryUsageMb: Math.round(stats.memory / 1024 / 1024),
+    generatedAt: new Date().toISOString(),
+    metrics: [
+      {
+        type: 'apiLatency',
+        label: 'API Latency',
+        value: apiLatencyMs,
+        unit: 'ms',
+        status: apiLatencyMs < 200 ? 'healthy' : 'warning',
+      },
+      {
+        type: 'queueSize',
+        label: 'Background Queue',
+        value: queueSize,
+        unit: 'jobs',
+        status: 'operational',
+      },
+      {
+        type: 'redis',
+        label: 'Redis Cache',
+        status: redisStatus.toLowerCase(),
+      },
+      {
+        type: 'database',
+        label: 'Database',
+        status: databaseStatus.toLowerCase(),
+      },
+      {
+        type: 'storageUsage',
+        label: 'Object Storage',
+        value: storageUsagePercent,
+        unit: '%',
+        status: 'healthy',
+      },
+      {
+        type: 'memoryUsagePercent',
+        label: 'Memory Usage',
+        value: memoryUsagePercent,
+        unit: '%',
+        status: getUsageStatus(memoryUsagePercent),
+      },
+      {
+        type: 'cpuUsagePercent',
+        label: 'CPU Usage',
+        value: cpuUsagePercent,
+        unit: '%',
+        status: getUsageStatus(cpuUsagePercent),
+      },
+      {
+        type: 'memoryUsageMb',
+        label: 'Memory Usage',
+        value: memoryUsageMb,
+        unit: 'MB',
+      },
+      {
+        type: 'loadAverage1m',
+        label: 'Load Average (1m)',
+        value: loadAverage1m,
+      },
+    ],
   };
-}
-
-export function getQuickActions(userPermissions: string[]) {
-  const ALL_ACTIONS = [
-    { title: 'Create Tender', route: '/tenders/new', permission: 'tender.create' },
-    { title: 'Create User', route: '/users/new', permission: 'user.create' },
-    { title: 'Create Plan', route: '/plans/new', permission: 'subscription.create' },
-    { title: 'Create Category', route: '/categories/new', permission: 'category.create' },
-    { title: 'Invite Admin', route: '/rbac/users/invite', permission: 'user.assign_role' },
-    { title: 'Export Reports', route: '/audit-logs', permission: 'dashboard.export' },
-  ];
-
-  return ALL_ACTIONS.filter((act) => userPermissions.includes(act.permission));
 }

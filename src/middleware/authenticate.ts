@@ -197,7 +197,7 @@ async function authenticateCore(
   next: NextFunction,
   options: { allowUnverified: boolean },
 ): Promise<void> {
-  const token = req.cookies[JWT_COOKIE_NAME] as string | undefined;
+  const token: string = req.cookies[JWT_COOKIE_NAME];
 
   if (!token) {
     return next(

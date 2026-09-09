@@ -14,13 +14,17 @@ import { User } from './User';
 import type { Relation } from 'typeorm';
 import { DashboardTheme } from '@/types/enums';
 
-export interface DashboardWidget {
-  id: string;
+export interface WidgetLayout {
   x: number;
   y: number;
   w: number;
   h: number;
-  collapsed?: boolean;
+}
+
+export interface DashboardWidget extends WidgetLayout {
+  readonly id: string;
+  collapsed: boolean;
+  hidden: boolean;
 }
 
 @Entity('user_dashboard_layouts')
@@ -42,7 +46,7 @@ export class UserDashboardLayout {
   widgets!: DashboardWidget[];
 
   @Column({ name: 'filters', type: 'jsonb', default: () => "'{}'::jsonb" })
-  filters!: Record<string, unknown> | null;
+  filters!: Record<string, unknown>;
 
   @Column({
     type: 'enum',

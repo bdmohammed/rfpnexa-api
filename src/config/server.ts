@@ -8,6 +8,7 @@ import { env } from './env';
 import { logger } from './logger';
 
 import { startCronJobs, stopCronJobs } from '@/jobs';
+import { dashboardPublisher } from '@/modules/dashboard/services/publisher.service';
 import {
   setupNotificationListeners,
   stopNotificationListeners,
@@ -192,9 +193,10 @@ async function shutdown(signal: string, exitCode = 0): Promise<void> {
   // Step 3: Stop notification event listeners and SSE connections
   try {
     stopNotificationListeners();
-    logger.info('Notification listeners stopped');
+    dashboardPublisher.shutdown();
+    logger.info('Notification listeners and dashboard SSE publisher stopped');
   } catch (err) {
-    logger.error({ err }, 'Failed to stop notification listeners');
+    logger.error({ err }, 'Failed to stop notification listeners or dashboard publisher');
   }
 
   // Step 4: Destroy database connection pool

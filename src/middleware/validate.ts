@@ -48,7 +48,7 @@ export const validate =
     }
 
     try {
-      req[target] = result.data as any;
+      req[target] = result.data;
     } catch {
       Object.defineProperty(req, target, {
         value: result.data,
