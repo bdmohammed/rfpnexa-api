@@ -3,6 +3,7 @@ import { Router } from 'express';
 import * as controller from './notifications.controller';
 import {
   ExecuteActionParamsSchema,
+  GetNotificationsQuerySchema,
   NotificationIdParamSchema,
   UpdatePreferencesBodySchema,
 } from './notifications.dto';
@@ -16,81 +17,6 @@ const router = Router();
 // Guard all notification routes with authentication and user permission resolving
 router.use(authenticate);
 router.use(loadPermissions);
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     NotificationItem:
- *       type: object
- *       required: [id, recipientId, status, createdAt, title, message, category, severity]
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *           example: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
- *         recipientId:
- *           type: string
- *           format: uuid
- *           example: "c7b395e8-5b4d-4952-b88a-36fb2e46b9a1"
- *         status:
- *           type: string
- *           enum: [UNREAD, READ, ARCHIVED, DISMISSED]
- *           example: "UNREAD"
- *         readAt:
- *           type: string
- *           format: date-time
- *           nullable: true
- *           example: "2026-07-22T20:37:30Z"
- *         createdAt:
- *           type: string
- *           format: date-time
- *           example: "2026-07-22T20:30:00Z"
- *         title:
- *           type: string
- *           example: "Tender Bid Submitted"
- *         message:
- *           type: string
- *           example: "Your proposal for Tender #9876 has been recorded successfully."
- *         category:
- *           type: string
- *           example: "Tenders"
- *         severity:
- *           type: string
- *           enum: [LOW, MEDIUM, HIGH, CRITICAL]
- *           example: "MEDIUM"
- *         entityType:
- *           type: string
- *           nullable: true
- *           example: "tender"
- *         entityId:
- *           type: string
- *           format: uuid
- *           nullable: true
- *           example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
- *         metadata:
- *           type: object
- *           nullable: true
- *         actions:
- *           type: array
- *           items:
- *             type: object
- *
- *     NotificationPreferences:
- *       type: object
- *       required: [email, inApp]
- *       properties:
- *         email:
- *           type: object
- *           additionalProperties:
- *             type: boolean
- *           example: { review: true, security: true, system: false }
- *         inApp:
- *           type: object
- *           additionalProperties:
- *             type: boolean
- *           example: { review: true, security: true, system: true }
- */
 
 /**
  * @swagger
@@ -117,7 +43,7 @@ router.use(loadPermissions);
  *                       items:
  *                         $ref: '#/components/schemas/NotificationItem'
  */
-// router.get('/', validate(GetNotificationsQuerySchema, 'query'), controller.getNotifications);
+router.get('/', validate(GetNotificationsQuerySchema, 'query'), controller.getNotifications);
 
 /**
  * @swagger
@@ -142,10 +68,13 @@ router.use(loadPermissions);
  *                     data:
  *                       type: object
  *                       properties:
- *                         unreadCount: { type: integer, example: 5 }
- *                         totalCount: { type: integer, example: 120 }
+ *                         unread: { type: integer, example: 1 }
+ *                         critical: { type: integer, example: 2 }
+ *                         warning: { type: integer, example: 3 }
+ *                         info: { type: integer, example: 4 }
+ *                         total: { type: integer, example: 100 }
  */
-router.get('/statistics', controller.getStatistics);
+router.get('/statistics', controller.getNotificationsStats);
 
 /**
  * @swagger
@@ -160,6 +89,35 @@ router.get('/statistics', controller.getStatistics);
  *     responses:
  *       200:
  *         description: List of categories resolved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                        items:
+ *                          type: object
+ *                          required:
+ *                            - key
+ *                            - label
+ *                          properties:
+ *                            key:
+ *                              type: string
+ *                              enum:
+ *                                - SYSTEM
+ *                                - TENDER
+ *                                - BILLING
+ *                                - SECURITY
+ *                                - WORKSPACE
+ *                                - REVIEW
+ *                                - ROLE
+ *                              example: TENDER
+ *                            label:
+ *                              type: string
+ *                              example: Tenders & Bidding
  */
 router.get('/categories', controller.getCategories);
 
@@ -220,28 +178,57 @@ router.patch(
   controller.updatePreferences,
 );
 
-/**
- * @swagger
- * /api/v1/notifications/stream:
- *   get:
- *     summary: Initialize real-time notification stream (SSE)
- *     description: Establishes a Server-Sent Events (SSE) stream to receive live notification events.
- *     operationId: initializeNotificationStream
- *     tags: [Notifications]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: SSE connection established
- *         headers:
- *           Content-Type:
- *             schema: { type: string, example: "text/event-stream" }
- *           Cache-Control:
- *             schema: { type: string, example: "no-cache" }
- *           Connection:
- *             schema: { type: string, example: "keep-alive" }
- */
-router.get('/stream', controller.initializeNotificationStream);
+// /**
+//  * @swagger
+//  * /api/v1/notifications/stream:
+//  *   get:
+//  *     summary: Initialize real-time notification stream (SSE)
+//  *     description: Establishes a Server-Sent Events (SSE) stream to receive live notification events.
+//  *     operationId: initializeNotificationStream
+//  *     tags: [Notifications]
+//  *     security:
+//  *       - cookieAuth: []
+//  *     responses:
+//  *       200:
+//  *         description: SSE connection established
+//  *         headers:
+//  *           Content-Type:
+//  *             schema: { type: string, example: "text/event-stream" }
+//  *           Cache-Control:
+//  *             schema: { type: string, example: "no-cache, no-transform" }
+//  *           Connection:
+//  *             schema: { type: string, example: "keep-alive" }
+//  *           X-Accel-Buffering:
+//  *             schema: { type: string, example: "no" }
+//  *       401:
+//  *         $ref: '#/components/responses/Unauthorized'
+//  *       403:
+//  *         $ref: '#/components/responses/Forbidden'
+//  */
+// router.get('/stream', controller.streamAppNotifications);
+
+// /**
+//  * @swagger
+//  * /api/v1/notifications/stream/status:
+//  *   get:
+//  *     summary: Get dashboard real-time stream operational status and telemetry
+//  *     description: |
+//  *       Returns current SSE metrics: active connection counts, polling health,
+//  *       average poll durations, and last broadcast timestamps.
+//  *       **Required Permission:** `system.view`
+//  *     operationId: getStreamStatus
+//  *     tags: [Dashboard]
+//  *     security:
+//  *       - cookieAuth: []
+//  *     responses:
+//  *       200:
+//  *         description: Real-time stream telemetry resolved
+//  *       401:
+//  *         $ref: '#/components/responses/Unauthorized'
+//  *       403:
+//  *         $ref: '#/components/responses/Forbidden'
+//  */
+// router.get('/stream/status', controller.getStreamAppNotificationsStatus);
 
 /**
  * @swagger
@@ -262,15 +249,16 @@ router.get('/stream', controller.initializeNotificationStream);
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
  */
-router.patch('/read-all', controller.markAllAsRead);
+router.patch('/read-all', controller.markAllNotificationAsRead);
 
 /**
  * @swagger
  * /api/v1/notifications/{id}/read:
  *   patch:
  *     summary: Mark notification as read
- *     description: Sets the status of a specific notification to read.
- *     operationId: markAsRead
+ *     description: Marks the specified notification as read for the authenticated
+ *     user by updating its status and read timestamp.
+ *     operationId: markNotificationAsRead
  *     tags: [Notifications]
  *     security:
  *       - cookieAuth: []
@@ -278,14 +266,24 @@ router.patch('/read-all', controller.markAllAsRead);
  *     parameters:
  *       - $ref: '#/components/parameters/IdPathParam'
  *     responses:
- *       200:
- *         description: Notification updated
+ *       204:
+ *         description: Notification marked as read successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: Notification not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch('/:id/read', validate(NotificationIdParamSchema, 'params'), controller.markAsRead);
+router.patch(
+  '/:id/read',
+  validate(NotificationIdParamSchema, 'params'),
+  controller.markNotificationAsRead,
+);
 
 /**
  * @swagger
@@ -293,7 +291,7 @@ router.patch('/:id/read', validate(NotificationIdParamSchema, 'params'), control
  *   patch:
  *     summary: Archive a notification
  *     description: Sets a notification as archived, hiding it from the default list.
- *     operationId: archiveNotification
+ *     operationId: markNotificationAsArchive
  *     tags: [Notifications]
  *     security:
  *       - cookieAuth: []
@@ -301,17 +299,23 @@ router.patch('/:id/read', validate(NotificationIdParamSchema, 'params'), control
  *     parameters:
  *       - $ref: '#/components/parameters/IdPathParam'
  *     responses:
- *       200:
- *         description: Notification archived
+ *       204:
+ *         description: Notification marked as archive successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: Notification not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
   '/:id/archive',
   validate(NotificationIdParamSchema, 'params'),
-  controller.archiveNotification,
+  controller.markNotificationAsArchive,
 );
 
 /**
@@ -320,7 +324,7 @@ router.patch(
  *   patch:
  *     summary: Dismiss/Delete a notification
  *     description: Deletes a specific notification record.
- *     operationId: dismissNotification
+ *     operationId: markNotificationAsDismiss
  *     tags: [Notifications]
  *     security:
  *       - cookieAuth: []
@@ -328,17 +332,23 @@ router.patch(
  *     parameters:
  *       - $ref: '#/components/parameters/IdPathParam'
  *     responses:
- *       200:
- *         description: Notification dismissed
+ *       204:
+ *         description: Notification marked as dismiss successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: Notification not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
   '/:id/dismiss',
   validate(NotificationIdParamSchema, 'params'),
-  controller.dismissNotification,
+  controller.markNotificationAsDismiss,
 );
 
 /**
@@ -346,7 +356,8 @@ router.patch(
  * /api/v1/notifications/{id}/actions/{actionId}/execute:
  *   post:
  *     summary: Execute an action trigger on a notification
- *     description: Performs a user response action attached to an interactive notification (e.g. accepting invitation, approving draft).
+ *     description: Performs a user response action attached to an interactive notification
+ *     (e.g. accepting invitation, approving draft).
  *     operationId: executeNotificationAction
  *     tags: [Notifications]
  *     security:
@@ -360,7 +371,7 @@ router.patch(
  *         schema: { type: string, format: uuid }
  *         description: Unique action trigger identifier
  *     responses:
- *       200:
+ *       204:
  *         description: Action executed successfully
  *         content:
  *           application/json:
@@ -370,7 +381,7 @@ router.patch(
 router.post(
   '/:id/actions/:actionId/execute',
   validate(ExecuteActionParamsSchema, 'params'),
-  controller.executeAction,
+  controller.executeNotificationAction,
 );
 
 export { router as notificationsRouter };

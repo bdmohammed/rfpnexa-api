@@ -4,25 +4,24 @@ import { performance } from 'node:perf_hooks';
 import pidusage from 'pidusage';
 import { In } from 'typeorm';
 
-import { AuditLog } from '../../database/entities/AuditLog';
-import { ExportJob } from '../../database/entities/ExportJob';
-import { SecurityLog } from '../../database/entities/SecurityLog';
-import { Subscription } from '../../database/entities/Subscription';
-import { TenderVersion } from '../../database/entities/TenderVersion';
-import { Transaction } from '../../database/entities/Transaction';
-import { User } from '../../database/entities/User';
-import { UserDashboardLayout } from '../../database/entities/UserDashboardLayout';
-
 import * as layoutService from './layout/services/layout.service';
 import * as migrationService from './layout/services/migration.service';
 import * as widgetService from './layout/services/widget.service';
 import { dashboardPublisher, type SSEClient } from './services/publisher.service';
 
-import type { DashboardWidget } from '../../database/entities/UserDashboardLayout';
 import type { PatchLayoutDto } from './dashboard.dto';
+import type { DashboardWidget } from '@/database/entities/UserDashboardLayout';
 import type { DashboardTheme } from '@/types/enums';
 import { AppDataSource } from '@/config/database';
+import { AuditLog } from '@/database/entities/AuditLog';
+import { ExportJob } from '@/database/entities/ExportJob';
+import { SecurityLog } from '@/database/entities/SecurityLog';
+import { Subscription } from '@/database/entities/Subscription';
 import { Tender } from '@/database/entities/Tender';
+import { TenderVersion } from '@/database/entities/TenderVersion';
+import { Transaction } from '@/database/entities/Transaction';
+import { User } from '@/database/entities/User';
+import { UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
 import { CacheService } from '@/services/cache.service';
 import {
   AccountType,
@@ -50,10 +49,6 @@ const exportJobRepo = AppDataSource.getRepository(ExportJob);
 
 export function addSSEClient(client: SSEClient) {
   dashboardPublisher.addClient(client);
-}
-
-export function shutdownDashboardPublisher() {
-  dashboardPublisher.shutdown();
 }
 
 export function getStreamDiagnostics() {

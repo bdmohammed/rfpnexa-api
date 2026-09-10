@@ -38,7 +38,12 @@ function buildSuccessResponse<T, U>(data: T, message: string, meta?: U): ApiResp
  * [SIDE EFFECTS]
  * Writes status code 200 and JSON response payload to Express `Response`.
  */
-export function sendOk<T, U>(res: Response, data: T, message = 'Success', meta?: U): Response {
+export function sendOk<T = unknown, U = unknown>(
+  res: Response,
+  data: T,
+  message = 'Success',
+  meta?: U,
+): Response {
   return res.status(200).json(buildSuccessResponse<T, U>(data, message, meta));
 }
 

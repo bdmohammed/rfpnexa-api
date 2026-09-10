@@ -80,3 +80,13 @@ export type SanitizedUser = Omit<
   User,
   'passwordHash' | 'tokenVersion' | 'failedLoginAttempts' | 'lockoutUntil'
 >;
+
+export interface NotificationPreferences {
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+  marketing: boolean;
+  security: boolean;
+  tender: boolean;
+  newsletter: boolean;
+}

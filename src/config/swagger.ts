@@ -145,6 +145,7 @@ All responses use a consistent envelope:
               },
             },
           },
+
           ErrorResponse: {
             type: 'object',
             required: ['success', 'message', 'error'],
@@ -603,6 +604,121 @@ All responses use a consistent envelope:
               theme: { type: 'string', enum: ['default', 'light', 'dark'], default: 'default' },
             },
             required: ['theme'],
+          },
+
+          NotificationItem: {
+            type: 'object',
+            required: [
+              'id',
+              'recipientId',
+              'status',
+              'createdAt',
+              'title',
+              'message',
+              'category',
+              'severity',
+            ],
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                example: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+              },
+              recipientId: {
+                type: 'string',
+                format: 'uuid',
+                example: 'c7b395e8-5b4d-4952-b88a-36fb2e46b9a1',
+              },
+              status: {
+                type: 'string',
+                enum: ['UNREAD', 'READ', 'ARCHIVED', 'DISMISSED'],
+                example: 'UNREAD',
+              },
+              readAt: {
+                type: 'string',
+                format: 'date-time',
+                nullable: true,
+                example: '2026-07-22T20:37:30Z',
+              },
+              createdAt: {
+                type: 'string',
+                format: 'date-time',
+                example: '2026-07-22T20:30:00Z',
+              },
+              title: {
+                type: 'string',
+                example: 'Tender Bid Submitted',
+              },
+              message: {
+                type: 'string',
+                example: 'Your proposal for Tender #9876 has been recorded successfully.',
+              },
+              category: {
+                type: 'string',
+                example: 'Tenders',
+              },
+              severity: {
+                type: 'string',
+                enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+                example: 'MEDIUM',
+              },
+              entityType: {
+                type: 'string',
+                nullable: true,
+                example: 'tender',
+              },
+              entityId: {
+                type: 'string',
+                format: 'uuid',
+                nullable: true,
+                example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+              },
+              metadata: {
+                type: 'object',
+                nullable: true,
+              },
+              actions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                },
+              },
+            },
+          },
+
+          NotificationPreferences: {
+            type: 'object',
+            required: ['email', 'inApp'],
+            properties: {
+              email: {
+                type: 'boolean',
+                value: false,
+              },
+              push: {
+                type: 'boolean',
+                value: false,
+              },
+              sms: {
+                type: 'boolean',
+                value: false,
+              },
+              marketing: {
+                type: 'boolean',
+                value: false,
+              },
+              security: {
+                type: 'boolean',
+                value: false,
+              },
+              tender: {
+                type: 'boolean',
+                value: false,
+              },
+              newsletter: {
+                type: 'boolean',
+                value: false,
+              },
+            },
           },
         },
 

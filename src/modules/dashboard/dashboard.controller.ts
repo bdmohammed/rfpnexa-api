@@ -7,7 +7,6 @@ import * as dashboardService from './dashboard.service';
 import type { UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
 import type { DashboardTheme } from '@/types/enums';
 import type { AuthenticatedUser } from '@/types/express';
-import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 import { asyncHandler } from '@/core/asyncHandler';
 import { sendOk } from '@/core/response';
 
@@ -89,17 +88,9 @@ export const resetLayout = asyncHandler<{}, UserDashboardLayout, {}>(async (req,
 // ─── Real-Time Stream (SSE) ───────────────────────────────────────────────────
 
 export const streamDashboardUpdates = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(
-      AppErrorMessage.AUTHENTICATION_REQUIRED,
-      HttpStatusCode.UNAUTHORIZED,
-      AppErrorCode.UNAUTHENTICATED,
-    );
-  }
-
-  const userId = req.user.userId || req.user.sub;
-  const roles = Array.isArray(req.roles) ? req.roles : [];
-  const permissions = Array.isArray(req.permissions) ? req.permissions : [];
+  const { userId } = req.user as AuthenticatedUser;
+  const roles = req.roles as string[];
+  const permissions = req.permissions as string[];
 
   // Setup Server-Sent Events headers
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');

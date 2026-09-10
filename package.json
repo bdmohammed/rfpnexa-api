@@ -54,7 +54,6 @@
     "dev:dev": "cross-env NODE_ENV=dev nodemon --exec tsx --tsconfig tsconfig.app.json src/config/server.ts",
     "build": "tsc -p tsconfig.build.json && tsc-alias",
     "seed:prod": "node dist/database/seeds/seed.js",
-    "test:auth": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles tests/auth",
     "migration:run:test": "cross-env NODE_ENV=test tsx --tsconfig tsconfig.app.json ./node_modules/typeorm/cli.js migration:run -d src/config/database.ts"
   },
   "dependencies": {

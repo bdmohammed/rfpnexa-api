@@ -278,7 +278,6 @@ export const AppErrorMessage = {
   NOT_ASSIGNED_ROLE_REVIEWER: 'You are not assigned as a reviewer for this role.',
   DRAFT_UNLOCK_FORBIDDEN: 'You cannot unlock a draft locked by someone else.',
   REJECTION_REASON_REQUIRED: 'Rejection reason is required',
-
   // --- Tenders & Documents ---
   TENDER_CONFLICT_MODIFIED: 'Conflict: Tender was modified by another user',
   DOCUMENT_NOT_FOUND: 'Document not found',
@@ -287,6 +286,8 @@ export const AppErrorMessage = {
   TENDER_ACTIVE_VERSION_NOT_FOUND: 'Tender active version not found',
   TENDER_NOT_FOUND: 'Tender not found',
   QUESTION_NOT_FOUND: 'Question not found',
+  INVALID_TENDER_ACTION_PAYLOAD: 'Invalid tender action payload.',
+  INVALID_ROLE_ACTION_PAYLOAD: 'Invalid role action payload.',
 
   // --- Coupons & Subscriptions ---
   PLAN_DRAFT_EXISTS: 'A draft or review version already exists for this plan',

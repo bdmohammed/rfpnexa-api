@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { NotificationPreferences } from '@/types/types';
 import {
   NotificationCategory,
   NotificationRecipientStatus,
@@ -17,21 +18,26 @@ export const GetNotificationsQuerySchema = z.object({
 export type GetNotificationsQueryDto = z.infer<typeof GetNotificationsQuerySchema>;
 
 export const UpdatePreferencesBodySchema = z.object({
-  email: z.record(z.string(), z.boolean()),
-  inApp: z.record(z.string(), z.boolean()),
-});
+  email: z.boolean(),
+  push: z.boolean(),
+  sms: z.boolean(),
+  marketing: z.boolean(),
+  security: z.boolean(),
+  tender: z.boolean(),
+  newsletter: z.boolean(),
+}) satisfies z.ZodType<NotificationPreferences>;
 
 export type UpdatePreferencesBodyDto = z.infer<typeof UpdatePreferencesBodySchema>;
 
 export const NotificationIdParamSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 export type NotificationIdParamDto = z.infer<typeof NotificationIdParamSchema>;
 
 export const ExecuteActionParamsSchema = z.object({
-  id: z.string().uuid(),
-  actionId: z.string().uuid(),
+  id: z.uuid(),
+  actionId: z.uuid(),
 });
 
 export type ExecuteActionParamsDto = z.infer<typeof ExecuteActionParamsSchema>;

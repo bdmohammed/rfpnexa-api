@@ -1,4 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { ParamsDictionary } from 'express-serve-static-core';
+import type { ParsedQs } from 'qs';
 import type { ZodType } from 'zod';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 
@@ -26,9 +28,20 @@ export type Target = 'body' | 'query' | 'params';
  * Forwards an `AppError` with status 422 (`UNPROCESSABLE_ENTITY`), code `VALIDATION_ERROR`,
  * and flattened field error metadata when validation fails.
  */
-export const validate =
-  (schema: ZodType<unknown>, target: Target = 'body'): RequestHandler =>
-  (req: Request, _res: Response, next: NextFunction): void => {
+export function validate<T>(
+  schema: ZodType<T>,
+  target: 'body',
+): RequestHandler<ParamsDictionary, unknown, T, ParsedQs>;
+export function validate<T>(
+  schema: ZodType<T>,
+  target: 'query',
+): RequestHandler<ParamsDictionary, unknown, unknown, T>;
+export function validate<T extends ParamsDictionary>(
+  schema: ZodType<T>,
+  target: 'params',
+): RequestHandler<T>;
+export function validate(schema: ZodType<unknown>, target: Target = 'body'): RequestHandler {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[target]);
 
     if (!result.success) {
@@ -48,7 +61,7 @@ export const validate =
     }
 
     try {
-      req[target] = result.data;
+      (req as Record<Target, unknown>)[target] = result.data;
     } catch {
       Object.defineProperty(req, target, {
         value: result.data,
@@ -59,3 +72,4 @@ export const validate =
     }
     next();
   };
+}

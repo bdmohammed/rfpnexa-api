@@ -9,10 +9,7 @@ import { logger } from './logger';
 
 import { startCronJobs, stopCronJobs } from '@/jobs';
 import { dashboardPublisher } from '@/modules/dashboard/services/publisher.service';
-import {
-  setupNotificationListeners,
-  stopNotificationListeners,
-} from '@/modules/notifications/notifications.service';
+import { notificationPublisher } from '@/modules/notifications/services/publisher.service';
 
 import 'reflect-metadata';
 
@@ -161,7 +158,7 @@ function initializeCron(): void {
  * Shutdown sequence MUST strictly follow:
  * 1. Stop HTTP server & drain active request sockets (`stopHttpServer()`)
  * 2. Stop background cron jobs (`stopCronJobs()`)
- * 3. Stop real-time notification listeners (`stopNotificationListeners()`)
+ * 3. Stop real-time notification listeners (`shutdown()`)
  * 4. Destroy PostgreSQL database connection pool (`destroyDatabase()`)
  * 5. Terminate process with appropriate exit code
  */
@@ -192,7 +189,7 @@ async function shutdown(signal: string, exitCode = 0): Promise<void> {
 
   // Step 3: Stop notification event listeners and SSE connections
   try {
-    stopNotificationListeners();
+    notificationPublisher.shutdown();
     dashboardPublisher.shutdown();
     logger.info('Notification listeners and dashboard SSE publisher stopped');
   } catch (err) {
@@ -250,7 +247,7 @@ async function bootstrap(): Promise<void> {
 
   try {
     await initializeDatabase();
-    setupNotificationListeners();
+    notificationPublisher.setupNotificationListeners();
     initializeCron();
     await startHttpServer();
   } catch (err) {

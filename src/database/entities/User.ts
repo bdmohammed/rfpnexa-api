@@ -45,8 +45,19 @@ import { UserDailyMetrics } from './UserDailyMetrics';
 import { UserDashboardLayout } from './UserDashboardLayout';
 import { UserRole } from './UserRole';
 
+import type { NotificationPreferences } from '@/types/types';
 import type { Relation } from 'typeorm';
 import { AccountType, UserStatus } from '@/types/enums';
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  email: true,
+  push: true,
+  sms: false,
+  marketing: false,
+  security: true,
+  tender: true,
+  newsletter: false,
+};
 
 @Entity('users')
 @Index(['email'])
@@ -129,25 +140,9 @@ export class User {
   @Column({
     name: 'notification_preferences',
     type: 'jsonb',
-    default: {
-      email: true,
-      push: true,
-      sms: false,
-      marketing: false,
-      security: true,
-      tender: true,
-      newsletter: false,
-    },
+    default: DEFAULT_NOTIFICATION_PREFERENCES,
   })
-  notificationPreferences!: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-    marketing: boolean;
-    security: boolean;
-    tender: boolean;
-    newsletter: boolean;
-  };
+  notificationPreferences!: NotificationPreferences;
 
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
   lastLoginAt!: Date | null;
