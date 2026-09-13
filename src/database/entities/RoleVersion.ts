@@ -56,31 +56,31 @@ export class RoleVersion {
   @Column({ type: 'enum', enum: RoleVersionStatus })
   status!: RoleVersionStatus;
 
-  @Column({ name: 'locked_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'locked_by', type: 'uuid', nullable: true })
   lockedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
   lockedByUser!: Relation<User | null>;
 
-  @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'locked_at', type: 'timestamptz', nullable: true })
   lockedAt!: Date | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
   approvedByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
   approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

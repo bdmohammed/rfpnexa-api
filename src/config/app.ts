@@ -219,7 +219,7 @@ app.use('/api/v1/subscriptions', subscriptionsRouter);
 app.use('/api/v1/plans', plansRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/categories', categoriesRouter);
-app.use('/api/v1/countries', countriesRouter);
+app.use('/api/v1/geography', countriesRouter);
 app.use('/api/v1/support', supportRouter);
 app.use('/api/v1/rbac', rbacRouter);
 app.use('/api/v1/profile', profileRouter);

@@ -31,14 +31,14 @@ export class AuditRetentionPolicy {
   @Column({ name: 'enabled', type: 'boolean', default: true })
   enabled!: boolean;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   updatedBy!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'created_by' })
   createdBy!: Relation<User | null>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })

@@ -29,7 +29,7 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       "CREATE TYPE \"public\".\"analytics_events_source_enum\" AS ENUM('API', 'QUEUE', 'CRON', 'WEBHOOK', 'ADMIN_PANEL', 'SYSTEM')",
     );
     await queryRunner.query(
-      'CREATE TABLE "analytics_events" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "event_type" "public"."analytics_events_event_type_enum" NOT NULL, "occurred_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "actor_id" uuid, "entity_type" character varying(100), "entity_id" uuid, "source" "public"."analytics_events_source_enum" NOT NULL DEFAULT \'API\', "request_id" character varying(50), "session_id" character varying(50), "correlation_id" character varying(50), "ip_address" character varying(45), "user_agent" character varying(500), "properties" jsonb NOT NULL DEFAULT \'{}\', CONSTRAINT "PK_5d643d67a09b55653e98616f421" PRIMARY KEY ("id"))',
+      'CREATE TABLE "analytics_events" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "event_type" "public"."analytics_events_event_type_enum" NOT NULL, "occurred_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "actor_id" uuid, "entity_type" character varying(100), "entity_id" uuid, "source" "public"."analytics_events_source_enum" NOT NULL DEFAULT \'API\', "request_id" character varying(50), "session_id" character varying(50), "correlation_id" character varying(50), "ip_address" inet, "user_agent" text, "properties" jsonb NOT NULL DEFAULT \'{}\', CONSTRAINT "PK_5d643d67a09b55653e98616f421" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "idx_analytics_events_correlation" ON "analytics_events"  ("correlation_id") ',
@@ -50,7 +50,7 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       "CREATE TYPE \"public\".\"audit_logs_status_enum\" AS ENUM('SUCCESS', 'FAILURE', 'PENDING', 'PARTIAL', 'SKIPPED')",
     );
     await queryRunner.query(
-      'CREATE TABLE "audit_logs" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "source" "public"."audit_logs_source_enum" NOT NULL DEFAULT \'API\', "endpoint" character varying, "event_id" uuid NOT NULL, "correlation_id" uuid, "actor_id" uuid, "actor_user_id" uuid, "target_user_id" uuid, "actor_email" character varying NOT NULL, "module" character varying NOT NULL, "action" character varying NOT NULL, "entity_type" character varying(100), "entity_id" character varying, "severity" "public"."audit_logs_severity_enum" NOT NULL DEFAULT \'INFO\', "status" "public"."audit_logs_status_enum" NOT NULL DEFAULT \'SUCCESS\', "before" jsonb, "after" jsonb, "metadata" jsonb, "request_id" character varying, "trace_id" character varying, "user_agent" character varying, "ip_address" inet, "session_id" character varying, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1bb179d048bbc581caa3b013439" PRIMARY KEY ("id"))',
+      'CREATE TABLE "audit_logs" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "source" "public"."audit_logs_source_enum" NOT NULL DEFAULT \'API\', "endpoint" character varying, "event_id" uuid NOT NULL, "correlation_id" uuid, "actor_id" uuid, "actor_user_id" uuid, "target_user_id" uuid, "actor_email" character varying NOT NULL, "module" character varying NOT NULL, "action" character varying NOT NULL, "entity_type" character varying(100), "entity_id" character varying, "severity" "public"."audit_logs_severity_enum" NOT NULL DEFAULT \'INFO\', "status" "public"."audit_logs_status_enum" NOT NULL DEFAULT \'SUCCESS\', "before" jsonb, "after" jsonb, "metadata" jsonb, "request_id" character varying, "trace_id" character varying, "user_agent" text, "ip_address" inet, "session_id" character varying, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1bb179d048bbc581caa3b013439" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "idx_audit_logs_entity_id" ON "audit_logs"  ("entity_id") ',
@@ -83,101 +83,6 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query(
       'CREATE INDEX "idx_retention_category_enabled" ON "audit_retention_policies"  ("category", "enabled") ',
     );
-    await queryRunner.query(
-      "CREATE TYPE \"public\".\"download_history_download_source_enum\" AS ENUM('USER', 'SYSTEM', 'WEB', 'API', 'EXPORT', 'EMAIL_LINK', 'SCHEDULED_REPORT')",
-    );
-    await queryRunner.query(
-      'CREATE TABLE "download_history" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "tender_id" uuid NOT NULL, "file_name" character varying(255) NOT NULL, "storage_key" character varying(255), "file_size" bigint NOT NULL, "mime_type" character varying(100), "ip_address" inet, "user_agent" character varying(500), "downloaded_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "download_source" "public"."download_history_download_source_enum" NOT NULL, CONSTRAINT "CHK_dbd87702b8044868bdd5dcdd5d" CHECK ("file_size" >= 0), CONSTRAINT "PK_7e4f2648a1c62daab122d86dde5" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "idx_downloads_date" ON "download_history"  ("downloaded_at") ',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "idx_downloads_tender_date" ON "download_history"  ("tender_id", "downloaded_at") ',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "idx_downloads_user_date" ON "download_history"  ("user_id", "downloaded_at") ',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_amendments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "tender_version_id" uuid, "amendment_number" integer NOT NULL, "title" character varying(255), "description" text, "changed_fields" jsonb, "effective_at" TIMESTAMP WITH TIME ZONE, "published_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1b1c715beec867a704d72ff7dc9" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_clarifications" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "title" character varying(255) NOT NULL, "description" text NOT NULL, "created_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_231dd233dea1a3b9874e8c0c08b" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_committees" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "user_id" uuid NOT NULL, "role" character varying(50) NOT NULL, "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c3dd34a915302c160e26ee90287" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_daily_metrics" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" TIMESTAMP WITH TIME ZONE NOT NULL, "country_id" smallint, "category_id" uuid, "tender_id" uuid, "procurement_type" character varying(100), "created_count" integer NOT NULL DEFAULT \'0\', "published_count" integer NOT NULL DEFAULT \'0\', "awarded_count" integer NOT NULL DEFAULT \'0\', "cancelled_count" integer NOT NULL DEFAULT \'0\', "total_budget" numeric(18,2) NOT NULL DEFAULT \'0\', "average_evaluation_time_seconds" numeric(12,2) NOT NULL DEFAULT \'0\', "average_award_time_seconds" numeric(12,2) NOT NULL DEFAULT \'0\', "bid_count" integer NOT NULL DEFAULT \'0\', "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_37b4308fc3c7ba7628822ad9e2c" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "IDX_322b11978e8d4e7b296b7dc76b" ON "tender_daily_metrics"  ("date", "country_id", "category_id") ',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "IDX_c976572173202cbbdc2eea63cf" ON "tender_daily_metrics"  ("date") ',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_invitations" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "email" character varying(255) NOT NULL, "status" character varying(50) NOT NULL DEFAULT \'invited\', "resent_at" TIMESTAMP WITH TIME ZONE, "opened_at" TIMESTAMP WITH TIME ZONE, "accepted_at" TIMESTAMP WITH TIME ZONE, "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_e0d31b1b5b1b405bf197ffa833c" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "evaluation_templates" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "code" character varying(30) NOT NULL, "slug" character varying(100) NOT NULL, "name" character varying(100) NOT NULL, "description" text, "default_weight" numeric(5,2) NOT NULL DEFAULT \'0\', "max_score" integer NOT NULL DEFAULT \'100\', "display_order" integer NOT NULL DEFAULT \'0\', "is_active" boolean NOT NULL DEFAULT true, "created_by" uuid NOT NULL, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_42e5ce691d135967b6f9050ac36" UNIQUE ("code"), CONSTRAINT "UQ_7f005152bbe44441ccf4f0b2678" UNIQUE ("slug"), CONSTRAINT "UQ_bf334d354b5fd5ebbced3c8f01d" UNIQUE ("name"), CONSTRAINT "CHK_a55e42579fab40947b98adf265" CHECK ("code" ~ \'^[A-Z0-9_-]+$\'), CONSTRAINT "CHK_9905a88d90b91c7a185b92badd" CHECK ("slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'), CONSTRAINT "CHK_27a9f29df539d49f11f21e60bd" CHECK ("max_score" > 0), CONSTRAINT "CHK_7299b2a0e017aac04a290c47df" CHECK ("default_weight" <= 100), CONSTRAINT "CHK_27da6617da39bf51b50a8626fa" CHECK ("default_weight" >= 0), CONSTRAINT "PK_2922d6b4a67b6ced60cec793380" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_submissions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_participant_id" uuid NOT NULL, "document_version" integer NOT NULL DEFAULT \'1\', "bid_amount_cents" bigint NOT NULL, "technical_proposal_url" text, "financial_proposal_url" text, "status" character varying(50) NOT NULL DEFAULT \'SUBMITTED\', "submitted_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_a1d483107f934044cc310bc5080" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_evaluations" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "participant_id" uuid NOT NULL, "submission_id" uuid, "evaluation_type" character varying(50) NOT NULL, "evaluation_template_id" uuid, "weight" numeric(5,2) NOT NULL DEFAULT \'0\', "score" numeric(5,2) NOT NULL DEFAULT \'0\', "max_score" integer NOT NULL DEFAULT \'100\', "passed" boolean NOT NULL DEFAULT true, "remarks" text, "evaluated_by_id" uuid, "evaluated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c88d57a8d452f2fc7198265a4ed" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_participants" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "vendor_id" uuid NOT NULL, "status" character varying(50) NOT NULL, "submission_version" integer, "withdrawn_at" TIMESTAMP WITH TIME ZONE, "evaluation_completed" boolean NOT NULL DEFAULT false, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_9ec74f64fdb7aa31da560701b7c" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_questions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "vendor_id" uuid NOT NULL, "question_text" text NOT NULL, "answer_text" text, "is_public" boolean NOT NULL DEFAULT false, "answered_by_id" uuid, "answered_at" TIMESTAMP WITH TIME ZONE, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_57982e7b0f351a4426b7719864a" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_watchers" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "user_id" uuid NOT NULL, "channels" jsonb NOT NULL DEFAULT \'["EMAIL", "IN_APP"]\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_7b986206d8360538d4aa89c296d" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tenders" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "reference_no" character varying NOT NULL, "active_version_id" uuid, "status" character varying(50) NOT NULL DEFAULT \'ACTIVE\', "publication_status" character varying(50) NOT NULL DEFAULT \'UNPUBLISHED\', "bidding_status" character varying(50) NOT NULL DEFAULT \'NOT_OPEN\', "process_status" character varying(50) NOT NULL DEFAULT \'PRE_BIDDING\', "publish_at" TIMESTAMP WITH TIME ZONE, "db_version" integer NOT NULL DEFAULT \'1\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "created_by_id" uuid, CONSTRAINT "UQ_34ff1e94c0ba0a1afe811743a8a" UNIQUE ("reference_no"), CONSTRAINT "PK_13fdd4229818a97b5102199463b" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_documents" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_version_id" uuid NOT NULL, "document_type" character varying(50) NOT NULL, "s3_key" text NOT NULL, "bucket" text NOT NULL, "original_name" text NOT NULL, "mime_type" character varying(150), "file_size" integer, "version" integer NOT NULL DEFAULT \'1\', "checksum" character varying(64), "virus_scan_status" character varying(50) NOT NULL DEFAULT \'Pending\', "is_public" boolean NOT NULL DEFAULT true, "download_count" integer NOT NULL DEFAULT \'0\', "uploaded_by_id" uuid, "uploaded_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_19a19622716a9ad5349f195e582" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_review_assignments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "review_id" uuid NOT NULL, "reviewer_id" uuid NOT NULL, "decision" character varying(50) NOT NULL DEFAULT \'PENDING\', "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "completed_at" TIMESTAMP WITH TIME ZONE, CONSTRAINT "PK_ba4b94ee8801fc9b03ac98b130d" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_review_comments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "review_id" uuid NOT NULL, "author_id" uuid NOT NULL, "comment_text" text NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_759ffb23235820b2c887ac97ef5" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_reviews" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_version_id" uuid NOT NULL, "status" character varying(50) NOT NULL DEFAULT \'assigned\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_02a15ccbc46acff99d15f3d466a" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "tender_versions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "version" integer NOT NULL DEFAULT \'1\', "status" character varying(50) NOT NULL DEFAULT \'DRAFT\', "db_version" integer NOT NULL DEFAULT \'1\', "title" character varying(400) NOT NULL, "description" text NOT NULL, "procurement_type" character varying(50), "priority" character varying(50) NOT NULL DEFAULT \'Medium\', "estimated_budget" bigint, "currency" character varying(10) NOT NULL DEFAULT \'USD\', "department" character varying(255), "place_id" text, "formatted_address" text, "site_visit_required" boolean NOT NULL DEFAULT false, "site_visit_date" TIMESTAMP WITH TIME ZONE, "site_visit_instructions" text, "contact_person" character varying(255), "contact_designation" character varying(255), "contact_email" character varying(255), "contact_phone" character varying(50), "contact_alternative" character varying(255), "opening_date" TIMESTAMP WITH TIME ZONE, "closing_date" TIMESTAMP WITH TIME ZONE, "bid_validity" integer, "project_duration" character varying(100), "emd_amount" bigint, "security_deposit" bigint, "payment_terms" text, "visibility" character varying(50) NOT NULL DEFAULT \'public\', "evaluation_method" character varying(100), "submission_method" character varying(100), "contract_type" character varying(100), "procurement_method" character varying(100), "eligibility_criteria" text, "special_conditions" text, "category_id" uuid, "state_id" smallint, "created_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_01e37ffa95c037f2adf1a3f0ecc" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      "CREATE TYPE \"public\".\"states_type_enum\" AS ENUM('state', 'territory', 'federal')",
-    );
-    await queryRunner.query(
-      'CREATE TABLE "states" ("id" SMALLSERIAL NOT NULL, "code" character varying(20) NOT NULL, "name" character varying(100) NOT NULL, "slug" character varying(100) NOT NULL, "type" "public"."states_type_enum" NOT NULL, "country_id" smallint NOT NULL, "display_order" integer NOT NULL DEFAULT \'0\', "created_by" uuid NOT NULL, "updated_by" uuid, "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_b3d27f398c36fd133e3181bd79" CHECK ("code" = UPPER("code")), CONSTRAINT "PK_09ab30ca0975c02656483265f4f" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query('CREATE UNIQUE INDEX "idx_states_slug" ON "states"  ("slug") ');
-    await queryRunner.query(
-      'CREATE UNIQUE INDEX "idx_states_country_id_code" ON "states"  ("country_id", "code") ',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "user_daily_metrics" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" TIMESTAMP WITH TIME ZONE NOT NULL, "country_id" smallint, "new_users" integer NOT NULL DEFAULT \'0\', "active_users" integer NOT NULL DEFAULT \'0\', "verified_users" integer NOT NULL DEFAULT \'0\', "blocked_users" integer NOT NULL DEFAULT \'0\', "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_cc43f0d98157b12c56c1903b058" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "IDX_92e8db9fc520bae642271c597d" ON "user_daily_metrics"  ("date", "country_id") ',
-    );
-    await queryRunner.query(
-      'CREATE INDEX "IDX_1211ea16bc2c63b2f8765de71b" ON "user_daily_metrics"  ("date") ',
-    );
-    await queryRunner.query(
-      'CREATE TABLE "countries" ("id" SMALLSERIAL NOT NULL, "code" character(2) NOT NULL, "slug" character varying(100) NOT NULL, "name" character varying(100) NOT NULL, "display_order" integer NOT NULL DEFAULT \'0\', "is_active" boolean NOT NULL DEFAULT true, "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_b47cbb5311bad9c9ae17b8c1eda" UNIQUE ("code"), CONSTRAINT "CHK_71746bdfa254c18b143196b70d" CHECK ("slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'), CONSTRAINT "CHK_92cfc2422220a786548dcd1d4c" CHECK ("code" ~ \'^[A-Z]{2}$\'), CONSTRAINT "PK_b2d7006793e8697ab3ae2deff18" PRIMARY KEY ("id"))',
-    );
-    await queryRunner.query('CREATE UNIQUE INDEX "idx_country_slug" ON "countries"  ("slug") ');
     await queryRunner.query(
       'CREATE TABLE "plan_category_pricing" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "plan_version_id" uuid NOT NULL, "category_id" uuid NOT NULL, "price_cents" integer NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1471612b5f442ad23c85f5e3093" PRIMARY KEY ("id"))',
     );
@@ -268,6 +173,78 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('CREATE INDEX "idx_coupons_active" ON "coupons"  ("is_active") ');
     await queryRunner.query(
       'CREATE INDEX "idx_coupons_validity" ON "coupons"  ("valid_from", "expires_at") ',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_documents" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_version_id" uuid NOT NULL, "document_type" character varying(50) NOT NULL, "s3_key" text NOT NULL, "bucket" text NOT NULL, "original_name" text NOT NULL, "mime_type" character varying(150), "file_size" integer, "version" integer NOT NULL DEFAULT \'1\', "checksum" character varying(64), "virus_scan_status" character varying(50) NOT NULL DEFAULT \'Pending\', "is_public" boolean NOT NULL DEFAULT true, "download_count" integer NOT NULL DEFAULT \'0\', "uploaded_by_id" uuid, "uploaded_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_19a19622716a9ad5349f195e582" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_review_assignments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "review_id" uuid NOT NULL, "reviewer_id" uuid NOT NULL, "decision" character varying(50) NOT NULL DEFAULT \'PENDING\', "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "completed_at" TIMESTAMP WITH TIME ZONE, CONSTRAINT "PK_ba4b94ee8801fc9b03ac98b130d" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_review_comments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "review_id" uuid NOT NULL, "author_id" uuid NOT NULL, "comment_text" text NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_759ffb23235820b2c887ac97ef5" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_reviews" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_version_id" uuid NOT NULL, "status" character varying(50) NOT NULL DEFAULT \'assigned\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_02a15ccbc46acff99d15f3d466a" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_versions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "version" integer NOT NULL DEFAULT \'1\', "status" character varying(50) NOT NULL DEFAULT \'DRAFT\', "db_version" integer NOT NULL DEFAULT \'1\', "title" character varying(400) NOT NULL, "description" text NOT NULL, "procurement_type" character varying(50), "priority" character varying(50) NOT NULL DEFAULT \'Medium\', "estimated_budget" bigint, "currency" character varying(10) NOT NULL DEFAULT \'USD\', "department" character varying(255), "place_id" text, "formatted_address" text, "site_visit_required" boolean NOT NULL DEFAULT false, "site_visit_date" TIMESTAMP WITH TIME ZONE, "site_visit_instructions" text, "contact_person" character varying(255), "contact_designation" character varying(255), "contact_email" character varying(255), "contact_phone" character varying(50), "contact_alternative" character varying(255), "opening_date" TIMESTAMP WITH TIME ZONE, "closing_date" TIMESTAMP WITH TIME ZONE, "bid_validity" integer, "project_duration" character varying(100), "emd_amount" bigint, "security_deposit" bigint, "payment_terms" text, "visibility" character varying(50) NOT NULL DEFAULT \'public\', "evaluation_method" character varying(100), "submission_method" character varying(100), "contract_type" character varying(100), "procurement_method" character varying(100), "eligibility_criteria" text, "special_conditions" text, "category_id" uuid, "state_id" smallint, "created_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_01e37ffa95c037f2adf1a3f0ecc" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_amendments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "tender_version_id" uuid, "amendment_number" integer NOT NULL, "title" character varying(255), "description" text, "changed_fields" jsonb, "effective_at" TIMESTAMP WITH TIME ZONE, "published_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1b1c715beec867a704d72ff7dc9" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_clarifications" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "title" character varying(255) NOT NULL, "description" text NOT NULL, "created_by_id" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_231dd233dea1a3b9874e8c0c08b" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_committees" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "user_id" uuid NOT NULL, "role" character varying(50) NOT NULL, "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c3dd34a915302c160e26ee90287" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_daily_metrics" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" TIMESTAMP WITH TIME ZONE NOT NULL, "country_id" smallint, "category_id" uuid, "tender_id" uuid, "procurement_type" character varying(100), "created_count" integer NOT NULL DEFAULT \'0\', "published_count" integer NOT NULL DEFAULT \'0\', "awarded_count" integer NOT NULL DEFAULT \'0\', "cancelled_count" integer NOT NULL DEFAULT \'0\', "total_budget" numeric(18,2) NOT NULL DEFAULT \'0\', "average_evaluation_time_seconds" numeric(12,2) NOT NULL DEFAULT \'0\', "average_award_time_seconds" numeric(12,2) NOT NULL DEFAULT \'0\', "bid_count" integer NOT NULL DEFAULT \'0\', "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_37b4308fc3c7ba7628822ad9e2c" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_322b11978e8d4e7b296b7dc76b" ON "tender_daily_metrics"  ("date", "country_id", "category_id") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_c976572173202cbbdc2eea63cf" ON "tender_daily_metrics"  ("date") ',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_invitations" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "email" character varying(255) NOT NULL, "status" character varying(50) NOT NULL DEFAULT \'invited\', "resent_at" TIMESTAMP WITH TIME ZONE, "opened_at" TIMESTAMP WITH TIME ZONE, "accepted_at" TIMESTAMP WITH TIME ZONE, "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_e0d31b1b5b1b405bf197ffa833c" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "evaluation_templates" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "code" character varying(30) NOT NULL, "slug" character varying(100) NOT NULL, "name" character varying(100) NOT NULL, "description" text, "default_weight" numeric(5,2) NOT NULL DEFAULT \'0\', "max_score" integer NOT NULL DEFAULT \'100\', "display_order" integer NOT NULL DEFAULT \'0\', "is_active" boolean NOT NULL DEFAULT true, "created_by" uuid NOT NULL, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_42e5ce691d135967b6f9050ac36" UNIQUE ("code"), CONSTRAINT "UQ_7f005152bbe44441ccf4f0b2678" UNIQUE ("slug"), CONSTRAINT "UQ_bf334d354b5fd5ebbced3c8f01d" UNIQUE ("name"), CONSTRAINT "CHK_a55e42579fab40947b98adf265" CHECK ("code" ~ \'^[A-Z0-9_-]+$\'), CONSTRAINT "CHK_9905a88d90b91c7a185b92badd" CHECK ("slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'), CONSTRAINT "CHK_27a9f29df539d49f11f21e60bd" CHECK ("max_score" > 0), CONSTRAINT "CHK_7299b2a0e017aac04a290c47df" CHECK ("default_weight" <= 100), CONSTRAINT "CHK_27da6617da39bf51b50a8626fa" CHECK ("default_weight" >= 0), CONSTRAINT "PK_2922d6b4a67b6ced60cec793380" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_submissions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_participant_id" uuid NOT NULL, "document_version" integer NOT NULL DEFAULT \'1\', "bid_amount_cents" bigint NOT NULL, "technical_proposal_url" text, "financial_proposal_url" text, "status" character varying(50) NOT NULL DEFAULT \'SUBMITTED\', "submitted_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_a1d483107f934044cc310bc5080" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_evaluations" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "participant_id" uuid NOT NULL, "submission_id" uuid, "evaluation_type" character varying(50) NOT NULL, "evaluation_template_id" uuid, "weight" numeric(5,2) NOT NULL DEFAULT \'0\', "score" numeric(5,2) NOT NULL DEFAULT \'0\', "max_score" integer NOT NULL DEFAULT \'100\', "passed" boolean NOT NULL DEFAULT true, "remarks" text, "evaluated_by_id" uuid, "evaluated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c88d57a8d452f2fc7198265a4ed" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_participants" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "vendor_id" uuid NOT NULL, "status" character varying(50) NOT NULL, "submission_version" integer, "withdrawn_at" TIMESTAMP WITH TIME ZONE, "evaluation_completed" boolean NOT NULL DEFAULT false, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_9ec74f64fdb7aa31da560701b7c" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_questions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "vendor_id" uuid NOT NULL, "question_text" text NOT NULL, "answer_text" text, "is_public" boolean NOT NULL DEFAULT false, "answered_by_id" uuid, "answered_at" TIMESTAMP WITH TIME ZONE, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_57982e7b0f351a4426b7719864a" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tender_watchers" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tender_id" uuid NOT NULL, "user_id" uuid NOT NULL, "channels" jsonb NOT NULL DEFAULT \'["EMAIL", "IN_APP"]\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_7b986206d8360538d4aa89c296d" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "tenders" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "reference_no" character varying NOT NULL, "active_version_id" uuid, "status" character varying(50) NOT NULL DEFAULT \'ACTIVE\', "publication_status" character varying(50) NOT NULL DEFAULT \'UNPUBLISHED\', "bidding_status" character varying(50) NOT NULL DEFAULT \'NOT_OPEN\', "process_status" character varying(50) NOT NULL DEFAULT \'PRE_BIDDING\', "publish_at" TIMESTAMP WITH TIME ZONE, "db_version" integer NOT NULL DEFAULT \'1\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "created_by_id" uuid, CONSTRAINT "UQ_34ff1e94c0ba0a1afe811743a8a" UNIQUE ("reference_no"), CONSTRAINT "PK_13fdd4229818a97b5102199463b" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      "CREATE TYPE \"public\".\"download_history_download_source_enum\" AS ENUM('USER', 'SYSTEM', 'WEB', 'API', 'EXPORT', 'EMAIL_LINK', 'SCHEDULED_REPORT')",
+    );
+    await queryRunner.query(
+      'CREATE TABLE "download_history" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "tender_id" uuid NOT NULL, "file_name" character varying(255) NOT NULL, "storage_key" character varying(255), "file_size" bigint NOT NULL, "mime_type" character varying(100), "ip_address" inet, "user_agent" text, "downloaded_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "download_source" "public"."download_history_download_source_enum" NOT NULL, CONSTRAINT "CHK_dbd87702b8044868bdd5dcdd5d" CHECK ("file_size" >= 0), CONSTRAINT "PK_7e4f2648a1c62daab122d86dde5" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_downloads_date" ON "download_history"  ("downloaded_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_downloads_tender_date" ON "download_history"  ("tender_id", "downloaded_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_downloads_user_date" ON "download_history"  ("user_id", "downloaded_at") ',
     );
     await queryRunner.query(
       "CREATE TYPE \"public\".\"email_tokens_type_enum\" AS ENUM('email_verification', 'password_reset', 'email_change', 'system_owner_approval')",
@@ -577,6 +554,15 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'CREATE INDEX "idx_txn_user_created" ON "transactions"  ("user_id", "created_at") ',
     );
     await queryRunner.query(
+      'CREATE TABLE "user_daily_metrics" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" TIMESTAMP WITH TIME ZONE NOT NULL, "country_id" smallint, "new_users" integer NOT NULL DEFAULT \'0\', "active_users" integer NOT NULL DEFAULT \'0\', "verified_users" integer NOT NULL DEFAULT \'0\', "blocked_users" integer NOT NULL DEFAULT \'0\', "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_cc43f0d98157b12c56c1903b058" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_92e8db9fc520bae642271c597d" ON "user_daily_metrics"  ("date", "country_id") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_1211ea16bc2c63b2f8765de71b" ON "user_daily_metrics"  ("date") ',
+    );
+    await queryRunner.query(
       "CREATE TYPE \"public\".\"user_dashboard_layouts_theme_enum\" AS ENUM('default', 'light', 'dark')",
     );
     await queryRunner.query(
@@ -692,10 +678,31 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'CREATE INDEX "idx_alert_preferences_user" ON "alert_preferences"  ("user_id") ',
     );
     await queryRunner.query(
+      "CREATE TYPE \"public\".\"country_activities_actor_type_enum\" AS ENUM('SYSTEM', 'USER', 'JOB', 'API')",
+    );
+    await queryRunner.query(
+      "CREATE TYPE \"public\".\"country_activities_event_type_enum\" AS ENUM('SEEDED', 'ACTIVATED', 'DEACTIVATED', 'REQUEST_CREATED', 'REVIEWER_ASSIGNED', 'COMMENT_ADDED', 'APPROVED', 'REJECTED', 'CASCADE_EXECUTED')",
+    );
+    await queryRunner.query(
+      'CREATE TABLE "country_activities" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "country_id" smallint NOT NULL, "state_id" smallint, "request_id" uuid, "actor_id" uuid NOT NULL, "actor_type" "public"."country_activities_actor_type_enum" NOT NULL DEFAULT \'USER\', "event_type" "public"."country_activities_event_type_enum" NOT NULL, "title" character varying(150) NOT NULL, "description" text, "old_value" jsonb, "new_value" jsonb, "metadata" jsonb, "ip_address" inet, "user_agent" text, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_a58b1666782b1c298526126a097" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_f715406bfad5ac865c9743bc15" ON "country_activities"  ("event_type") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_0db9750ef5c3b86b7037c539cc" ON "country_activities"  ("request_id", "created_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_1c7dec593b8b088def83993689" ON "country_activities"  ("state_id", "created_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_1950c37c8beb54f409bb8097de" ON "country_activities"  ("country_id", "created_at") ',
+    );
+    await queryRunner.query(
       "CREATE TYPE \"public\".\"country_change_request_assignments_status_enum\" AS ENUM('PENDING', 'CLAIMED', 'COMPLETED', 'CANCELLED')",
     );
     await queryRunner.query(
-      'CREATE TABLE "country_change_request_assignments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "request_id" uuid NOT NULL, "reviewer_id" uuid NOT NULL, "status" "public"."country_change_request_assignments_status_enum" NOT NULL DEFAULT \'PENDING\', "assigned_by_id" uuid, "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "responded_at" TIMESTAMP WITH TIME ZONE, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1c4bb46c46261785abafdce9c7a" PRIMARY KEY ("id"))',
+      'CREATE TABLE "country_change_request_assignments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "request_id" uuid NOT NULL, "reviewer_id" uuid NOT NULL, "status" "public"."country_change_request_assignments_status_enum" NOT NULL DEFAULT \'PENDING\', "assigned_by_id" uuid NOT NULL, "assigned_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "responded_at" TIMESTAMP WITH TIME ZONE, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_1c4bb46c46261785abafdce9c7a" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "IDX_13567c18620e1519d010a0bdd8" ON "country_change_request_assignments"  ("request_id", "reviewer_id") ',
@@ -719,40 +726,99 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       "CREATE TYPE \"public\".\"country_change_requests_status_enum\" AS ENUM('DRAFT', 'READY_FOR_REVIEW', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED')",
     );
     await queryRunner.query(
-      'CREATE TABLE "country_change_requests" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "request_sequence" SERIAL NOT NULL, "request_number" character varying(50) NOT NULL, "target_type" "public"."country_change_requests_target_type_enum" NOT NULL, "country_id" smallint NOT NULL, "state_id" smallint, "action" "public"."country_change_requests_action_enum" NOT NULL, "status" "public"."country_change_requests_status_enum" NOT NULL DEFAULT \'READY_FOR_REVIEW\', "requested_by_id" uuid NOT NULL, "reason" text NOT NULL, "cascade_policy" jsonb NOT NULL DEFAULT \'{"disableStates": true, "disableTenders": true, "disableCategories": false, "hideFromSearch": true, "notifySuppliers": true}\'::jsonb, "version" integer NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_0252e4df3c832eb54472425c76b" UNIQUE ("request_number"), CONSTRAINT "PK_6cfd7490d1a6720cc5563b303f0" PRIMARY KEY ("id"))',
+      'CREATE TABLE "country_change_requests" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "request_sequence" SERIAL NOT NULL, "request_number" character varying(50) NOT NULL, "target_type" "public"."country_change_requests_target_type_enum" NOT NULL, "country_id" smallint NOT NULL, "state_id" smallint, "action" "public"."country_change_requests_action_enum" NOT NULL, "status" "public"."country_change_requests_status_enum" NOT NULL DEFAULT \'READY_FOR_REVIEW\', "requested_by_id" uuid NOT NULL, "reason" text NOT NULL, "cascade_policy" jsonb NOT NULL DEFAULT \'{"disableStates":true,"disableTenders":true,"disableCategories":false,"hideFromSearch":true,"notifySuppliers":true}\', "version" integer NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_0252e4df3c832eb54472425c76b" UNIQUE ("request_number"), CONSTRAINT "PK_6cfd7490d1a6720cc5563b303f0" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(`CREATE UNIQUE INDEX "uq_active_state_request" ON "country_change_requests"  ("country_id", "state_id") WHERE "target_type" = 'STATE'
+            AND "status" IN ('DRAFT','READY_FOR_REVIEW','IN_REVIEW')`);
+    await queryRunner.query(`CREATE UNIQUE INDEX "uq_active_country_request" ON "country_change_requests"  ("country_id") WHERE "target_type" = 'COUNTRY'
+            AND "status" IN ('DRAFT','READY_FOR_REVIEW','IN_REVIEW')`);
+    await queryRunner.query(
+      'CREATE INDEX "IDX_20bb4e789aa9efccbac48ee471" ON "country_change_requests"  ("status", "created_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_d4cd98ae1741b373210df09c5d" ON "country_change_requests"  ("created_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_ed3edfa7651545760c9398ff16" ON "country_change_requests"  ("requested_by_id", "status") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_08f1f4db4a9f13a72763ba3c2d" ON "country_change_requests"  ("requested_by_id") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "IDX_5ff3052ed0d10d49ceb947232b" ON "country_change_requests"  ("status") ',
     );
     await queryRunner.query(
       'CREATE INDEX "IDX_3f7d3c1e60c7d3c8c342134361" ON "country_change_requests"  ("target_type", "country_id", "state_id") ',
     );
     await queryRunner.query(
-      "CREATE TYPE \"public\".\"country_activities_actor_type_enum\" AS ENUM('SYSTEM', 'USER', 'JOB', 'API')",
+      "CREATE TYPE \"public\".\"state_versions_type_enum\" AS ENUM('state', 'territory', 'federal')",
     );
     await queryRunner.query(
-      "CREATE TYPE \"public\".\"country_activities_event_type_enum\" AS ENUM('SEEDED', 'ACTIVATED', 'DEACTIVATED', 'REQUEST_CREATED', 'REVIEWER_ASSIGNED', 'COMMENT_ADDED', 'APPROVED', 'REJECTED', 'CASCADE_EXECUTED')",
+      'CREATE TYPE "public"."state_versions_action_enum" AS ENUM(\'ACTIVATE\', \'DEACTIVATE\')',
     );
     await queryRunner.query(
-      'CREATE TABLE "country_activities" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "country_id" smallint NOT NULL, "state_id" smallint, "request_id" uuid, "actor_id" uuid, "actor_type" "public"."country_activities_actor_type_enum" NOT NULL DEFAULT \'USER\', "event_type" "public"."country_activities_event_type_enum" NOT NULL, "title" character varying(150) NOT NULL, "description" text, "old_value" jsonb, "new_value" jsonb, "metadata" jsonb, "ip_address" character varying(45), "user_agent" character varying(255), "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_a58b1666782b1c298526126a097" PRIMARY KEY ("id"))',
+      "CREATE TYPE \"public\".\"state_versions_request_status_enum\" AS ENUM('DRAFT', 'READY_FOR_REVIEW', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED')",
     );
     await queryRunner.query(
-      'CREATE UNIQUE INDEX "uq_state_seed_event" ON "country_activities"  ("state_id") WHERE "event_type" = \'SEEDED\'',
+      'CREATE TABLE "state_versions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "state_id" smallint NOT NULL, "country_id" smallint NOT NULL, "request_id" uuid, "previous_version_id" uuid, "version" integer NOT NULL, "code" character varying(20) NOT NULL, "name" character varying(100) NOT NULL, "slug" character varying(100) NOT NULL, "type" "public"."state_versions_type_enum" NOT NULL, "is_active_before" boolean NOT NULL, "is_active_after" boolean NOT NULL, "action" "public"."state_versions_action_enum" NOT NULL, "request_status" "public"."state_versions_request_status_enum" NOT NULL DEFAULT \'APPROVED\', "reason" text NOT NULL, "cascade_policy" jsonb, "approved_by" uuid, "requested_by" uuid, "approved_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_f1e9ee0fcfc30116d54d37bb3c6" UNIQUE ("request_id"), CONSTRAINT "CHK_9266b2277df1211a94b387ba89" CHECK ("version" > 0), CONSTRAINT "PK_da62e2ea4ee22df9162f53216c0" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
-      'CREATE UNIQUE INDEX "uq_country_seed_event" ON "country_activities"  ("country_id") WHERE "state_id" IS NULL AND "event_type" = \'SEEDED\'',
+      'CREATE INDEX "idx_state_versions_created_at" ON "state_versions"  ("created_at") ',
     );
     await queryRunner.query(
-      'CREATE INDEX "IDX_f715406bfad5ac865c9743bc15" ON "country_activities"  ("event_type") ',
+      'CREATE INDEX "idx_state_versions_approved_by" ON "state_versions"  ("approved_by") ',
     );
     await queryRunner.query(
-      'CREATE INDEX "IDX_9e61aa8dad872cdcab16b8d804" ON "country_activities"  ("request_id") ',
+      'CREATE UNIQUE INDEX "idx_state_versions_request_id" ON "state_versions"  ("request_id") ',
     );
     await queryRunner.query(
-      'CREATE INDEX "IDX_0db9750ef5c3b86b7037c539cc" ON "country_activities"  ("request_id", "created_at") ',
+      'CREATE INDEX "idx_state_versions_country_id" ON "state_versions"  ("country_id") ',
     );
     await queryRunner.query(
-      'CREATE INDEX "IDX_1c7dec593b8b088def83993689" ON "country_activities"  ("state_id", "created_at") ',
+      'CREATE INDEX "idx_state_versions_state_version" ON "state_versions"  ("state_id", "version") ',
     );
     await queryRunner.query(
-      'CREATE INDEX "IDX_1950c37c8beb54f409bb8097de" ON "country_activities"  ("country_id", "created_at") ',
+      'CREATE UNIQUE INDEX "uq_state_version" ON "state_versions"  ("state_id", "version") ',
+    );
+    await queryRunner.query(
+      "CREATE TYPE \"public\".\"states_type_enum\" AS ENUM('state', 'territory', 'federal')",
+    );
+    await queryRunner.query(
+      'CREATE TABLE "states" ("id" SMALLSERIAL NOT NULL, "code" character varying(20) NOT NULL, "name" character varying(100) NOT NULL, "slug" character varying(100) NOT NULL, "type" "public"."states_type_enum" NOT NULL, "country_id" smallint NOT NULL, "created_by" uuid NOT NULL, "updated_by" uuid, "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_b3d27f398c36fd133e3181bd79" CHECK ("code" = UPPER("code")), CONSTRAINT "PK_09ab30ca0975c02656483265f4f" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE UNIQUE INDEX "uq_state_country_code" ON "states"  ("country_id", "code") ',
+    );
+    await queryRunner.query(
+      'CREATE UNIQUE INDEX "uq_state_country_slug" ON "states"  ("country_id", "slug") ',
+    );
+    await queryRunner.query(
+      'CREATE TABLE "countries" ("id" SMALLSERIAL NOT NULL, "code" character(2) NOT NULL, "slug" character varying(100) NOT NULL, "name" character varying(100) NOT NULL, "is_active" boolean NOT NULL DEFAULT true, "created_by" uuid, "updated_by" uuid, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_b47cbb5311bad9c9ae17b8c1eda" UNIQUE ("code"), CONSTRAINT "CHK_71746bdfa254c18b143196b70d" CHECK ("slug" ~ \'^[a-z0-9]+(?:-[a-z0-9]+)*$\'), CONSTRAINT "CHK_92cfc2422220a786548dcd1d4c" CHECK ("code" ~ \'^[A-Z]{2}$\'), CONSTRAINT "PK_b2d7006793e8697ab3ae2deff18" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query('CREATE UNIQUE INDEX "idx_country_slug" ON "countries"  ("slug") ');
+    await queryRunner.query(
+      'CREATE TYPE "public"."country_versions_action_enum" AS ENUM(\'ACTIVATE\', \'DEACTIVATE\')',
+    );
+    await queryRunner.query(
+      "CREATE TYPE \"public\".\"country_versions_request_status_enum\" AS ENUM('DRAFT', 'READY_FOR_REVIEW', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED')",
+    );
+    await queryRunner.query(
+      'CREATE TABLE "country_versions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "country_id" smallint NOT NULL, "request_id" uuid, "previous_version_id" uuid, "version" integer NOT NULL, "code" character(2) NOT NULL, "name" character varying(100) NOT NULL, "slug" character varying(100) NOT NULL, "is_active_before" boolean NOT NULL, "is_active_after" boolean NOT NULL, "action" "public"."country_versions_action_enum" NOT NULL, "request_status" "public"."country_versions_request_status_enum" NOT NULL DEFAULT \'APPROVED\', "reason" text NOT NULL, "cascade_policy" jsonb, "approved_by" uuid, "requested_by" uuid, "approved_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_685e928408a41e1ed7a816836bf" UNIQUE ("request_id"), CONSTRAINT "CHK_34a9437eda29e675c89609fff3" CHECK ("code" ~ \'^[A-Z]{2}$\'), CONSTRAINT "CHK_0934765bc38ca6ea3769b54cfe" CHECK ("version" > 0), CONSTRAINT "PK_e950e0fe2f289ca69dca3c03803" PRIMARY KEY ("id"))',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_country_versions_created_at" ON "country_versions"  ("created_at") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_country_versions_approved_by" ON "country_versions"  ("approved_by") ',
+    );
+    await queryRunner.query(
+      'CREATE UNIQUE INDEX "idx_country_versions_request_id" ON "country_versions"  ("request_id") ',
+    );
+    await queryRunner.query(
+      'CREATE INDEX "idx_country_versions_country_version" ON "country_versions"  ("country_id", "version") ',
+    );
+    await queryRunner.query(
+      'CREATE UNIQUE INDEX "uq_country_version" ON "country_versions"  ("country_id", "version") ',
     );
     await queryRunner.query(
       'CREATE TABLE "purchased_tenders" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "tender_id" uuid NOT NULL, "transaction_id" uuid NOT NULL, "purchased_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "uq_purchased_tenders_user_tender" UNIQUE ("user_id", "tender_id"), CONSTRAINT "PK_4de62bddbd00f86a4d9cc007c93" PRIMARY KEY ("id"))',
@@ -779,7 +845,7 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       "CREATE TYPE \"public\".\"security_logs_event_enum\" AS ENUM('LOGIN_SUCCESS', 'user_login', 'LOGIN_FAILED', 'LOGOUT', 'PASSWORD_RESET_REQUESTED', 'PASSWORD_RESET_IGNORED', 'PASSWORD_RESET_COMPLETED', 'PASSWORD_CHANGED', 'MFA_ENABLED', 'MFA_DISABLED', 'MFA_FAILED', 'ACCOUNT_LOCKED', 'ACCOUNT_UNLOCKED', 'TOKEN_REFRESHED', 'UNAUTHORIZED_ACCESS', 'SUSPICIOUS_ACTIVITY', 'TWO_FACTOR_ENABLED', 'TWO_FACTOR_DISABLED', 'PROFILE_UPDATED', 'ACCOUNT_DEACTIVATED', 'ACCOUNT_REACTIVATED', 'ACCOUNT_DELETE_REQUESTED', 'RESEND_VERIFICATION_SUCCESS', 'RESEND_VERIFICATION_IGNORED', 'REGISTER_SUCCESS', 'CAPTCHA_FAILED', 'PASSWORD_CHANGE', 'EMAIL_CHANGE_REQUEST', 'EMAIL_CHANGE_SUCCESS', 'EMAIL_CHANGE_VERIFY', 'ADMIN_REGISTER_SUCCESS', 'PENDING_EMAIL_VERIFICATION', 'ADMIN_ACCOUNT_AWAITING_APPROVAL', 'ADMIN_ACCOUNT_APPROVAL_REJECTED', 'ADMIN_ACCOUNT_SUSPENDED', 'SESSION_REVOKED', 'DEVICE_TRUSTED', 'ADMIN_BOOTSTRAP_APPROVED', 'ADMIN_BOOTSTRAP_REJECTED')",
     );
     await queryRunner.query(
-      'CREATE TABLE "security_logs" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "source" "public"."security_logs_source_enum" NOT NULL DEFAULT \'API\', "endpoint" character varying, "user_id" uuid, "email" character varying, "event" "public"."security_logs_event_enum" NOT NULL, "ip_address" inet, "user_agent" character varying, "session_id" character varying, "request_id" character varying, "trace_id" character varying, "correlation_id" uuid, "details" jsonb, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_48ce9a9a3215af82611525ce08b" PRIMARY KEY ("id"))',
+      'CREATE TABLE "security_logs" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "source" "public"."security_logs_source_enum" NOT NULL DEFAULT \'API\', "endpoint" character varying, "user_id" uuid, "email" character varying, "event" "public"."security_logs_event_enum" NOT NULL, "ip_address" inet, "user_agent" text, "session_id" character varying, "request_id" character varying, "trace_id" character varying, "correlation_id" uuid, "details" jsonb, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_48ce9a9a3215af82611525ce08b" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "idx_security_request_id" ON "security_logs"  ("request_id") ',
@@ -830,7 +896,7 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'CREATE INDEX "IDX_019c751cad3dc90fc50f669a0c" ON "user_approval_requests"  ("status") ',
     );
     await queryRunner.query(
-      'CREATE TABLE "user_devices" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "device_hash" character varying NOT NULL, "user_agent" character varying, "last_ip_address" character varying, "is_trusted" boolean NOT NULL DEFAULT false, "last_active_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c9e7e648903a9e537347aba4371" PRIMARY KEY ("id"))',
+      'CREATE TABLE "user_devices" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "device_hash" character varying NOT NULL, "user_agent" text, "last_ip_address" character varying, "is_trusted" boolean NOT NULL DEFAULT false, "last_active_at" TIMESTAMP WITH TIME ZONE NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_c9e7e648903a9e537347aba4371" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "IDX_28bd79e1b3f7c1168f0904ce24" ON "user_devices"  ("user_id") ',
@@ -851,7 +917,7 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'CREATE INDEX "IDX_0c66b00bd6cf40367b487c3637" ON "user_notes"  ("admin_id") ',
     );
     await queryRunner.query(
-      'CREATE TABLE "user_sessions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "token_hash" character varying(64) NOT NULL, "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL, "last_used_at" TIMESTAMP WITH TIME ZONE, "user_agent" character varying(255), "ip_address" inet, "device_hash" character varying(64), "is_revoked" boolean NOT NULL DEFAULT false, "token_version" integer NOT NULL DEFAULT \'1\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_6596adb3b8927b35bda97e734aa" UNIQUE ("token_hash"), CONSTRAINT "PK_e93e031a5fed190d4789b6bfd83" PRIMARY KEY ("id"))',
+      'CREATE TABLE "user_sessions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "user_id" uuid NOT NULL, "token_hash" character varying(64) NOT NULL, "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL, "last_used_at" TIMESTAMP WITH TIME ZONE, "user_agent" text, "ip_address" inet, "device_hash" character varying(64), "is_revoked" boolean NOT NULL DEFAULT false, "token_version" integer NOT NULL DEFAULT \'1\', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "UQ_6596adb3b8927b35bda97e734aa" UNIQUE ("token_hash"), CONSTRAINT "PK_e93e031a5fed190d4789b6bfd83" PRIMARY KEY ("id"))',
     );
     await queryRunner.query(
       'CREATE INDEX "IDX_e9658e959c490b0a634dfc5478" ON "user_sessions"  ("user_id") ',
@@ -914,10 +980,109 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "audit_retention_policies" ADD CONSTRAINT "FK_8f7483f0b84a512adabbb727d75" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "download_history" ADD CONSTRAINT "FK_2c8c1dfdcf8e6c16daf1d69771d" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+      'ALTER TABLE "plan_category_pricing" ADD CONSTRAINT "FK_d9a7e7c2101719da829425216a5" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "download_history" ADD CONSTRAINT "FK_ced17cf4b7ef43f639d37123f1f" FOREIGN KEY ("tender_id") REFERENCES "tenders"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+      'ALTER TABLE "plan_category_pricing" ADD CONSTRAINT "FK_5ccafe486b6d167c7db0611d6ee" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_country_pricing" ADD CONSTRAINT "FK_0e0412657afe2b7a3e9221695c8" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_country_pricing" ADD CONSTRAINT "FK_5e6abfa4af51ec282f0a21d24b8" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_features" ADD CONSTRAINT "FK_fe08b1d2021ae6e9eabd4c3ed6e" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_assignments" ADD CONSTRAINT "FK_b67e28dd5195e98fc797a58dbd3" FOREIGN KEY ("review_id") REFERENCES "plan_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_assignments" ADD CONSTRAINT "FK_ee2201ae3c00916663df1e890ac" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_comments" ADD CONSTRAINT "FK_3d02ec9688ce8b01e5e2bd9d4af" FOREIGN KEY ("plan_review_id") REFERENCES "plan_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_comments" ADD CONSTRAINT "FK_6a794d51dc752ae26d167cb0433" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_reviews" ADD CONSTRAINT "FK_a0b90ebf2282ad4afee46b6a805" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_reviews" ADD CONSTRAINT "FK_153818f75a38884e5976add7599" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_b504a5b710ec5832245809b7bce" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_a4def7b445c9d9befb7c00bb10a" FOREIGN KEY ("target_state_id") REFERENCES "states"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_544b23467353d462531ca25d4a5" FOREIGN KEY ("target_category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_f03d7561ab57652877623ee44ba" FOREIGN KEY ("locked_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_bfe476cb7eae48a06017fd46736" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_ef8559790f2ca2d10a0cf2ecabe" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_9ad0d0f6c8800e425b7e99e8a3d" FOREIGN KEY ("approved_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_a92f15af52b87bbe382a6e6ddea" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_acdad2db33127889eecf5e278ac" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_1d949d47e90a4236831324c2569" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plans" ADD CONSTRAINT "FK_df66f4cb64eb30d84a8eae5c8aa" FOREIGN KEY ("active_version_id") REFERENCES "plan_versions"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "coupons" ADD CONSTRAINT "FK_dc1cf7573d95d72ac52fe10a976" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "coupons" ADD CONSTRAINT "FK_44e27ceebba0b5ff63d824ab732" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_documents" ADD CONSTRAINT "FK_7a72f2a65a422d49af6e4306818" FOREIGN KEY ("tender_version_id") REFERENCES "tender_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_documents" ADD CONSTRAINT "FK_58b64cce5db96c5cca8c7f27b73" FOREIGN KEY ("uploaded_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_assignments" ADD CONSTRAINT "FK_63a91cd2e03f70f54a6c75a5981" FOREIGN KEY ("review_id") REFERENCES "tender_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_assignments" ADD CONSTRAINT "FK_082087381c796d39ed1bb5551b8" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_comments" ADD CONSTRAINT "FK_884bcc4cacc41156beb13b86b21" FOREIGN KEY ("review_id") REFERENCES "tender_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_comments" ADD CONSTRAINT "FK_5b0021091d8140b434f731f6d2c" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_reviews" ADD CONSTRAINT "FK_f9fa0dfc51991eea00cabd9bb6e" FOREIGN KEY ("tender_version_id") REFERENCES "tender_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_b4e4a8cf8ec0c251e4e2d16c288" FOREIGN KEY ("tender_id") REFERENCES "tenders"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_8aabeb9be8a97c625dd287e75b7" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_3844ca8aab685f38b6656f064fa" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_38d110b2653f9ce3d9a4fbe3aa4" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
     );
     await queryRunner.query(
       'ALTER TABLE "tender_amendments" ADD CONSTRAINT "FK_c28e5652b8282158a300360a5f3" FOREIGN KEY ("tender_id") REFERENCES "tenders"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
@@ -1007,133 +1172,10 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "tenders" ADD CONSTRAINT "FK_bce1779e98be9e8d90937c9c8b3" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "tender_documents" ADD CONSTRAINT "FK_7a72f2a65a422d49af6e4306818" FOREIGN KEY ("tender_version_id") REFERENCES "tender_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+      'ALTER TABLE "download_history" ADD CONSTRAINT "FK_2c8c1dfdcf8e6c16daf1d69771d" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "tender_documents" ADD CONSTRAINT "FK_58b64cce5db96c5cca8c7f27b73" FOREIGN KEY ("uploaded_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_assignments" ADD CONSTRAINT "FK_63a91cd2e03f70f54a6c75a5981" FOREIGN KEY ("review_id") REFERENCES "tender_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_assignments" ADD CONSTRAINT "FK_082087381c796d39ed1bb5551b8" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_comments" ADD CONSTRAINT "FK_884bcc4cacc41156beb13b86b21" FOREIGN KEY ("review_id") REFERENCES "tender_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_comments" ADD CONSTRAINT "FK_5b0021091d8140b434f731f6d2c" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_reviews" ADD CONSTRAINT "FK_f9fa0dfc51991eea00cabd9bb6e" FOREIGN KEY ("tender_version_id") REFERENCES "tender_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_b4e4a8cf8ec0c251e4e2d16c288" FOREIGN KEY ("tender_id") REFERENCES "tenders"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_8aabeb9be8a97c625dd287e75b7" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_3844ca8aab685f38b6656f064fa" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" ADD CONSTRAINT "FK_38d110b2653f9ce3d9a4fbe3aa4" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" ADD CONSTRAINT "FK_f3bbd0bc19bb6d8a887add08461" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" ADD CONSTRAINT "FK_0e294c8a8ed0c984a200845a2fc" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" ADD CONSTRAINT "FK_0d859da7494cb967ee959ee6445" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_d82d421b42283a8321153a8f602" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_d2eeb84d07a05a52965deb5f664" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_9431c30415dd4fa6d36d0833b86" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "countries" ADD CONSTRAINT "FK_ce2d61e8933e762a07ec723d7d8" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "countries" ADD CONSTRAINT "FK_36bc1d0e763087b521f5f0b2fe3" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_category_pricing" ADD CONSTRAINT "FK_d9a7e7c2101719da829425216a5" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_category_pricing" ADD CONSTRAINT "FK_5ccafe486b6d167c7db0611d6ee" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_country_pricing" ADD CONSTRAINT "FK_0e0412657afe2b7a3e9221695c8" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_country_pricing" ADD CONSTRAINT "FK_5e6abfa4af51ec282f0a21d24b8" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_features" ADD CONSTRAINT "FK_fe08b1d2021ae6e9eabd4c3ed6e" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_assignments" ADD CONSTRAINT "FK_b67e28dd5195e98fc797a58dbd3" FOREIGN KEY ("review_id") REFERENCES "plan_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_assignments" ADD CONSTRAINT "FK_ee2201ae3c00916663df1e890ac" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_comments" ADD CONSTRAINT "FK_3d02ec9688ce8b01e5e2bd9d4af" FOREIGN KEY ("plan_review_id") REFERENCES "plan_reviews"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_comments" ADD CONSTRAINT "FK_6a794d51dc752ae26d167cb0433" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_reviews" ADD CONSTRAINT "FK_a0b90ebf2282ad4afee46b6a805" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_reviews" ADD CONSTRAINT "FK_153818f75a38884e5976add7599" FOREIGN KEY ("plan_version_id") REFERENCES "plan_versions"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_b504a5b710ec5832245809b7bce" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_a4def7b445c9d9befb7c00bb10a" FOREIGN KEY ("target_state_id") REFERENCES "states"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_544b23467353d462531ca25d4a5" FOREIGN KEY ("target_category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_f03d7561ab57652877623ee44ba" FOREIGN KEY ("locked_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_bfe476cb7eae48a06017fd46736" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_ef8559790f2ca2d10a0cf2ecabe" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" ADD CONSTRAINT "FK_9ad0d0f6c8800e425b7e99e8a3d" FOREIGN KEY ("approved_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_a92f15af52b87bbe382a6e6ddea" FOREIGN KEY ("plan_id") REFERENCES "plans"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_acdad2db33127889eecf5e278ac" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" ADD CONSTRAINT "FK_1d949d47e90a4236831324c2569" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plans" ADD CONSTRAINT "FK_df66f4cb64eb30d84a8eae5c8aa" FOREIGN KEY ("active_version_id") REFERENCES "plan_versions"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "coupons" ADD CONSTRAINT "FK_dc1cf7573d95d72ac52fe10a976" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "coupons" ADD CONSTRAINT "FK_44e27ceebba0b5ff63d824ab732" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+      'ALTER TABLE "download_history" ADD CONSTRAINT "FK_ced17cf4b7ef43f639d37123f1f" FOREIGN KEY ("tender_id") REFERENCES "tenders"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
       'ALTER TABLE "email_tokens" ADD CONSTRAINT "FK_018295f41628791c301bfe8b625" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
@@ -1289,6 +1331,15 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "transactions" ADD CONSTRAINT "FK_e9acc6efa76de013e8c1553ed2b" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
     );
     await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_d82d421b42283a8321153a8f602" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_d2eeb84d07a05a52965deb5f664" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" ADD CONSTRAINT "FK_9431c30415dd4fa6d36d0833b86" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
       'ALTER TABLE "user_dashboard_layouts" ADD CONSTRAINT "FK_00e515c96b66eb5b283e6bcb8f1" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
     );
     await queryRunner.query(
@@ -1355,16 +1406,28 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "alert_preferences" ADD CONSTRAINT "FK_385e2e7c38533ff364fec7b399b" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
     );
     await queryRunner.query(
+      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_937e73d569afe91c1196087eb13" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_671a06ceacd4f9312e625288b47" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_9e61aa8dad872cdcab16b8d804b" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_2cdc8b213f5dd8250bde00c065e" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
       'ALTER TABLE "country_change_request_assignments" ADD CONSTRAINT "FK_e73b9220fab07055c318ca2c81e" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
     );
     await queryRunner.query(
       'ALTER TABLE "country_change_request_assignments" ADD CONSTRAINT "FK_01e00a60251354c2e79c28b5d20" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_change_request_assignments" ADD CONSTRAINT "FK_17ef44951dabbdf7c26243e43df" FOREIGN KEY ("assigned_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+      'ALTER TABLE "country_change_request_assignments" ADD CONSTRAINT "FK_17ef44951dabbdf7c26243e43df" FOREIGN KEY ("assigned_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_change_request_comments" ADD CONSTRAINT "FK_e741539753c80463bd2d23d6efd" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
+      'ALTER TABLE "country_change_request_comments" ADD CONSTRAINT "FK_e741539753c80463bd2d23d6efd" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
       'ALTER TABLE "country_change_request_comments" ADD CONSTRAINT "FK_b23fab65c605d6bd9bcb37ad7ac" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
@@ -1379,16 +1442,52 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "country_change_requests" ADD CONSTRAINT "FK_08f1f4db4a9f13a72763ba3c2d7" FOREIGN KEY ("requested_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_937e73d569afe91c1196087eb13" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_af864de067858f1d7138a1426e5" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_671a06ceacd4f9312e625288b47" FOREIGN KEY ("state_id") REFERENCES "states"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_cd5b6c7ed73578449c29520e721" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_9e61aa8dad872cdcab16b8d804b" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_f1e9ee0fcfc30116d54d37bb3c6" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" ADD CONSTRAINT "FK_2cdc8b213f5dd8250bde00c065e" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION',
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_c4b85ade3754381172f07bb963c" FOREIGN KEY ("previous_version_id") REFERENCES "state_versions"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_1e8e61dbb02708729f8cc4341df" FOREIGN KEY ("approved_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" ADD CONSTRAINT "FK_ac1373eb43db2ab4893cc24d60a" FOREIGN KEY ("requested_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" ADD CONSTRAINT "FK_f3bbd0bc19bb6d8a887add08461" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" ADD CONSTRAINT "FK_0e294c8a8ed0c984a200845a2fc" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" ADD CONSTRAINT "FK_0d859da7494cb967ee959ee6445" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "countries" ADD CONSTRAINT "FK_ce2d61e8933e762a07ec723d7d8" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "countries" ADD CONSTRAINT "FK_36bc1d0e763087b521f5f0b2fe3" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" ADD CONSTRAINT "FK_d262243f9718b8656bfe79e94fe" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" ADD CONSTRAINT "FK_685e928408a41e1ed7a816836bf" FOREIGN KEY ("request_id") REFERENCES "country_change_requests"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" ADD CONSTRAINT "FK_cf9b691bc029bbffb2e23ebdef6" FOREIGN KEY ("previous_version_id") REFERENCES "country_versions"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" ADD CONSTRAINT "FK_e72d5d8317711aeaa30d78d1856" FOREIGN KEY ("approved_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" ADD CONSTRAINT "FK_069359fdae8cd0773d16eeeb156" FOREIGN KEY ("requested_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION',
     );
     await queryRunner.query(
       'ALTER TABLE "purchased_tenders" ADD CONSTRAINT "FK_2e335abeaca6eb348036574593c" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION',
@@ -1526,16 +1625,52 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "purchased_tenders" DROP CONSTRAINT "FK_2e335abeaca6eb348036574593c"',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_2cdc8b213f5dd8250bde00c065e"',
+      'ALTER TABLE "country_versions" DROP CONSTRAINT "FK_069359fdae8cd0773d16eeeb156"',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_9e61aa8dad872cdcab16b8d804b"',
+      'ALTER TABLE "country_versions" DROP CONSTRAINT "FK_e72d5d8317711aeaa30d78d1856"',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_671a06ceacd4f9312e625288b47"',
+      'ALTER TABLE "country_versions" DROP CONSTRAINT "FK_cf9b691bc029bbffb2e23ebdef6"',
     );
     await queryRunner.query(
-      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_937e73d569afe91c1196087eb13"',
+      'ALTER TABLE "country_versions" DROP CONSTRAINT "FK_685e928408a41e1ed7a816836bf"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_versions" DROP CONSTRAINT "FK_d262243f9718b8656bfe79e94fe"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "countries" DROP CONSTRAINT "FK_36bc1d0e763087b521f5f0b2fe3"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "countries" DROP CONSTRAINT "FK_ce2d61e8933e762a07ec723d7d8"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" DROP CONSTRAINT "FK_0d859da7494cb967ee959ee6445"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" DROP CONSTRAINT "FK_0e294c8a8ed0c984a200845a2fc"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "states" DROP CONSTRAINT "FK_f3bbd0bc19bb6d8a887add08461"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_ac1373eb43db2ab4893cc24d60a"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_1e8e61dbb02708729f8cc4341df"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_c4b85ade3754381172f07bb963c"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_f1e9ee0fcfc30116d54d37bb3c6"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_cd5b6c7ed73578449c29520e721"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "state_versions" DROP CONSTRAINT "FK_af864de067858f1d7138a1426e5"',
     );
     await queryRunner.query(
       'ALTER TABLE "country_change_requests" DROP CONSTRAINT "FK_08f1f4db4a9f13a72763ba3c2d7"',
@@ -1560,6 +1695,18 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     );
     await queryRunner.query(
       'ALTER TABLE "country_change_request_assignments" DROP CONSTRAINT "FK_e73b9220fab07055c318ca2c81e"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_2cdc8b213f5dd8250bde00c065e"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_9e61aa8dad872cdcab16b8d804b"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_671a06ceacd4f9312e625288b47"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "country_activities" DROP CONSTRAINT "FK_937e73d569afe91c1196087eb13"',
     );
     await queryRunner.query(
       'ALTER TABLE "alert_preferences" DROP CONSTRAINT "FK_385e2e7c38533ff364fec7b399b"',
@@ -1624,6 +1771,15 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('ALTER TABLE "users" DROP CONSTRAINT "FK_ae78dc6cb10aa14cfef96b2dd90"');
     await queryRunner.query(
       'ALTER TABLE "user_dashboard_layouts" DROP CONSTRAINT "FK_00e515c96b66eb5b283e6bcb8f1"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_9431c30415dd4fa6d36d0833b86"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_d2eeb84d07a05a52965deb5f664"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_d82d421b42283a8321153a8f602"',
     );
     await queryRunner.query(
       'ALTER TABLE "transactions" DROP CONSTRAINT "FK_e9acc6efa76de013e8c1553ed2b"',
@@ -1773,131 +1929,10 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "email_tokens" DROP CONSTRAINT "FK_018295f41628791c301bfe8b625"',
     );
     await queryRunner.query(
-      'ALTER TABLE "coupons" DROP CONSTRAINT "FK_44e27ceebba0b5ff63d824ab732"',
+      'ALTER TABLE "download_history" DROP CONSTRAINT "FK_ced17cf4b7ef43f639d37123f1f"',
     );
     await queryRunner.query(
-      'ALTER TABLE "coupons" DROP CONSTRAINT "FK_dc1cf7573d95d72ac52fe10a976"',
-    );
-    await queryRunner.query('ALTER TABLE "plans" DROP CONSTRAINT "FK_df66f4cb64eb30d84a8eae5c8aa"');
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_1d949d47e90a4236831324c2569"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_acdad2db33127889eecf5e278ac"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_a92f15af52b87bbe382a6e6ddea"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_9ad0d0f6c8800e425b7e99e8a3d"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_ef8559790f2ca2d10a0cf2ecabe"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_bfe476cb7eae48a06017fd46736"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_f03d7561ab57652877623ee44ba"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_544b23467353d462531ca25d4a5"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_a4def7b445c9d9befb7c00bb10a"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_b504a5b710ec5832245809b7bce"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_reviews" DROP CONSTRAINT "FK_153818f75a38884e5976add7599"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_reviews" DROP CONSTRAINT "FK_a0b90ebf2282ad4afee46b6a805"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_comments" DROP CONSTRAINT "FK_6a794d51dc752ae26d167cb0433"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_comments" DROP CONSTRAINT "FK_3d02ec9688ce8b01e5e2bd9d4af"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_assignments" DROP CONSTRAINT "FK_ee2201ae3c00916663df1e890ac"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_review_assignments" DROP CONSTRAINT "FK_b67e28dd5195e98fc797a58dbd3"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_features" DROP CONSTRAINT "FK_fe08b1d2021ae6e9eabd4c3ed6e"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_country_pricing" DROP CONSTRAINT "FK_5e6abfa4af51ec282f0a21d24b8"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_country_pricing" DROP CONSTRAINT "FK_0e0412657afe2b7a3e9221695c8"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_category_pricing" DROP CONSTRAINT "FK_5ccafe486b6d167c7db0611d6ee"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "plan_category_pricing" DROP CONSTRAINT "FK_d9a7e7c2101719da829425216a5"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "countries" DROP CONSTRAINT "FK_36bc1d0e763087b521f5f0b2fe3"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "countries" DROP CONSTRAINT "FK_ce2d61e8933e762a07ec723d7d8"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_9431c30415dd4fa6d36d0833b86"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_d2eeb84d07a05a52965deb5f664"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "user_daily_metrics" DROP CONSTRAINT "FK_d82d421b42283a8321153a8f602"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" DROP CONSTRAINT "FK_0d859da7494cb967ee959ee6445"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" DROP CONSTRAINT "FK_0e294c8a8ed0c984a200845a2fc"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "states" DROP CONSTRAINT "FK_f3bbd0bc19bb6d8a887add08461"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_38d110b2653f9ce3d9a4fbe3aa4"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_3844ca8aab685f38b6656f064fa"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_8aabeb9be8a97c625dd287e75b7"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_b4e4a8cf8ec0c251e4e2d16c288"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_reviews" DROP CONSTRAINT "FK_f9fa0dfc51991eea00cabd9bb6e"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_comments" DROP CONSTRAINT "FK_5b0021091d8140b434f731f6d2c"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_comments" DROP CONSTRAINT "FK_884bcc4cacc41156beb13b86b21"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_assignments" DROP CONSTRAINT "FK_082087381c796d39ed1bb5551b8"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_review_assignments" DROP CONSTRAINT "FK_63a91cd2e03f70f54a6c75a5981"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_documents" DROP CONSTRAINT "FK_58b64cce5db96c5cca8c7f27b73"',
-    );
-    await queryRunner.query(
-      'ALTER TABLE "tender_documents" DROP CONSTRAINT "FK_7a72f2a65a422d49af6e4306818"',
+      'ALTER TABLE "download_history" DROP CONSTRAINT "FK_2c8c1dfdcf8e6c16daf1d69771d"',
     );
     await queryRunner.query(
       'ALTER TABLE "tenders" DROP CONSTRAINT "FK_bce1779e98be9e8d90937c9c8b3"',
@@ -1987,10 +2022,107 @@ export class InitialSchema1788500344578 implements MigrationInterface {
       'ALTER TABLE "tender_amendments" DROP CONSTRAINT "FK_c28e5652b8282158a300360a5f3"',
     );
     await queryRunner.query(
-      'ALTER TABLE "download_history" DROP CONSTRAINT "FK_ced17cf4b7ef43f639d37123f1f"',
+      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_38d110b2653f9ce3d9a4fbe3aa4"',
     );
     await queryRunner.query(
-      'ALTER TABLE "download_history" DROP CONSTRAINT "FK_2c8c1dfdcf8e6c16daf1d69771d"',
+      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_3844ca8aab685f38b6656f064fa"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_8aabeb9be8a97c625dd287e75b7"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_versions" DROP CONSTRAINT "FK_b4e4a8cf8ec0c251e4e2d16c288"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_reviews" DROP CONSTRAINT "FK_f9fa0dfc51991eea00cabd9bb6e"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_comments" DROP CONSTRAINT "FK_5b0021091d8140b434f731f6d2c"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_comments" DROP CONSTRAINT "FK_884bcc4cacc41156beb13b86b21"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_assignments" DROP CONSTRAINT "FK_082087381c796d39ed1bb5551b8"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_review_assignments" DROP CONSTRAINT "FK_63a91cd2e03f70f54a6c75a5981"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_documents" DROP CONSTRAINT "FK_58b64cce5db96c5cca8c7f27b73"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "tender_documents" DROP CONSTRAINT "FK_7a72f2a65a422d49af6e4306818"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "coupons" DROP CONSTRAINT "FK_44e27ceebba0b5ff63d824ab732"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "coupons" DROP CONSTRAINT "FK_dc1cf7573d95d72ac52fe10a976"',
+    );
+    await queryRunner.query('ALTER TABLE "plans" DROP CONSTRAINT "FK_df66f4cb64eb30d84a8eae5c8aa"');
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_1d949d47e90a4236831324c2569"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_acdad2db33127889eecf5e278ac"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "subscription_daily_metrics" DROP CONSTRAINT "FK_a92f15af52b87bbe382a6e6ddea"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_9ad0d0f6c8800e425b7e99e8a3d"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_ef8559790f2ca2d10a0cf2ecabe"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_bfe476cb7eae48a06017fd46736"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_f03d7561ab57652877623ee44ba"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_544b23467353d462531ca25d4a5"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_a4def7b445c9d9befb7c00bb10a"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_versions" DROP CONSTRAINT "FK_b504a5b710ec5832245809b7bce"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_reviews" DROP CONSTRAINT "FK_153818f75a38884e5976add7599"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_reviews" DROP CONSTRAINT "FK_a0b90ebf2282ad4afee46b6a805"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_comments" DROP CONSTRAINT "FK_6a794d51dc752ae26d167cb0433"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_comments" DROP CONSTRAINT "FK_3d02ec9688ce8b01e5e2bd9d4af"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_assignments" DROP CONSTRAINT "FK_ee2201ae3c00916663df1e890ac"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_review_assignments" DROP CONSTRAINT "FK_b67e28dd5195e98fc797a58dbd3"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_features" DROP CONSTRAINT "FK_fe08b1d2021ae6e9eabd4c3ed6e"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_country_pricing" DROP CONSTRAINT "FK_5e6abfa4af51ec282f0a21d24b8"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_country_pricing" DROP CONSTRAINT "FK_0e0412657afe2b7a3e9221695c8"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_category_pricing" DROP CONSTRAINT "FK_5ccafe486b6d167c7db0611d6ee"',
+    );
+    await queryRunner.query(
+      'ALTER TABLE "plan_category_pricing" DROP CONSTRAINT "FK_d9a7e7c2101719da829425216a5"',
     );
     await queryRunner.query(
       'ALTER TABLE "audit_retention_policies" DROP CONSTRAINT "FK_8f7483f0b84a512adabbb727d75"',
@@ -2057,17 +2189,38 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('DROP TABLE "role_activities"');
     await queryRunner.query('DROP TYPE "public"."role_activities_activity_type_enum"');
     await queryRunner.query('DROP TABLE "purchased_tenders"');
-    await queryRunner.query('DROP INDEX "public"."IDX_1950c37c8beb54f409bb8097de"');
-    await queryRunner.query('DROP INDEX "public"."IDX_1c7dec593b8b088def83993689"');
-    await queryRunner.query('DROP INDEX "public"."IDX_0db9750ef5c3b86b7037c539cc"');
-    await queryRunner.query('DROP INDEX "public"."IDX_9e61aa8dad872cdcab16b8d804"');
-    await queryRunner.query('DROP INDEX "public"."IDX_f715406bfad5ac865c9743bc15"');
-    await queryRunner.query('DROP INDEX "public"."uq_country_seed_event"');
-    await queryRunner.query('DROP INDEX "public"."uq_state_seed_event"');
-    await queryRunner.query('DROP TABLE "country_activities"');
-    await queryRunner.query('DROP TYPE "public"."country_activities_event_type_enum"');
-    await queryRunner.query('DROP TYPE "public"."country_activities_actor_type_enum"');
+    await queryRunner.query('DROP INDEX "public"."uq_country_version"');
+    await queryRunner.query('DROP INDEX "public"."idx_country_versions_country_version"');
+    await queryRunner.query('DROP INDEX "public"."idx_country_versions_request_id"');
+    await queryRunner.query('DROP INDEX "public"."idx_country_versions_approved_by"');
+    await queryRunner.query('DROP INDEX "public"."idx_country_versions_created_at"');
+    await queryRunner.query('DROP TABLE "country_versions"');
+    await queryRunner.query('DROP TYPE "public"."country_versions_request_status_enum"');
+    await queryRunner.query('DROP TYPE "public"."country_versions_action_enum"');
+    await queryRunner.query('DROP INDEX "public"."idx_country_slug"');
+    await queryRunner.query('DROP TABLE "countries"');
+    await queryRunner.query('DROP INDEX "public"."uq_state_country_slug"');
+    await queryRunner.query('DROP INDEX "public"."uq_state_country_code"');
+    await queryRunner.query('DROP TABLE "states"');
+    await queryRunner.query('DROP TYPE "public"."states_type_enum"');
+    await queryRunner.query('DROP INDEX "public"."uq_state_version"');
+    await queryRunner.query('DROP INDEX "public"."idx_state_versions_state_version"');
+    await queryRunner.query('DROP INDEX "public"."idx_state_versions_country_id"');
+    await queryRunner.query('DROP INDEX "public"."idx_state_versions_request_id"');
+    await queryRunner.query('DROP INDEX "public"."idx_state_versions_approved_by"');
+    await queryRunner.query('DROP INDEX "public"."idx_state_versions_created_at"');
+    await queryRunner.query('DROP TABLE "state_versions"');
+    await queryRunner.query('DROP TYPE "public"."state_versions_request_status_enum"');
+    await queryRunner.query('DROP TYPE "public"."state_versions_action_enum"');
+    await queryRunner.query('DROP TYPE "public"."state_versions_type_enum"');
     await queryRunner.query('DROP INDEX "public"."IDX_3f7d3c1e60c7d3c8c342134361"');
+    await queryRunner.query('DROP INDEX "public"."IDX_5ff3052ed0d10d49ceb947232b"');
+    await queryRunner.query('DROP INDEX "public"."IDX_08f1f4db4a9f13a72763ba3c2d"');
+    await queryRunner.query('DROP INDEX "public"."IDX_ed3edfa7651545760c9398ff16"');
+    await queryRunner.query('DROP INDEX "public"."IDX_d4cd98ae1741b373210df09c5d"');
+    await queryRunner.query('DROP INDEX "public"."IDX_20bb4e789aa9efccbac48ee471"');
+    await queryRunner.query('DROP INDEX "public"."uq_active_country_request"');
+    await queryRunner.query('DROP INDEX "public"."uq_active_state_request"');
     await queryRunner.query('DROP TABLE "country_change_requests"');
     await queryRunner.query('DROP TYPE "public"."country_change_requests_status_enum"');
     await queryRunner.query('DROP TYPE "public"."country_change_requests_action_enum"');
@@ -2078,6 +2231,13 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('DROP INDEX "public"."IDX_13567c18620e1519d010a0bdd8"');
     await queryRunner.query('DROP TABLE "country_change_request_assignments"');
     await queryRunner.query('DROP TYPE "public"."country_change_request_assignments_status_enum"');
+    await queryRunner.query('DROP INDEX "public"."IDX_1950c37c8beb54f409bb8097de"');
+    await queryRunner.query('DROP INDEX "public"."IDX_1c7dec593b8b088def83993689"');
+    await queryRunner.query('DROP INDEX "public"."IDX_0db9750ef5c3b86b7037c539cc"');
+    await queryRunner.query('DROP INDEX "public"."IDX_f715406bfad5ac865c9743bc15"');
+    await queryRunner.query('DROP TABLE "country_activities"');
+    await queryRunner.query('DROP TYPE "public"."country_activities_event_type_enum"');
+    await queryRunner.query('DROP TYPE "public"."country_activities_actor_type_enum"');
     await queryRunner.query('DROP INDEX "public"."idx_alert_preferences_user"');
     await queryRunner.query('DROP INDEX "public"."idx_alert_preferences_category"');
     await queryRunner.query('DROP INDEX "public"."idx_alert_preferences_state"');
@@ -2119,6 +2279,9 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('DROP INDEX "public"."ux_user_dashboard_layouts_user_id"');
     await queryRunner.query('DROP TABLE "user_dashboard_layouts"');
     await queryRunner.query('DROP TYPE "public"."user_dashboard_layouts_theme_enum"');
+    await queryRunner.query('DROP INDEX "public"."IDX_1211ea16bc2c63b2f8765de71b"');
+    await queryRunner.query('DROP INDEX "public"."IDX_92e8db9fc520bae642271c597d"');
+    await queryRunner.query('DROP TABLE "user_daily_metrics"');
     await queryRunner.query('DROP INDEX "public"."idx_txn_user_created"');
     await queryRunner.query('DROP INDEX "public"."idx_txn_status"');
     await queryRunner.query('DROP INDEX "public"."idx_txn_type"');
@@ -2226,6 +2389,30 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('DROP INDEX "public"."email_tokens_type_idx"');
     await queryRunner.query('DROP TABLE "email_tokens"');
     await queryRunner.query('DROP TYPE "public"."email_tokens_type_enum"');
+    await queryRunner.query('DROP INDEX "public"."idx_downloads_user_date"');
+    await queryRunner.query('DROP INDEX "public"."idx_downloads_tender_date"');
+    await queryRunner.query('DROP INDEX "public"."idx_downloads_date"');
+    await queryRunner.query('DROP TABLE "download_history"');
+    await queryRunner.query('DROP TYPE "public"."download_history_download_source_enum"');
+    await queryRunner.query('DROP TABLE "tenders"');
+    await queryRunner.query('DROP TABLE "tender_watchers"');
+    await queryRunner.query('DROP TABLE "tender_questions"');
+    await queryRunner.query('DROP TABLE "tender_participants"');
+    await queryRunner.query('DROP TABLE "tender_evaluations"');
+    await queryRunner.query('DROP TABLE "tender_submissions"');
+    await queryRunner.query('DROP TABLE "evaluation_templates"');
+    await queryRunner.query('DROP TABLE "tender_invitations"');
+    await queryRunner.query('DROP INDEX "public"."IDX_c976572173202cbbdc2eea63cf"');
+    await queryRunner.query('DROP INDEX "public"."IDX_322b11978e8d4e7b296b7dc76b"');
+    await queryRunner.query('DROP TABLE "tender_daily_metrics"');
+    await queryRunner.query('DROP TABLE "tender_committees"');
+    await queryRunner.query('DROP TABLE "tender_clarifications"');
+    await queryRunner.query('DROP TABLE "tender_amendments"');
+    await queryRunner.query('DROP TABLE "tender_versions"');
+    await queryRunner.query('DROP TABLE "tender_reviews"');
+    await queryRunner.query('DROP TABLE "tender_review_comments"');
+    await queryRunner.query('DROP TABLE "tender_review_assignments"');
+    await queryRunner.query('DROP TABLE "tender_documents"');
     await queryRunner.query('DROP INDEX "public"."idx_coupons_validity"');
     await queryRunner.query('DROP INDEX "public"."idx_coupons_active"');
     await queryRunner.query('DROP TABLE "coupons"');
@@ -2257,39 +2444,6 @@ export class InitialSchema1788500344578 implements MigrationInterface {
     await queryRunner.query('DROP TYPE "public"."plan_features_value_type_enum"');
     await queryRunner.query('DROP TABLE "plan_country_pricing"');
     await queryRunner.query('DROP TABLE "plan_category_pricing"');
-    await queryRunner.query('DROP INDEX "public"."idx_country_slug"');
-    await queryRunner.query('DROP TABLE "countries"');
-    await queryRunner.query('DROP INDEX "public"."IDX_1211ea16bc2c63b2f8765de71b"');
-    await queryRunner.query('DROP INDEX "public"."IDX_92e8db9fc520bae642271c597d"');
-    await queryRunner.query('DROP TABLE "user_daily_metrics"');
-    await queryRunner.query('DROP INDEX "public"."idx_states_country_id_code"');
-    await queryRunner.query('DROP INDEX "public"."idx_states_slug"');
-    await queryRunner.query('DROP TABLE "states"');
-    await queryRunner.query('DROP TYPE "public"."states_type_enum"');
-    await queryRunner.query('DROP TABLE "tender_versions"');
-    await queryRunner.query('DROP TABLE "tender_reviews"');
-    await queryRunner.query('DROP TABLE "tender_review_comments"');
-    await queryRunner.query('DROP TABLE "tender_review_assignments"');
-    await queryRunner.query('DROP TABLE "tender_documents"');
-    await queryRunner.query('DROP TABLE "tenders"');
-    await queryRunner.query('DROP TABLE "tender_watchers"');
-    await queryRunner.query('DROP TABLE "tender_questions"');
-    await queryRunner.query('DROP TABLE "tender_participants"');
-    await queryRunner.query('DROP TABLE "tender_evaluations"');
-    await queryRunner.query('DROP TABLE "tender_submissions"');
-    await queryRunner.query('DROP TABLE "evaluation_templates"');
-    await queryRunner.query('DROP TABLE "tender_invitations"');
-    await queryRunner.query('DROP INDEX "public"."IDX_c976572173202cbbdc2eea63cf"');
-    await queryRunner.query('DROP INDEX "public"."IDX_322b11978e8d4e7b296b7dc76b"');
-    await queryRunner.query('DROP TABLE "tender_daily_metrics"');
-    await queryRunner.query('DROP TABLE "tender_committees"');
-    await queryRunner.query('DROP TABLE "tender_clarifications"');
-    await queryRunner.query('DROP TABLE "tender_amendments"');
-    await queryRunner.query('DROP INDEX "public"."idx_downloads_user_date"');
-    await queryRunner.query('DROP INDEX "public"."idx_downloads_tender_date"');
-    await queryRunner.query('DROP INDEX "public"."idx_downloads_date"');
-    await queryRunner.query('DROP TABLE "download_history"');
-    await queryRunner.query('DROP TYPE "public"."download_history_download_source_enum"');
     await queryRunner.query('DROP INDEX "public"."idx_retention_category_enabled"');
     await queryRunner.query('DROP TABLE "audit_retention_policies"');
     await queryRunner.query('DROP TYPE "public"."audit_retention_policies_category_enum"');

@@ -50,14 +50,14 @@ export class Subscription {
    * PayPal Subscriptions API ID (I-XXXXXXXXXXXX).
    * Set for recurring plans — used to cancel, suspend, or query the subscription.
    */
-  @Column({ name: 'paypal_subscription_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'paypal_subscription_id', type: 'varchar', nullable: true })
   paypalSubscriptionId!: string | null;
 
   /**
    * PayPal Orders API order ID.
    * Set for one-time (non-recurring) plan purchases.
    */
-  @Column({ name: 'paypal_order_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'paypal_order_id', type: 'varchar', nullable: true })
   paypalOrderId!: string | null;
 
   @Column({ name: 'target_state_id', type: 'smallint', nullable: true })

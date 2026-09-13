@@ -59,14 +59,14 @@ export class FeatureCatalog {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })

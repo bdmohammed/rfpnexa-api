@@ -14,6 +14,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { CountryVersion } from './CountryVersion';
 import { State } from './State';
 import { TenderDailyMetrics } from './TenderDailyMetrics';
 import { User } from './User';
@@ -28,7 +29,7 @@ export class Country {
   @PrimaryGeneratedColumn('increment', {
     type: 'smallint',
   })
-  id!: string;
+  id!: number;
 
   /** ISO 3166-1 Alpha-2 Code (IN, US, CA...) */
   @Column({
@@ -51,9 +52,6 @@ export class Country {
   })
   name!: string;
 
-  @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder!: number;
-
   @Column({
     name: 'is_active',
     type: 'boolean',
@@ -61,6 +59,13 @@ export class Country {
   })
   isActive!: boolean;
 
+  /**
+   * Nullable only during initial bootstrap.
+   * Seed process:
+   * 1. Create bootstrap country.
+   * 2. Create system user.
+   * 3. Backfill created_by.
+   */
   @Column({
     name: 'created_by',
     type: 'uuid',
@@ -70,10 +75,10 @@ export class Country {
 
   @ManyToOne(() => User, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'created_by' })
-  createdBy!: Relation<User>;
+  createdBy!: Relation<User | null>;
 
   @Column({
     name: 'updated_by',
@@ -84,7 +89,7 @@ export class Country {
 
   @ManyToOne(() => User, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'updated_by',
@@ -115,6 +120,9 @@ export class Country {
 
   @OneToMany(() => UserDailyMetrics, (metrics) => metrics.country)
   userMetrics!: Relation<UserDailyMetrics[]>;
+
+  @OneToMany(() => CountryVersion, (version) => version.country)
+  versions!: Relation<CountryVersion[]>;
 
   // ─── Hooks ────────────────────────────────────────────────────────────
   @BeforeInsert()

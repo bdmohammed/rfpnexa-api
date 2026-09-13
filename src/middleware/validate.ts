@@ -28,18 +28,26 @@ export type Target = 'body' | 'query' | 'params';
  * Forwards an `AppError` with status 422 (`UNPROCESSABLE_ENTITY`), code `VALIDATION_ERROR`,
  * and flattened field error metadata when validation fails.
  */
-export function validate<T>(
-  schema: ZodType<T>,
-  target: 'body',
-): RequestHandler<ParamsDictionary, unknown, T, ParsedQs>;
-export function validate<T>(
-  schema: ZodType<T>,
-  target: 'query',
-): RequestHandler<ParamsDictionary, unknown, unknown, T>;
-export function validate<T extends ParamsDictionary>(
-  schema: ZodType<T>,
-  target: 'params',
-): RequestHandler<T>;
+export function validate<
+  P extends ParamsDictionary = ParamsDictionary,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = ParsedQs,
+>(schema: ZodType<ReqBody>, target: 'body'): RequestHandler<P, ResBody, ReqBody, ReqQuery>;
+
+export function validate<
+  P extends ParamsDictionary = ParamsDictionary,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = ParsedQs,
+>(schema: ZodType<ReqQuery>, target: 'query'): RequestHandler<P, ResBody, ReqBody, ReqQuery>;
+
+export function validate<
+  P extends ParamsDictionary,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = ParsedQs,
+>(schema: ZodType<P>, target: 'params'): RequestHandler<P, ResBody, ReqBody, ReqQuery>;
 export function validate(schema: ZodType<unknown>, target: Target = 'body'): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[target]);

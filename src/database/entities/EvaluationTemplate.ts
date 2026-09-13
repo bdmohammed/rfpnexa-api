@@ -69,7 +69,7 @@ export class EvaluationTemplate {
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })

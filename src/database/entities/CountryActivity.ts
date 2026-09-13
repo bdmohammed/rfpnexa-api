@@ -20,29 +20,21 @@ import { ActorType, CountryActivityType } from '@/types/enums';
 @Index(['countryId', 'createdAt'])
 @Index(['stateId', 'createdAt'])
 @Index(['requestId', 'createdAt'])
-@Index(['requestId'])
+// @Index(['requestId'])
 @Index(['eventType'])
-@Index('uq_country_seed_event', ['countryId'], {
-  unique: true,
-  where: '"state_id" IS NULL AND "event_type" = \'SEEDED\'',
-})
-@Index('uq_state_seed_event', ['stateId'], {
-  unique: true,
-  where: '"event_type" = \'SEEDED\'',
-})
 export class CountryActivity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'country_id', type: 'smallint' })
-  countryId!: string;
+  countryId!: number;
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
   country!: Relation<Country>;
 
   @Column({ name: 'state_id', type: 'smallint', nullable: true })
-  stateId!: string | null;
+  stateId!: number | null;
 
   @ManyToOne(() => State, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'state_id' })
@@ -53,17 +45,17 @@ export class CountryActivity {
 
   @ManyToOne(() => CountryChangeRequest, (req) => req.activities, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'request_id' })
   request!: Relation<CountryChangeRequest | null>;
 
-  @Column({ name: 'actor_id', type: 'uuid', nullable: true })
-  actorId!: string | null;
+  @Column({ name: 'actor_id', type: 'uuid' })
+  actorId!: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'actor_id' })
-  actor!: Relation<User | null>;
+  actor!: Relation<User>;
 
   @Column({
     name: 'actor_type',
@@ -95,10 +87,10 @@ export class CountryActivity {
   @Column({ type: 'jsonb', nullable: true })
   metadata!: Record<string, unknown> | null;
 
-  @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true })
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
   ipAddress!: string | null;
 
-  @Column({ name: 'user_agent', type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

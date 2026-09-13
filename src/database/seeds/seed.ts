@@ -4,15 +4,16 @@ import * as path from 'node:path';
 
 import * as bcrypt from 'bcryptjs';
 
+import { COUNTRIES_SEED_DATA } from './data/countries.data';
+import { ensureCountry, finalizeBootstrapCountry } from './helpers/seedCountry';
+
 import type { DataSource, EntityTarget, ObjectLiteral } from 'typeorm';
 import { AppDataSource } from '@/config/database';
 import { env } from '@/config/env';
 import { logger } from '@/config/logger';
-import { Country } from '@/entities/Country';
-import { CountryActivity } from '@/entities/CountryActivity';
 import { SeedHistory } from '@/entities/SeedHistory';
 import { User } from '@/entities/User';
-import { AccountType, ActorType, CountryActivityType, SeedStatus, UserStatus } from '@/types/enums';
+import { AccountType, SeedStatus, UserStatus } from '@/types/enums';
 import { hashToken } from '@/utils/crypto';
 
 import 'reflect-metadata';
@@ -175,24 +176,15 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
   const skippedSeeds: string[] = [];
 
   const userRepo = dataSource.getRepository(User);
-  const countryRepo = dataSource.getRepository(Country);
   const email = env.RFPNEXA_SYSTEM_ADMIN_EMAIL;
 
   let systemUser = await userRepo.findOne({ where: { email } });
   if (!systemUser) {
-    let country = await countryRepo.findOne({ where: { code: 'US' } });
-    const isNewCountry = !country;
-    if (!country) {
-      const createdCountry = countryRepo.create({
-        code: 'US',
-        name: 'United States of America',
-        slug: 'united-states-of-america',
-        isActive: true,
-        createdById: null,
-        updatedById: null,
-      });
-      country = await countryRepo.save(createdCountry);
-    }
+    const defaultCountryData = COUNTRIES_SEED_DATA.find((c) => c.code === 'US') ?? {
+      code: 'US',
+      name: 'United States of America',
+    };
+    const { country, isNew } = await ensureCountry(dataSource, defaultCountryData, null);
 
     // Generate high-entropy password hash that nobody knows
     const tempPassword = crypto.randomBytes(32).toString('hex');
@@ -214,37 +206,8 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
     );
 
     // Back-patch the country row so created_by / updated_by point to the system user
-    if (isNewCountry) {
-      await countryRepo.update(country.id, {
-        createdById: systemUser.id,
-        updatedById: systemUser.id,
-      });
-      logger.info(
-        `✓ Back-patched country [${country.code}] created_by/updated_by → system user [${systemUser.id}]`,
-      );
-
-      const activityRepo = dataSource.getRepository(CountryActivity);
-      await activityRepo.save(
-        activityRepo.create({
-          countryId: country.id,
-          actorId: systemUser.id,
-          actorType: ActorType.SYSTEM,
-          eventType: CountryActivityType.SEEDED,
-          title: 'Country Seeded',
-          description: `Country "${country.name} (${country.code})" was created during the initial system data seeding.`,
-          oldValue: null,
-          newValue: {
-            name: country.name,
-            code: country.code,
-            isActive: country.isActive,
-          },
-          metadata: {
-            source: 'SYSTEM_SEEDER',
-            countryCode: country.code,
-            countryName: country.name,
-          },
-        }),
-      );
+    if (isNew) {
+      await finalizeBootstrapCountry(dataSource, country, systemUser);
     }
   }
 

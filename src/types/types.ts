@@ -52,10 +52,10 @@ export type PermissionModuleSeed = Required<
  * [WHY]
  * Guarantees a consistent JSON contract across all API endpoints for clients and SDK consumers.
  */
-export interface ApiResponse<T = unknown, U = unknown> {
+export interface ApiResponse<T, U = never> {
   success: boolean;
   message: string;
-  data?: T;
+  data: T;
   meta?: U;
   traceId?: string | undefined;
 }

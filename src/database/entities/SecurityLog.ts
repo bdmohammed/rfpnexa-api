@@ -32,41 +32,41 @@ export class SecurityLog {
   @Column({ type: 'enum', enum: LogSource, default: LogSource.API })
   source!: LogSource;
 
-  @Column({ name: 'endpoint', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'endpoint', type: 'varchar', nullable: true })
   endpoint!: string | null;
 
-  @Column({ name: 'user_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'user_id' })
   user!: Relation<User | null>;
 
-  @Column({ type: 'varchar', nullable: true, default: null })
+  @Column({ type: 'varchar', nullable: true })
   email!: string | null;
 
   @Column({ type: 'enum', enum: SecurityEvent })
   event!: SecurityEvent;
 
-  @Column({ name: 'ip_address', type: 'inet', nullable: true, default: null })
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
   ipAddress!: string | null;
 
-  @Column({ name: 'user_agent', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
-  @Column({ name: 'session_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'session_id', type: 'varchar', nullable: true })
   sessionId!: string | null;
 
-  @Column({ name: 'request_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'request_id', type: 'varchar', nullable: true })
   requestId!: string | null;
 
-  @Column({ name: 'trace_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'trace_id', type: 'varchar', nullable: true })
   traceId!: string | null;
 
-  @Column({ name: 'correlation_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'correlation_id', type: 'uuid', nullable: true })
   correlationId!: string | null;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   details!: SecurityLogDetails | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

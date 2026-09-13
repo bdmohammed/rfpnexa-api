@@ -56,19 +56,19 @@ export class Coupon {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ name: 'max_redemptions', type: 'int', nullable: true, default: null })
+  @Column({ name: 'max_redemptions', type: 'int', nullable: true })
   maxRedemptions!: number | null;
 
   @Column({ name: 'redemption_count', type: 'int', default: 0 })
   redemptionCount!: number;
 
-  @Column({ name: 'max_redemptions_per_user', type: 'int', nullable: true, default: null })
+  @Column({ name: 'max_redemptions_per_user', type: 'int', nullable: true })
   maxRedemptionsPerUser!: number | null;
 
-  @Column({ name: 'min_purchase_cents', type: 'int', nullable: true, default: null })
+  @Column({ name: 'min_purchase_cents', type: 'int', nullable: true })
   minPurchaseCents!: number | null;
 
-  @Column({ name: 'max_discount_cents', type: 'int', nullable: true, default: null })
+  @Column({ name: 'max_discount_cents', type: 'int', nullable: true })
   maxDiscountCents!: number | null;
 
   @Column({ name: 'first_purchase_only', type: 'boolean', default: false })
@@ -77,20 +77,20 @@ export class Coupon {
   @Column({ name: 'is_recurring', type: 'boolean', default: false })
   isRecurring!: boolean;
 
-  @Column({ name: 'valid_from', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'valid_from', type: 'timestamptz', nullable: true })
   validFrom!: Date | null;
 
-  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt!: Date | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
@@ -103,7 +103,7 @@ export class Coupon {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true, default: null })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt!: Date | null;
 
   // ─── Relations ────────────────────────────────────────────────────────────

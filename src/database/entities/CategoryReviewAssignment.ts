@@ -42,7 +42,7 @@ export class CategoryReviewAssignment {
   })
   status!: ReviewAssignmentStatus;
 
-  @Column({ name: 'assigned_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'assigned_by', type: 'uuid', nullable: true })
   assignedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
@@ -52,10 +52,10 @@ export class CategoryReviewAssignment {
   @Column({ name: 'assigned_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   assignedAt!: Date;
 
-  @Column({ name: 'responded_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'responded_at', type: 'timestamptz', nullable: true })
   respondedAt!: Date | null;
 
-  @Column({ name: 'response_comment', type: 'text', nullable: true, default: null })
+  @Column({ name: 'response_comment', type: 'text', nullable: true })
   responseComment!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

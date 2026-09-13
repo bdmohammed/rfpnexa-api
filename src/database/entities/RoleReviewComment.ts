@@ -45,10 +45,10 @@ export class RoleReviewComment {
   @Column({ name: 'is_internal', type: 'boolean', default: false })
   isInternal!: boolean;
 
-  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true })
   editedAt!: Date | null;
 
-  @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true })
   parentCommentId!: string | null;
 
   @ManyToOne(() => RoleReviewComment, { onDelete: 'SET NULL', nullable: true })

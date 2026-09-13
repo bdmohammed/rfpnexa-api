@@ -1,12 +1,12 @@
 import crypto from 'node:crypto';
 
 import { updateTheme as updateAppTheme } from './layout/services/layout.service';
-import { type PatchLayoutDto } from './dashboard.dto';
 import * as dashboardService from './dashboard.service';
 
-import type { UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
+import type { BuildDashboardResponse, PatchLayoutDto } from './dashboard.dto';
 import type { DashboardTheme } from '@/types/enums';
 import type { AuthenticatedUser } from '@/types/express';
+import type { ApiResponse } from '@/types/types';
 import { asyncHandler } from '@/core/asyncHandler';
 import { sendOk } from '@/core/response';
 
@@ -38,15 +38,17 @@ export const updateTheme = asyncHandler<{}, object, { theme: DashboardTheme }>(a
   return sendOk(res, theme);
 });
 
-export const resetLayout = asyncHandler<{}, UserDashboardLayout, {}>(async (req, res) => {
-  const layout = await dashboardService.resetDashboardLayout(
-    (req.user as AuthenticatedUser).userId,
-    req.permissions as string[],
-    req.roles as string[],
-  );
+export const resetLayout = asyncHandler<{}, ApiResponse<BuildDashboardResponse>>(
+  async (req, res) => {
+    const layout = await dashboardService.resetDashboardLayout(
+      (req.user as AuthenticatedUser).userId,
+      req.permissions as string[],
+      req.roles as string[],
+    );
 
-  return sendOk(res, layout);
-});
+    return sendOk(res, layout);
+  },
+);
 
 // ─── Widget Specific Composition Endpoints ────────────────────────────────────
 

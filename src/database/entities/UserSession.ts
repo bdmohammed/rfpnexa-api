@@ -43,7 +43,7 @@ export class UserSession {
   @Column({ name: 'last_used_at', type: 'timestamptz', nullable: true })
   lastUsedAt!: Date | null;
 
-  @Column({ name: 'user_agent', type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })

@@ -43,6 +43,6 @@ export class PlanReviewAssignment {
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt!: Date;
 
-  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
   reviewedAt!: Date | null;
 }

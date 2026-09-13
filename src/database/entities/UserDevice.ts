@@ -29,7 +29,7 @@ export class UserDevice {
   @Index()
   deviceHash!: string;
 
-  @Column({ name: 'user_agent', type: 'varchar', nullable: true })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
   @Column({ name: 'last_ip_address', type: 'varchar', nullable: true })

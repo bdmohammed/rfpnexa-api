@@ -179,7 +179,7 @@ export class TenderVersion {
   @JoinColumn({ name: 'created_by_id' })
   createdBy!: Relation<User | null>;
 
-  @Column({ name: 'created_by_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

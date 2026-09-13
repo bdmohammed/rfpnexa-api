@@ -153,7 +153,7 @@ router.patch(
 router.patch(
   '/theme',
   requirePermission(DashboardPermissions.VIEW.key),
-  validate(updateDashboardThemeSchema),
+  validate(updateDashboardThemeSchema, 'body'),
   controller.updateTheme,
 );
 

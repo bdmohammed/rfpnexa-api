@@ -720,6 +720,40 @@ All responses use a consistent envelope:
               },
             },
           },
+
+          GeographicalState: {
+            type: 'object',
+            required: ['id', 'code', 'name', 'slug', 'type', 'country'],
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+              },
+              code: {
+                type: 'string',
+                description: 'ISO state/region code',
+                example: 'CA',
+              },
+              name: {
+                type: 'string',
+                example: 'California',
+              },
+              slug: {
+                type: 'string',
+                example: 'california',
+              },
+              type: {
+                type: 'string',
+                enum: ['state', 'territory', 'federal'],
+                example: 'state',
+              },
+              country: {
+                type: 'string',
+                example: 'United States',
+              },
+            },
+          },
         },
 
         // ── Reusable Parameters ───────────────────────────────────────────────────
@@ -958,7 +992,11 @@ All responses use a consistent envelope:
           description: 'Role-Based Access Control — roles, permissions, version workflow',
         },
         { name: 'Categories', description: 'Tender category taxonomy — public read, admin write' },
-        { name: 'States', description: 'US states and territories reference data' },
+        {
+          name: 'Geography',
+          description:
+            'Manage countries, states, geographic reference data, and maker-checker workflows.',
+        },
         { name: 'Support', description: 'Customer support ticket system' },
         { name: 'Notifications', description: 'In-app notification management' },
         {

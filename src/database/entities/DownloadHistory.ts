@@ -49,22 +49,21 @@ export class DownloadHistory {
   @Column({ name: 'file_name', type: 'varchar', length: 255 })
   fileName!: string;
 
-  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
   storageKey!: string | null;
 
   @Column({ name: 'file_size', type: 'bigint' })
   fileSize!: number;
 
-  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
   mimeType!: string | null;
 
-  @Column({ type: 'inet', nullable: true, default: null })
+  @Column({ type: 'inet', nullable: true })
   ipAddress!: string | null;
 
   @Column({
     name: 'user_agent',
-    type: 'varchar',
-    length: 500,
+    type: 'text',
     nullable: true,
   })
   userAgent!: string | null;

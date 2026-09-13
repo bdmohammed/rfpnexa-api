@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { DashboardWidgetResponse } from './layout/services/widget.service';
 import { DashboardTheme } from '@/types/enums';
 
 export const WidgetPositionSchema = z.object({
@@ -27,3 +28,9 @@ export const updateDashboardThemeSchema = z.object({
 });
 
 export type UpdateDashboardThemeDto = z.infer<typeof updateDashboardThemeSchema>;
+
+export interface BuildDashboardResponse {
+  theme: DashboardTheme;
+  layoutVersion: number;
+  widgets: DashboardWidgetResponse[];
+}

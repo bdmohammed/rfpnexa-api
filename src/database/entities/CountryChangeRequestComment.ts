@@ -24,7 +24,7 @@ export class CountryChangeRequestComment {
   @Column({ name: 'request_id', type: 'uuid' })
   requestId!: string;
 
-  @ManyToOne(() => CountryChangeRequest, (req) => req.comments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CountryChangeRequest, (req) => req.comments, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'request_id' })
   request!: Relation<CountryChangeRequest>;
 

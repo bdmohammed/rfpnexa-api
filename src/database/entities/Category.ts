@@ -48,7 +48,7 @@ export class Category {
   @Column({ type: 'enum', enum: CategoryStatus, default: CategoryStatus.PUBLISHED })
   status!: CategoryStatus;
 
-  @Column({ name: 'active_version_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
   activeVersionId!: string | null;
 
   @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
@@ -58,7 +58,7 @@ export class Category {
   @Column({ name: 'is_deleted', type: 'boolean', default: false })
   isDeleted!: boolean;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })

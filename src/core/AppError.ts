@@ -179,7 +179,9 @@ export enum AppErrorCode {
   INVALID_COUNTRY = 'INVALID_COUNTRY',
   INVALID_LAYOUT_CONFIG = 'INVALID_LAYOUT_CONFIG',
   INVALID_BATCH_ITEM = 'INVALID_BATCH_ITEM',
-  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
+  RESOURCE_ALREADY_ACTIVE = 'RESOURCE_ALREADY_ACTIVE',
+  RESOURCE_ALREADY_INACTIVE = 'RESOURCE_ALREADY_INACTIVE',
 }
 
 /**
@@ -240,6 +242,8 @@ export const AppErrorMessage = {
   DEVICE_NOT_FOUND: 'Device not found',
 
   // --- RBAC & Roles ---
+  MISSING_PERMISSIONS_REQUEST: 'Permissions missing from request.',
+  MISSING_ROLES_REQUEST: 'Roles missing from request.',
   COMMENT_REQUIRED: 'A comment/rationale is required when rejecting or requesting changes.',
   ROLE_PERMISSION_REQUIRED: 'A role must have at least one permission assigned.',
   ACCESS_DENIED_PRIVILEGE: 'Access Denied: Insufficient privilege to execute action.',
@@ -328,6 +332,13 @@ export const AppErrorMessage = {
   COUNTRY_SELECTION_REQUIRED: 'Country selection required for country-specific plan',
   STATE_NOT_FOUND: 'State not found',
   STATE_SELECTION_REQUIRED: 'State selection required for state-specific plan',
+  COUNTRY_CHANGE_REQUEST_NOT_FOUND: 'Country Change request not found',
+  CHANGE_REQUEST_ALREADY_CLOSED: 'Cannot assign reviewer to a closed change request',
+  CHANGE_REQUEST_NOT_ASSIGNED: 'Change request is not assigned',
+  REVIEWER_ALREADY_ASSIGNED: 'Reviewer already assigned',
+  TARGET_ALREADY_ACTIVE: (target: string) => `${target} is already active.`,
+
+  TARGET_ALREADY_INACTIVE: (target: string) => `${target} is already inactive.`,
 
   // --- System & Utilities ---
   ACTION_NOT_FOUND: 'Action not found',
@@ -363,6 +374,8 @@ export const AppErrorMessage = {
   SLUG_CONFLICT_BATCH: (index: number, code: string, slug: string) =>
     `Slug conflict at item ${index + 1} (code ${code}): Slug '${slug}' is already taken`,
   MAX_CATEGORIES_EXCEEDED: (max: number) => `You can select at most ${max} categories`,
+  CHANGE_REQUEST_ALREADY_EXISTS: (target: string) =>
+    `An active ${target} change request already exists.`,
 } as const;
 
 /**

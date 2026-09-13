@@ -36,21 +36,21 @@ export class AlertPreference {
   user!: Relation<User>;
 
   /** Match tenders in this category. Null = any category. */
-  @Column({ type: 'uuid', nullable: true, default: null })
+  @Column({ type: 'uuid', nullable: true })
   categoryId!: string | null;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
   category!: Relation<Category | null>;
 
   /** Match tenders in this state. Null = any state. */
-  @Column({ type: 'smallint', nullable: true, default: null })
+  @Column({ type: 'smallint', nullable: true })
   stateId!: number | null;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
   state!: Relation<State | null>;
 
   /** Optional keyword filter applied to title/description */
-  @Column({ type: 'varchar', length: 150, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 150, nullable: true })
   keyword!: string | null;
 
   @Column({
@@ -69,7 +69,7 @@ export class AlertPreference {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })
   lastSentAt!: Date | null;
 
   @Column({ name: 'email_sent_count', type: 'int', default: 0 })

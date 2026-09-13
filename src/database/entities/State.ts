@@ -16,6 +16,7 @@ import {
 
 import { AlertPreference } from './AlertPreference';
 import { Country } from './Country';
+import { StateVersion } from './StateVersion';
 import { TenderVersion } from './TenderVersion';
 import { User } from './User';
 
@@ -24,12 +25,17 @@ import { StateType } from '@/types/enums';
 
 @Entity('states')
 @Check('"code" = UPPER("code")')
-@Index('idx_states_country_id_code', ['countryId', 'code'], { unique: true })
+@Index('uq_state_country_slug', ['countryId', 'slug'], {
+  unique: true,
+})
+@Index('uq_state_country_code', ['countryId', 'code'], {
+  unique: true,
+})
 export class State {
   @PrimaryGeneratedColumn('increment', {
     type: 'smallint',
   })
-  id!: string;
+  id!: number;
 
   /** State/region code within the country: 'CA', 'TX', 'ON', 'MP' */
   @Column({ type: 'varchar', length: 20 })
@@ -38,7 +44,6 @@ export class State {
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
-  @Index('idx_states_slug', { unique: true })
   @Column({ type: 'varchar', length: 100 })
   slug!: string;
 
@@ -50,7 +55,7 @@ export class State {
     name: 'country_id',
     type: 'smallint',
   })
-  countryId!: string;
+  countryId!: number;
 
   @ManyToOne(() => Country, (country) => country.states, {
     nullable: false,
@@ -59,9 +64,6 @@ export class State {
   @JoinColumn({ name: 'country_id' })
   country!: Relation<Country>;
 
-  @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder!: number;
-
   @Column({
     name: 'created_by',
     type: 'uuid',
@@ -69,8 +71,8 @@ export class State {
   createdById!: string;
 
   @ManyToOne(() => User, {
-    nullable: true,
-    onDelete: 'SET NULL',
+    nullable: false,
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'created_by' })
   createdBy!: Relation<User>;
@@ -84,7 +86,7 @@ export class State {
 
   @ManyToOne(() => User, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'updated_by' })
   updatedBy!: Relation<User | null>;
@@ -104,6 +106,9 @@ export class State {
 
   @OneToMany(() => AlertPreference, (a) => a.state)
   alertPreferences!: Relation<AlertPreference[]>;
+
+  @OneToMany(() => StateVersion, (version) => version.state)
+  versions!: Relation<StateVersion[]>;
 
   // ─── Hooks ────────────────────────────────────────────────────────────
   @BeforeInsert()

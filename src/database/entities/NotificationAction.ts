@@ -19,7 +19,7 @@ export class NotificationAction {
   @Column({ type: 'enum', enum: NotificationActionType })
   type!: NotificationActionType;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   payload!: Record<string, unknown> | null;
 
   @Column({

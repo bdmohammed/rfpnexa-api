@@ -23,7 +23,7 @@ export class Transaction {
   id!: string;
 
   /** SET NULL on user delete — preserve financial record */
-  @Column({ name: 'user_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
 
   /** Amount in cents. $9.99 → 999 */
@@ -41,7 +41,7 @@ export class Transaction {
    *   - subscriptions.id  (for SUBSCRIPTION type)
    *   - tenders.id        (for PER_TENDER type)
    */
-  @Column({ name: 'reference_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'reference_id', type: 'varchar', nullable: true })
   referenceId!: string | null;
 
   /**
@@ -49,7 +49,7 @@ export class Transaction {
    *   - subscription
    *   - tender
    */
-  @Column({ name: 'reference_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'reference_type', type: 'varchar', length: 100, nullable: true })
   referenceType!: string | null;
 
   /** Payment provider: e.g. 'paypal', 'stripe' */
@@ -85,11 +85,11 @@ export class Transaction {
   invoiceStorageKey!: string | null;
 
   /** Immutable snapshot of billing data (plan details, pricing, taxes, discounts) at checkout time */
-  @Column({ name: 'billing_snapshot', type: 'jsonb', nullable: true, default: null })
+  @Column({ name: 'billing_snapshot', type: 'jsonb', nullable: true })
   billingSnapshot!: Record<string, unknown> | null;
 
   /** Raw payment provider capture API response — stored for dispute resolution */
-  @Column({ name: 'provider_response', type: 'jsonb', nullable: true, default: null })
+  @Column({ name: 'provider_response', type: 'jsonb', nullable: true })
   providerResponse!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

@@ -50,49 +50,49 @@ export class ExportJob {
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
   filters!: Record<string, unknown>;
 
-  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
   storageKey!: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz' })
   expiresAt!: Date;
 
-  @Column({ name: 'expired_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'expired_at', type: 'timestamptz', nullable: true })
   expiredAt!: Date | null;
 
-  @Column({ name: 'started_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
   startedAt!: Date | null;
 
-  @Column({ name: 'finished_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'finished_at', type: 'timestamptz', nullable: true })
   finishedAt!: Date | null;
 
   @Column({ name: 'download_count', type: 'integer', default: 0 })
   downloadCount!: number;
 
-  @Column({ name: 'last_downloaded_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'last_downloaded_at', type: 'timestamptz', nullable: true })
   lastDownloadedAt!: Date | null;
 
-  @Column({ name: 'file_name', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'file_name', type: 'varchar', length: 255, nullable: true })
   fileName!: string | null;
 
-  @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true, default: null })
+  @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true })
   fileSizeBytes!: number | null;
 
-  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
   mimeType!: string | null;
 
-  @Column({ name: 'queue_name', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'queue_name', type: 'varchar', length: 100, nullable: true })
   queueName!: string | null;
 
-  @Column({ name: 'job_id', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'job_id', type: 'varchar', length: 100, nullable: true })
   jobId!: string | null;
 
   @Column({ name: 'retry_count', type: 'integer', default: 0 })
   retryCount!: number;
 
-  @Column({ name: 'error_message', type: 'text', nullable: true, default: null })
+  @Column({ name: 'error_message', type: 'text', nullable: true })
   errorMessage!: string | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })

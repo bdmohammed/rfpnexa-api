@@ -32,7 +32,7 @@ export class PermissionModule {
   @Column({ name: 'display_order', type: 'integer', default: 0 })
   displayOrder!: number;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @Column({ name: 'is_system_module', type: 'boolean', default: false })

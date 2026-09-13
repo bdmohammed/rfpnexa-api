@@ -27,7 +27,7 @@ export class CategoryActivity {
   @JoinColumn({ name: 'category_id' })
   category!: Relation<Category>;
 
-  @Column({ name: 'category_version_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'category_version_id', type: 'uuid', nullable: true })
   categoryVersionId!: string | null;
 
   @ManyToOne(() => CategoryVersion, { nullable: true, onDelete: 'SET NULL' })
@@ -44,7 +44,7 @@ export class CategoryActivity {
   @Column({ type: 'varchar', length: 50 })
   event!: string;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   details!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

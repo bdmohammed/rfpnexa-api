@@ -77,7 +77,7 @@ export class User {
     name: 'country_id',
     type: 'smallint',
   })
-  countryId!: string;
+  countryId!: number;
 
   @ManyToOne(() => Country, (country) => country.users, {
     nullable: false,
@@ -115,10 +115,10 @@ export class User {
   @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
   failedLoginAttempts!: number;
 
-  @Column({ name: 'lockout_until', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'lockout_until', type: 'timestamptz', nullable: true })
   lockoutUntil!: Date | null;
 
-  @Column({ name: 'password_changed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'password_changed_at', type: 'timestamptz', nullable: true })
   passwordChangedAt!: Date | null;
 
   @Column({ name: 'must_reset_password', type: 'boolean', default: false })
@@ -144,22 +144,22 @@ export class User {
   })
   notificationPreferences!: NotificationPreferences;
 
-  @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt!: Date | null;
 
-  @Column({ name: 'email_changed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'email_changed_at', type: 'timestamptz', nullable: true })
   emailChangedAt!: Date | null;
 
   @Index()
-  @Column({ name: 'google_id', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'google_id', type: 'varchar', length: 255, nullable: true })
   googleId!: string | null;
 
   @Index()
-  @Column({ name: 'github_id', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'github_id', type: 'varchar', length: 255, nullable: true })
   githubId!: string | null;
 
   @Index()
-  @Column({ name: 'microsoft_id', type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ name: 'microsoft_id', type: 'varchar', length: 255, nullable: true })
   microsoftId!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
@@ -168,7 +168,7 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true, default: null })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt!: Date | null;
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────

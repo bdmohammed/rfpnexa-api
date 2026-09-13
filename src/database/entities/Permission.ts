@@ -42,7 +42,7 @@ export class Permission {
   @Column({ type: 'enum', enum: PermissionActions })
   action!: string;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @Column({

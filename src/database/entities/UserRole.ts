@@ -47,7 +47,7 @@ export class UserRole {
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt!: Date;
 
-  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

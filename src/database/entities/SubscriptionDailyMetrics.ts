@@ -24,7 +24,7 @@ export class SubscriptionDailyMetrics {
   @Column({ type: 'timestamptz' })
   date!: Date;
 
-  @Column({ name: 'plan_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'plan_id', type: 'uuid', nullable: true })
   planId!: string | null;
 
   @ManyToOne(() => Plan, { nullable: true, onDelete: 'SET NULL' })
@@ -54,14 +54,14 @@ export class SubscriptionDailyMetrics {
   })
   revenueCents!: number;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   createdBy!: Relation<User | null>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedById!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })

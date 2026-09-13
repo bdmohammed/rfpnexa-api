@@ -42,16 +42,16 @@ export class CategoryReview {
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
   status!: ReviewStatus;
 
-  @Column({ name: 'submitted_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'submitted_by', type: 'uuid', nullable: true })
   submittedByUserId!: string | null;
 
-  @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true })
   submittedAt!: Date | null;
 
-  @Column({ name: 'decision_comment', type: 'text', nullable: true, default: null })
+  @Column({ name: 'decision_comment', type: 'text', nullable: true })
   decisionComment!: string | null;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

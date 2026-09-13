@@ -41,7 +41,7 @@ export class UserApprovalRequest {
   @RelationId((req: UserApprovalRequest) => req.requestedRole)
   requestedRoleId: string | null;
 
-  @Column({ name: 'requested_description', type: 'text', nullable: true, default: null })
+  @Column({ name: 'requested_description', type: 'text', nullable: true })
   requestedDescription!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
@@ -66,10 +66,10 @@ export class UserApprovalRequest {
   })
   status!: UserApprovalRequestStatus;
 
-  @Column({ name: 'reviewer_comment', type: 'text', nullable: true, default: null })
+  @Column({ name: 'reviewer_comment', type: 'text', nullable: true })
   reviewerComment!: string | null;
 
-  @Column({ name: 'decided_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'decided_at', type: 'timestamptz', nullable: true })
   decidedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

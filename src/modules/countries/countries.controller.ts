@@ -1,175 +1,200 @@
 import {
-  type AddCommentInput,
-  type AssignReviewerInput,
-  type ChangeRequestQueryInput,
-  type CreateCountryChangeRequestInput,
-  type DependencyMatrixQueryInput,
-  type ReviewChangeRequestInput,
-  type StateQueryDto,
-  type UpdateCountryBodyDto,
-  type UpdateCountryParamsDto,
-  type UpdateStateBodyDto,
-  type UpdateStateParamsDto,
+  type AddCommentContract,
+  type AssignReviewerContract,
+  type CreateChangeRequestContract,
+  type GetChangeRequestDetailsContract,
+  type GetCountriesHierarchyContract,
+  type GetCountryByIdContract,
+  type GetCountryTimelineContract,
+  type GetDependencyMatrixContract,
+  type GetEligibleReviewersContract,
+  type GetOperationalStatsContract,
+  type GetRequestTimelineContract,
+  type GetReviewsQueueContract,
+  type listCountriesContract,
+  type ListStatesContract,
+  type ReviewChangeRequestContract,
+  type UpdateCountryContract,
+  type UpdateStateContract,
 } from './countries.dto';
-import { CountriesService } from './countries.service';
-import { CountryDependencyService, type DependencyMatrix } from './country-dependency.service';
+import * as countriesService from './countries.service';
 
-import type { ApiResponse } from '@/types/types';
-import { asyncHandler } from '@/core/asyncHandler';
+import { contractAsyncHandler } from '@/core/asyncHandler';
 import { paginationMeta, sendCreated, sendOk } from '@/core/response';
+import { assertAuthenticated } from '@/utils/authenticate';
+import { toNumber } from '@/utils/number';
+import { getRequestMetadata } from '@/utils/userAgent';
 
-export const getCountriesHierarchy = asyncHandler<{}, ApiResponse<unknown>>(async (_req, res) => {
-  const hierarchy = await CountriesService.getCountriesHierarchy();
-  return sendOk(res, hierarchy, 'Countries hierarchy retrieved successfully');
+export const getCountriesHierarchy = contractAsyncHandler<GetCountriesHierarchyContract>(
+  async (_req, res) => {
+    const hierarchy = await countriesService.getCountriesHierarchy();
+    return sendOk(res, hierarchy, 'Countries hierarchy retrieved successfully');
+  },
+);
+
+export const getCountryById = contractAsyncHandler<GetCountryByIdContract>(async (req, res) => {
+  const country = await countriesService.getCountryById(toNumber(req.params.countryId));
+  return sendOk(res, country, 'Country retrieved successfully');
 });
 
-export const getOperationalStats = asyncHandler<{}, ApiResponse<unknown>>(async (req, res) => {
-  const stats = await CountriesService.getOperationalStats(req.user!.userId);
-  return sendOk(res, stats, 'Operational stats retrieved successfully');
-});
+export const getOperationalStats = contractAsyncHandler<GetOperationalStatsContract>(
+  async (req, res) => {
+    assertAuthenticated(req);
+    const stats = await countriesService.getOperationalStats(req.user.userId);
+    return sendOk(res, stats, 'Operational stats retrieved successfully');
+  },
+);
 
-export const getEligibleReviewers = asyncHandler<{}, ApiResponse<unknown>>(async (req, res) => {
-  const reviewers = await CountriesService.getEligibleReviewers(req.user!.userId);
-  return sendOk(res, reviewers, 'Eligible reviewers retrieved successfully');
-});
+export const getEligibleReviewers = contractAsyncHandler<GetEligibleReviewersContract>(
+  async (req, res) => {
+    assertAuthenticated(req);
+    const reviewers = await countriesService.getEligibleReviewers(req.user.userId, req.roles);
+    return sendOk(res, reviewers, 'Eligible reviewers retrieved successfully');
+  },
+);
 
-export const getDependencyMatrix = asyncHandler<
-  {},
-  ApiResponse<DependencyMatrix>,
-  {},
-  DependencyMatrixQueryInput
->(async (req, res) => {
-  const { targetType, countryId, stateId } = req.query;
-  const matrix = await CountryDependencyService.getDependencyMatrix(targetType, countryId, stateId);
-  return sendOk(res, matrix, 'Dependency matrix computed successfully');
-});
+export const getDependencyMatrix = contractAsyncHandler<GetDependencyMatrixContract>(
+  async (req, res) => {
+    const { targetType, countryId, stateId } = req.query;
+    const matrix = await countriesService.getDependencyMatrix(
+      targetType,
+      toNumber(countryId),
+      toNumber(stateId),
+    );
+    return sendOk(res, matrix, 'Dependency matrix computed successfully');
+  },
+);
 
-export const createChangeRequest = asyncHandler<
-  {},
-  ApiResponse<unknown>,
-  CreateCountryChangeRequestInput
->(async (req, res) => {
-  const request = await CountriesService.createChangeRequest(req.user!.userId, req.body, {
-    ipAddress: req.ip,
-    userAgent: req.get('user-agent'),
-  });
-  return sendCreated(res, request, 'Change request ticket created successfully');
-});
+export const createChangeRequest = contractAsyncHandler<CreateChangeRequestContract>(
+  async (req, res) => {
+    assertAuthenticated(req);
+    const request = await countriesService.createChangeRequest(
+      req.user.userId,
+      req.body,
+      getRequestMetadata(req),
+    );
+    return sendCreated(res, request, 'Change request ticket created successfully');
+  },
+);
 
-export const assignReviewer = asyncHandler<
-  { id: string },
-  ApiResponse<unknown>,
-  AssignReviewerInput
->(async (req, res) => {
+export const assignReviewer = contractAsyncHandler<AssignReviewerContract>(async (req, res) => {
+  assertAuthenticated(req);
   const { id } = req.params;
   const { reviewerId } = req.body;
-  const assignment = await CountriesService.assignReviewer(id, reviewerId, req.user!.userId, {
-    ipAddress: req.ip,
-    userAgent: req.get('user-agent'),
-  });
+  const assignment = await countriesService.assignReviewer(
+    id,
+    reviewerId,
+    req.user.userId,
+    getRequestMetadata(req),
+  );
   return sendOk(res, assignment, 'Reviewer assigned successfully');
 });
 
-export const addComment = asyncHandler<{ id: string }, ApiResponse<unknown>, AddCommentInput>(
-  async (req, res) => {
-    const { id } = req.params;
-    const comment = await CountriesService.addComment(id, req.user!.userId, req.body);
-    return sendCreated(res, comment, 'Comment added successfully');
-  },
-);
-
-export const reviewChangeRequest = asyncHandler<
-  { id: string },
-  ApiResponse<unknown>,
-  ReviewChangeRequestInput
->(async (req, res) => {
+export const addComment = contractAsyncHandler<AddCommentContract>(async (req, res) => {
+  assertAuthenticated(req);
   const { id } = req.params;
-  const result = await CountriesService.reviewChangeRequest(id, req.user!.userId, req.body, {
-    ipAddress: req.ip,
-    userAgent: req.get('user-agent'),
-  });
-  return sendOk(res, result, 'Review decision executed successfully');
+  const comment = await countriesService.addComment(id, req.user.userId, req.body);
+  return sendCreated(res, comment, 'Comment added successfully');
 });
 
-export const getReviewsQueue = asyncHandler<{}, ApiResponse<unknown>, {}, ChangeRequestQueryInput>(
+export const reviewChangeRequest = contractAsyncHandler<ReviewChangeRequestContract>(
   async (req, res) => {
-    const { filter = 'all', page = 1, limit = 20 } = req.query;
-    const result = await CountriesService.getReviewsQueue(req.user!.userId, filter, page, limit);
-    return sendOk(
-      res,
-      result.data,
-      'Reviews queue retrieved successfully',
-      paginationMeta(result.meta.totalItems, page, limit),
+    assertAuthenticated(req);
+    const { id } = req.params;
+    const result = await countriesService.reviewChangeRequest(
+      id,
+      req.user.userId,
+      req.body,
+      getRequestMetadata(req),
     );
+    return sendOk(res, result, 'Review decision executed successfully');
   },
 );
 
-export const getChangeRequestDetails = asyncHandler<{ id: string }, ApiResponse<unknown>>(
+export const getReviewsQueue = contractAsyncHandler<GetReviewsQueueContract>(async (req, res) => {
+  assertAuthenticated(req);
+
+  const { filter = 'all', page = 1, limit = 20 } = req.query;
+  const result = await countriesService.getReviewsQueue(req.user.userId, filter, page, limit);
+  return sendOk(
+    res,
+    result.data,
+    'Reviews queue retrieved successfully',
+    paginationMeta(result.totalItems, page, limit),
+  );
+});
+
+export const getChangeRequestDetails = contractAsyncHandler<GetChangeRequestDetailsContract>(
   async (req, res) => {
     const { id } = req.params;
-    const details = await CountriesService.getChangeRequestDetails(id);
+    const details = await countriesService.getChangeRequestDetails(id);
     return sendOk(res, details, 'Change request details retrieved successfully');
   },
 );
 
-export const getCountryTimeline = asyncHandler<
-  { countryId: string },
-  ApiResponse<unknown>,
-  {},
-  { stateId?: string }
->(async (req, res) => {
-  const { countryId } = req.params;
-  const { stateId } = req.query;
-  const timeline = await CountriesService.getCountryTimeline(countryId, stateId);
-  return sendOk(res, timeline, 'Country timeline retrieved successfully');
-});
-
-export const getRequestTimeline = asyncHandler<{ id: string }, ApiResponse<unknown>>(
+export const getCountryTimeline = contractAsyncHandler<GetCountryTimelineContract>(
   async (req, res) => {
-    const { id } = req.params;
-    const timeline = await CountriesService.getRequestTimeline(id);
-    return sendOk(res, timeline, 'Request timeline retrieved successfully');
+    const { countryId } = req.params;
+    const { stateId, page = 1, limit = 20 } = req.query;
+    const result = await countriesService.getCountryTimeline(
+      toNumber(countryId),
+      toNumber(stateId),
+    );
+    return sendOk(
+      res,
+      result.data,
+      'Country timeline retrieved successfully',
+      paginationMeta(result.total, page, limit),
+    );
   },
 );
 
-export const listStates = asyncHandler<StateQueryDto>(async (req, res) => {
-  const q = req.query;
-  const { states, total } = await CountriesService.listAllStates(q);
+export const getRequestTimeline = contractAsyncHandler<GetRequestTimelineContract>(
+  async (req, res) => {
+    const { id } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+    const result = await countriesService.getRequestTimeline(id, page, limit);
+    return sendOk(
+      res,
+      result.data,
+      'Change request timeline retrieved successfully',
+      paginationMeta(result.total, page, limit),
+    );
+  },
+);
+
+export const listStates = contractAsyncHandler<ListStatesContract>(async (req, res) => {
+  const result = await countriesService.listAllStates(req.query);
   return sendOk(
     res,
-    states,
-    'OK',
-    paginationMeta(total, q.page as unknown as number, q.limit as unknown as number),
+    result.data,
+    'States retrieved successfully',
+    paginationMeta(result.total, result.page, result.limit),
   );
 });
 
-export const listCountries = asyncHandler(async (_req, res) => {
-  const countries = await CountriesService.listDistinctCountries();
+export const listCountries = contractAsyncHandler<listCountriesContract>(async (_req, res) => {
+  const countries = await countriesService.listDistinctCountries();
   return sendOk(res, countries);
 });
 
-export const updateState = asyncHandler<UpdateStateParamsDto, {}, UpdateStateBodyDto>(
-  async (req, res) => {
-    const dto = req.body;
-    const { id } = req.params;
-    const before = await CountriesService.getStateById(id);
-    res.locals['auditBefore'] = {
-      isActive: before.isActive,
-    };
-    const state = await CountriesService.updateState(id, dto, req.user!.userId);
-    return sendOk(res, state, 'State updated');
-  },
-);
+export const updateState = contractAsyncHandler<UpdateStateContract>(async (req, res) => {
+  assertAuthenticated(req);
 
-export const updateCountry = asyncHandler<UpdateCountryParamsDto, {}, UpdateCountryBodyDto>(
-  async (req, res) => {
-    const dto = req.body;
-    const { id } = req.params;
-    const before = await CountriesService.getCountryById(id);
-    res.locals['auditBefore'] = {
-      isActive: before.isActive,
-    };
-    const country = await CountriesService.updateCountry(id, dto, req.user!.userId);
-    return sendOk(res, country, 'Country updated');
-  },
-);
+  const { id } = req.params;
+  const before = await countriesService.getStateAuditSnapshot(toNumber(id));
+  res.locals.auditBefore = before;
+  const state = await countriesService.updateState(toNumber(id), req.body, req.user.userId);
+
+  return sendOk(res, state, 'State updated successfully');
+});
+
+export const updateCountry = contractAsyncHandler<UpdateCountryContract>(async (req, res) => {
+  assertAuthenticated(req);
+
+  const { id } = req.params;
+  res.locals.auditBefore = await countriesService.getCountryAuditSnapshot(toNumber(id));
+  const country = await countriesService.updateCountry(toNumber(id), req.body, req.user.userId);
+
+  return sendOk(res, country, 'Country updated successfully');
+});

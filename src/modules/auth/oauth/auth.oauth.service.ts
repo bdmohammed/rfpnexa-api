@@ -127,7 +127,7 @@ export function getAuthorizationUrl(
     throw new AppError(
       `OAuth provider '${provider}' is not configured on this server.`,
       HttpStatusCode.INTERNAL_SERVER_ERROR,
-      AppErrorCode.INTERNAL_ERROR,
+      AppErrorCode.INTERNAL_SERVER_ERROR,
     );
   }
 
@@ -188,7 +188,7 @@ export async function verifyCallbackAndGetUser(
     throw new AppError(
       `OAuth provider '${provider}' is not configured on this server.`,
       HttpStatusCode.INTERNAL_SERVER_ERROR,
-      AppErrorCode.INTERNAL_ERROR,
+      AppErrorCode.INTERNAL_SERVER_ERROR,
     );
   }
 

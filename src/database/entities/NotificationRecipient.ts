@@ -28,13 +28,13 @@ export class NotificationRecipient {
   @Column({ name: 'notification_id', type: 'uuid' })
   notificationId!: string;
 
-  @Column({ name: 'user_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
 
-  @Column({ name: 'role_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'role_id', type: 'uuid', nullable: true })
   roleId!: string | null;
 
-  @Column({ name: 'group_name', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'group_name', type: 'varchar', length: 100, nullable: true })
   groupName!: string | null;
 
   @Column({
@@ -47,10 +47,10 @@ export class NotificationRecipient {
   @Column({ type: 'enum', enum: NotificationChannel, default: NotificationChannel.IN_APP })
   channel!: NotificationChannel;
 
-  @Column({ name: 'delivered_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'delivered_at', type: 'timestamptz', nullable: true })
   deliveredAt!: Date | null;
 
-  @Column({ name: 'read_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'read_at', type: 'timestamptz', nullable: true })
   readAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

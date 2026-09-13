@@ -65,3 +65,6 @@ export const REFRESH_EXPIRY = {
   REMEMBER_ME: 90 * 24 * 60 * 60 * 1000, // 90 days
   ADMIN: 24 * 60 * 60 * 1000, // 24 hours
 };
+
+export const COUNTRY = 'Country';
+export const STATE = 'State';

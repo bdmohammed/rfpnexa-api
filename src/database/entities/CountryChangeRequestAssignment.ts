@@ -42,12 +42,12 @@ export class CountryChangeRequestAssignment {
   })
   status!: CountryAssignmentStatus;
 
-  @Column({ name: 'assigned_by_id', type: 'uuid', nullable: true })
-  assignedById!: string | null;
+  @Column({ name: 'assigned_by_id', type: 'uuid' })
+  assignedById!: string;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'assigned_by_id' })
-  assignedBy!: Relation<User | null>;
+  assignedBy!: Relation<User>;
 
   @Column({ name: 'assigned_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   assignedAt!: Date;

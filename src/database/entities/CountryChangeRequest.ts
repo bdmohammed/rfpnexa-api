@@ -34,8 +34,31 @@ export interface CascadePolicyOptions {
   notifySuppliers: boolean;
 }
 
+export const DEFAULT_CASCADE_POLICY: CascadePolicyOptions = {
+  disableStates: true,
+  disableTenders: true,
+  disableCategories: false,
+  hideFromSearch: true,
+  notifySuppliers: true,
+};
+
 @Entity('country_change_requests')
 @Index(['targetType', 'countryId', 'stateId'])
+@Index(['status'])
+@Index(['requestedById'])
+@Index(['requestedById', 'status'])
+@Index(['createdAt'])
+@Index(['status', 'createdAt'])
+@Index('uq_active_country_request', ['countryId'], {
+  unique: true,
+  where: `"target_type" = 'COUNTRY'
+            AND "status" IN ('DRAFT','READY_FOR_REVIEW','IN_REVIEW')`,
+})
+@Index('uq_active_state_request', ['countryId', 'stateId'], {
+  unique: true,
+  where: `"target_type" = 'STATE'
+            AND "status" IN ('DRAFT','READY_FOR_REVIEW','IN_REVIEW')`,
+})
 export class CountryChangeRequest {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -55,14 +78,14 @@ export class CountryChangeRequest {
   targetType!: CountryChangeRequestTargetType;
 
   @Column({ name: 'country_id', type: 'smallint' })
-  countryId!: string;
+  countryId!: number;
 
   @ManyToOne(() => Country, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'country_id' })
   country!: Relation<Country>;
 
   @Column({ name: 'state_id', type: 'smallint', nullable: true })
-  stateId!: string | null;
+  stateId!: number | null;
 
   @ManyToOne(() => State, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'state_id' })
@@ -94,8 +117,7 @@ export class CountryChangeRequest {
   @Column({
     name: 'cascade_policy',
     type: 'jsonb',
-    default: () =>
-      '\'{"disableStates": true, "disableTenders": true, "disableCategories": false, "hideFromSearch": true, "notifySuppliers": true}\'::jsonb',
+    default: DEFAULT_CASCADE_POLICY,
   })
   cascadePolicy!: CascadePolicyOptions;
 

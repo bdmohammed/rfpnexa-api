@@ -32,26 +32,26 @@ export class Notification {
   @Column({ type: 'text' })
   message!: string;
 
-  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true })
   entityType!: string | null;
 
-  @Column({ name: 'entity_id', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'entity_id', type: 'varchar', length: 100, nullable: true })
   entityId!: string | null;
 
-  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt!: Date | null;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ name: 'sender_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'sender_id', type: 'uuid', nullable: true })
   senderUserId!: string | null;
 
   @ManyToOne(() => User, (user) => user.sentNotifications, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'sender_id' })
   senderUser!: Relation<User | null>;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   metadata!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

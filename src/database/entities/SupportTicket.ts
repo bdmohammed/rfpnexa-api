@@ -59,7 +59,7 @@ export class SupportTicket {
   @JoinColumn({ name: 'updated_by' })
   updatedBy!: Relation<User>;
 
-  @Column({ name: 'assigned_to_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'assigned_to_id', type: 'uuid', nullable: true })
   assignedToId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
@@ -69,7 +69,7 @@ export class SupportTicket {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', nullable: true, default: null })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', nullable: true })
   updatedAt!: Date | null;
 
   @Column({

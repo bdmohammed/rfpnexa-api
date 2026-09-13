@@ -41,10 +41,10 @@ export class WebhookEvent {
   status!: WebhookEventStatus;
 
   /** Error message if status is FAILED */
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   error!: string | null;
 
-  @Column({ type: 'timestamptz', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true })
   processedAt!: Date | null;
 
   @CreateDateColumn({ type: 'timestamptz' })

@@ -45,7 +45,7 @@ export class PlanReview {
   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
   status!: ReviewStatus;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

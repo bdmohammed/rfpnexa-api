@@ -51,10 +51,10 @@ export class PlanVersion {
   @Column({ type: 'varchar', length: 80 })
   name!: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   subtitle!: string | null;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @Column({ name: 'price_cents', type: 'int' })
@@ -78,64 +78,64 @@ export class PlanVersion {
   @Column({ name: 'is_featured', type: 'boolean', default: false })
   isFeatured!: boolean;
 
-  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   badge!: string | null;
 
   @Column({ name: 'plan_type', type: 'enum', enum: PlanType, default: PlanType.ALL_ACCESS })
   planType!: PlanType;
 
-  @Column({ name: 'target_state_id', type: 'smallint', nullable: true, default: null })
+  @Column({ name: 'target_state_id', type: 'smallint', nullable: true })
   targetStateId!: number | null;
 
   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_state_id' })
   targetState!: Relation<State | null>;
 
-  @Column({ name: 'target_country', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'target_country', type: 'varchar', length: 100, nullable: true })
   targetCountry!: string | null;
 
-  @Column({ name: 'target_category_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'target_category_id', type: 'uuid', nullable: true })
   targetCategoryId!: string | null;
 
   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'target_category_id' })
   targetCategory!: Relation<Category | null>;
 
-  @Column({ name: 'bundle_size', type: 'int', nullable: true, default: null })
+  @Column({ name: 'bundle_size', type: 'int', nullable: true })
   bundleSize!: number | null;
 
-  @Column({ name: 'locked_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'locked_by', type: 'uuid', nullable: true })
   lockedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'locked_by' })
   lockedByUser!: Relation<User | null>;
 
-  @Column({ name: 'locked_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'locked_at', type: 'timestamptz', nullable: true })
   lockedAt!: Date | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'updated_by' })
   updatedByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
   approvedByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
   approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

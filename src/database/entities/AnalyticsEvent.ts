@@ -27,7 +27,7 @@ export class AnalyticsEvent {
   @CreateDateColumn({ name: 'occurred_at', type: 'timestamptz' })
   occurredAt!: Date;
 
-  @Column({ name: 'actor_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'actor_id', type: 'uuid', nullable: true })
   actorId!: string | null;
 
   @ManyToOne(() => User, (user) => user.analyticsEvents, {
@@ -37,28 +37,28 @@ export class AnalyticsEvent {
   @JoinColumn({ name: 'actor_id' })
   actor!: Relation<User | null>;
 
-  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true })
   entityType!: string | null;
 
-  @Column({ name: 'entity_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
   entityId!: string | null;
 
   @Column({ type: 'enum', enum: LogSource, default: LogSource.API })
   source!: LogSource;
 
-  @Column({ name: 'request_id', type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ name: 'request_id', type: 'varchar', length: 50, nullable: true })
   requestId!: string | null;
 
-  @Column({ name: 'session_id', type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ name: 'session_id', type: 'varchar', length: 50, nullable: true })
   sessionId!: string | null;
 
-  @Column({ name: 'correlation_id', type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ name: 'correlation_id', type: 'varchar', length: 50, nullable: true })
   correlationId!: string | null;
 
-  @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true, default: null })
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
   ipAddress!: string | null;
 
-  @Column({ name: 'user_agent', type: 'varchar', length: 500, nullable: true, default: null })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
   @Column({ name: 'properties', type: 'jsonb', default: '{}' })

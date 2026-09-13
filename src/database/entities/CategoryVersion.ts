@@ -51,10 +51,10 @@ export class CategoryVersion {
   @Column({ type: 'varchar', length: 200, nullable: false })
   slug!: string;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
-  @Column({ name: 'parent_category_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'parent_category_id', type: 'uuid', nullable: true })
   parentCategoryId!: string | null;
 
   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
@@ -64,30 +64,30 @@ export class CategoryVersion {
   @Column({ name: 'display_order', type: 'integer', default: 0 })
   displayOrder!: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   icon!: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   color!: string | null;
 
   @Column({ type: 'enum', enum: CategoryVersionStatus, default: CategoryVersionStatus.DRAFT })
   status!: CategoryVersionStatus;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedByUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approved_by' })
   approvedByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
   approvedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

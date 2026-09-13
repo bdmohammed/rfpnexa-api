@@ -1,5 +1,7 @@
 import { UAParser } from 'ua-parser-js';
 
+import type { Request } from 'express';
+
 export interface ParsedUserAgent {
   browser: string;
   browserVersion: string | null;
@@ -56,3 +58,13 @@ export function maskIpAddress(ipAddress: string | null): string | null {
 
   return ip;
 }
+
+export interface RequestMetadata {
+  ipAddress: string;
+  userAgent: string | null;
+}
+
+export const getRequestMetadata = (req: Request): RequestMetadata => ({
+  ipAddress: req.ip as string,
+  userAgent: req.get('user-agent') ?? null,
+});

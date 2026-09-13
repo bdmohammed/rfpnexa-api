@@ -30,7 +30,7 @@ export class PlanFeature {
   @Column({ name: 'display_name', type: 'varchar', length: 150 })
   displayName!: string;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @Column({

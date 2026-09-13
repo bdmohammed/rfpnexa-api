@@ -92,7 +92,7 @@ export class Tender {
   @JoinColumn({ name: 'created_by_id' })
   createdBy!: Relation<User | null>;
 
-  @Column({ type: 'varchar', name: 'created_by_id', nullable: true, default: null })
+  @Column({ type: 'varchar', name: 'created_by_id', nullable: true })
   createdById!: string | null;
 
   // ─── Relations ─────────────────────────────────────────────────────────────

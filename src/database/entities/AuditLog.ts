@@ -34,26 +34,26 @@ export class AuditLog {
   @Column({ type: 'enum', enum: LogSource, default: LogSource.API })
   source!: LogSource;
 
-  @Column({ name: 'endpoint', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'endpoint', type: 'varchar', nullable: true })
   endpoint!: string | null;
 
   @Column({ type: 'uuid', name: 'event_id' })
   eventId!: string;
 
-  @Column({ type: 'uuid', name: 'correlation_id', nullable: true, default: null })
+  @Column({ type: 'uuid', name: 'correlation_id', nullable: true })
   correlationId!: string | null;
 
-  @Column({ type: 'uuid', nullable: true, default: null })
+  @Column({ type: 'uuid', nullable: true })
   actorId!: string | null;
 
-  @Column({ type: 'uuid', name: 'actor_user_id', nullable: true, default: null })
+  @Column({ type: 'uuid', name: 'actor_user_id', nullable: true })
   actorUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'actor_user_id' })
   actorUser!: Relation<User | null>;
 
-  @Column({ type: 'uuid', name: 'target_user_id', nullable: true, default: null })
+  @Column({ type: 'uuid', name: 'target_user_id', nullable: true })
   targetUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
@@ -72,10 +72,10 @@ export class AuditLog {
   @Column({ type: 'varchar' })
   action!: string;
 
-  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true, default: null })
+  @Column({ name: 'entity_type', type: 'varchar', length: 100, nullable: true })
   entityType!: string | null;
 
-  @Column({ name: 'entity_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'entity_id', type: 'varchar', nullable: true })
   entityId!: string | null;
 
   @Column({ type: 'enum', enum: AuditSeverity, default: AuditSeverity.INFO })
@@ -85,29 +85,29 @@ export class AuditLog {
   status!: AuditStatus;
 
   /** State before the action (alias/source of oldValues) */
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   before!: Record<string, unknown> | null;
 
   /** State after the action (alias/source of newValues) */
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   after!: Record<string, unknown> | null;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
+  @Column({ type: 'jsonb', nullable: true })
   metadata!: Record<string, unknown> | null;
 
-  @Column({ name: 'request_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'request_id', type: 'varchar', nullable: true })
   requestId!: string | null;
 
-  @Column({ name: 'trace_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'trace_id', type: 'varchar', nullable: true })
   traceId!: string | null;
 
-  @Column({ name: 'user_agent', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
-  @Column({ name: 'ip_address', type: 'inet', nullable: true, default: null })
+  @Column({ name: 'ip_address', type: 'inet', nullable: true })
   ipAddress!: string | null;
 
-  @Column({ name: 'session_id', type: 'varchar', nullable: true, default: null })
+  @Column({ name: 'session_id', type: 'varchar', nullable: true })
   sessionId!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

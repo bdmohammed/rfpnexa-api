@@ -41,13 +41,13 @@ export class ScheduledReportRecipient {
   @Column({ name: 'recipient_type', type: 'enum', enum: RecipientType })
   recipientType!: RecipientType;
 
-  @Column({ name: 'recipient_id', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'recipient_id', type: 'uuid', nullable: true })
   recipientId!: string | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   email!: string | null;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: 'text', nullable: true })
   webhook!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

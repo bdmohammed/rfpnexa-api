@@ -37,7 +37,7 @@ export class RoleReviewAssignment {
   @JoinColumn({ name: 'reviewer_id' })
   reviewer!: Relation<User>;
 
-  @Column({ name: 'assigned_by', type: 'uuid', nullable: true, default: null })
+  @Column({ name: 'assigned_by', type: 'uuid', nullable: true })
   assignedByUserId!: string | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
@@ -50,6 +50,6 @@ export class RoleReviewAssignment {
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt!: Date;
 
-  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true, default: null })
+  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
   reviewedAt!: Date | null;
 }

@@ -9,7 +9,7 @@ import * as migrationService from './layout/services/migration.service';
 import * as widgetService from './layout/services/widget.service';
 import { dashboardPublisher, type SSEClient } from './services/publisher.service';
 
-import type { PatchLayoutDto } from './dashboard.dto';
+import type { BuildDashboardResponse, PatchLayoutDto } from './dashboard.dto';
 import type { DashboardWidget } from '@/database/entities/UserDashboardLayout';
 import type { DashboardTheme } from '@/types/enums';
 import { AppDataSource } from '@/config/database';
@@ -104,7 +104,7 @@ export async function resetDashboardLayout(
   userId: string,
   adminPermissions: string[],
   roles: string[],
-) {
+): Promise<BuildDashboardResponse> {
   const layout = await layoutService.resetToDefault(userId);
 
   return buildDashboardResponse(layout, adminPermissions, roles);

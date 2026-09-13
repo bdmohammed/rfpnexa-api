@@ -6,6 +6,8 @@ import { TypeOrmPinoLogger } from './databaseLogger';
 import { env } from './env';
 import { SnakeNamingStrategy } from './namingStrategy';
 
+import { CountryVersion } from '@/database/entities/CountryVersion';
+import { StateVersion } from '@/database/entities/StateVersion';
 import { AlertPreference } from '@/entities/AlertPreference';
 import { AnalyticsAlert } from '@/entities/AnalyticsAlert';
 import { AnalyticsEvent } from '@/entities/AnalyticsEvent';
@@ -160,7 +162,9 @@ export const AppDataSource = new DataSource({
     Plan,
     PurchasedTender,
     State,
+    StateVersion,
     Country,
+    CountryVersion,
     CountryChangeRequest,
     CountryChangeRequestAssignment,
     CountryChangeRequestComment,
