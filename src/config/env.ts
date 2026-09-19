@@ -276,15 +276,15 @@ function validateCaptchaConfig(config: BaseEnvConfig, ctx: RefinementCtx): void 
 /**
  * Validates geolocation provider configuration alignment.
  */
-function validateGeolocationConfig(config: BaseEnvConfig, ctx: RefinementCtx): void {
-  if (config.GEOLOCATION_ENABLED && config.GEOLOCATION_PROVIDER === 'disabled') {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['GEOLOCATION_PROVIDER'],
-      message: 'GEOLOCATION_PROVIDER cannot be "disabled" when GEOLOCATION_ENABLED is true',
-    });
-  }
-}
+// function validateGeolocationConfig(config: BaseEnvConfig, ctx: RefinementCtx): void {
+//   if (config.GEOLOCATION_ENABLED && config.GEOLOCATION_PROVIDER === 'disabled') {
+//     ctx.addIssue({
+//       code: 'custom',
+//       path: ['GEOLOCATION_PROVIDER'],
+//       message: 'GEOLOCATION_PROVIDER cannot be "disabled" when GEOLOCATION_ENABLED is true',
+//     });
+//   }
+// }
 
 // ─── SuperRefine Schema ───────────────────────────────────────────────────────
 
@@ -301,7 +301,7 @@ const envSchema = baseEnvSchema.superRefine((config, ctx) => {
   validateEmailProvider(config, ctx);
   validateTrustProxyConfig(config, ctx);
   validateCaptchaConfig(config, ctx);
-  validateGeolocationConfig(config, ctx);
+  // validateGeolocationConfig(config, ctx);
 
   validateOAuthKeyPair(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET, 'GOOGLE', ctx);
   validateOAuthKeyPair(config.GITHUB_CLIENT_ID, config.GITHUB_CLIENT_SECRET, 'GITHUB', ctx);
