@@ -39,7 +39,7 @@ export class TenderDocument {
   @JoinColumn({ name: 'tender_id' })
   tender!: Relation<Tender>;
 
-  @Column({ type: 'varchar', name: 'document_type', length: 50 })
+  @Column({ type: 'varchar', name: 'document_type' })
   documentType!: string;
 
   @Column({ name: 's3_key', type: 'text' })
@@ -51,7 +51,7 @@ export class TenderDocument {
   @Column({ name: 'original_name', type: 'text' })
   documentOriginalName!: string;
 
-  @Column({ name: 'mime_type', type: 'varchar', length: 150, nullable: true })
+  @Column({ name: 'mime_type', type: 'varchar', nullable: true })
   mimeType!: string | null;
 
   @Column({ name: 'file_size', type: 'int', nullable: true })
