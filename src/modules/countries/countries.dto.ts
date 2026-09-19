@@ -127,7 +127,7 @@ export const UpdateCountryParamsSchema = z.object({
 export type UpdateCountryParamsDto = z.infer<typeof UpdateCountryParamsSchema>;
 
 export const UpdateCountryBodySchema = z.object({
-  isActive: z.string(),
+  isActive: z.boolean(),
 });
 export type UpdateCountryBodyDto = z.infer<typeof UpdateCountryBodySchema>;
 
