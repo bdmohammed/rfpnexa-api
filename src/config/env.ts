@@ -69,10 +69,10 @@ const baseEnvSchema = z.object({
   PASSWORD_RESET_MIN_INTERVAL_SECONDS: z.coerce.number().int().min(1).max(3600).default(60),
 
   // Geolocation & Telemetry
-  GEOLOCATION_ENABLED: booleanEnv.default(true),
-  GEOLOCATION_PROVIDER: z.enum(['ipapi', 'disabled', 'local']).default('ipapi'),
-  GEOLOCATION_API_URL: z.string().default('https://ipapi.co/{ip}/json/'),
-  GEOLOCATION_TIMEOUT_MS: z.coerce.number().int().min(100).max(30000).default(2000),
+  // GEOLOCATION_ENABLED: booleanEnv.default(true),
+  // GEOLOCATION_PROVIDER: z.enum(['ipapi', 'disabled', 'local']).default('ipapi'),
+  // GEOLOCATION_API_URL: z.string().default('https://ipapi.co/{ip}/json/'),
+  // GEOLOCATION_TIMEOUT_MS: z.coerce.number().int().min(100).max(30000).default(2000),
 
   // PayPal
   PAYPAL_ENV: z.enum(['sandbox', 'prod']).default('sandbox'),

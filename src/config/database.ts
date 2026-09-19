@@ -97,13 +97,16 @@ import { WebhookEvent } from '@/entities/WebhookEvent';
  * Resolves SSL configuration based on environment parameters and provider CA certificates.
  */
 const getSslConfig = () => {
-  if (env.DATABASE_SSL || ['prod', 'uat'].includes(env.NODE_ENV)) {
-    return {
-      rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED,
-      ...(env.DATABASE_CA_CERT ? { ca: env.DATABASE_CA_CERT } : {}),
-    };
+  if (!env.DATABASE_SSL) {
+    return false;
   }
-  return false;
+
+  return {
+    rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED,
+    ...(env.DATABASE_CA_CERT
+      ? { ca: env.DATABASE_CA_CERT }
+      : {}),
+  };
 };
 
 /**
