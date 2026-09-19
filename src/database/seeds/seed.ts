@@ -40,11 +40,39 @@ async function applySeed(
   const filePath = path.join(definitionsDir, file);
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const module = require(filePath);
-  const seed = new module.default();
 
-  if (!seed || typeof seed.up !== 'function' || typeof seed.name !== 'string') {
-    logger.warn(`Skipping invalid seed file: ${file}`);
-    return { name: file, status: SeedStatus.INVALID };
+  const SeedClass = module?.default;
+
+  if (typeof SeedClass !== 'function') {
+    logger.warn(
+      {
+        file,
+        reason: 'Expected a default class export',
+      },
+      `Skipping invalid seed file: ${file}`,
+    );
+
+    return {
+      name: file,
+      status: SeedStatus.INVALID,
+    };
+  }
+
+  const seed = new SeedClass();
+
+  if (typeof seed.up !== 'function' || typeof seed.name !== 'string') {
+    logger.warn(
+      {
+        file,
+        reason: 'Seed must provide a string name and up() method',
+      },
+      `Skipping invalid seed file: ${file}`,
+    );
+
+    return {
+      name: file,
+      status: SeedStatus.INVALID,
+    };
   }
 
   const fileContent = fs.readFileSync(filePath, 'utf-8');
