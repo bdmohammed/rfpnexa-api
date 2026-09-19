@@ -29,7 +29,7 @@ networks:
 
 # Reusable configuration block for API services to avoid duplication
 x-api-common: &api-common
-  image: rfpnexa-api:latest
+  image: ${ECR_REGISTRY:-rfpnexa-api}:${IMAGE_TAG:-latest}
   env_file:
     - .env.prod
   environment:

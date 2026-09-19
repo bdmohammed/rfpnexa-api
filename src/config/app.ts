@@ -7,7 +7,6 @@ import helmet from 'helmet';
 import { AppDataSource } from './database';
 import { env } from './env';
 import { logger } from './logger';
-import { registerSwagger } from './swagger';
 
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { doubleCsrfProtection } from '@/middleware/csrf';
@@ -187,8 +186,10 @@ app.use('/api/', globalLimiter);
 
 // ── Swagger UI (local + dev only) ────────────────────────────────────────────
 if (env.SWAGGER_ENABLED) {
-  registerSwagger(app);
-  logger.info('Swagger UI available at /api/v1/docs');
+  import('./swagger.js').then(({ registerSwagger }) => {
+    registerSwagger(app);
+    logger.info('Swagger UI available at /api/v1/docs');
+  });
 }
 
 // ── Dummy S3 Upload/Download (Local & Dev Only) ───────────────────────────────
