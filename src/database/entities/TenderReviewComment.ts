@@ -1,39 +1,39 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { TenderReview } from './TenderReview';
-import { User } from './User';
+// import { TenderReview } from './TenderReview';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_review_comments')
-export class TenderReviewComment {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_review_comments')
+// export class TenderReviewComment {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'review_id', type: 'uuid' })
-  reviewId!: string;
+//   @Column({ name: 'review_id', type: 'uuid' })
+//   reviewId!: string;
 
-  @ManyToOne(() => TenderReview, (review) => review.comments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'review_id' })
-  review!: Relation<TenderReview>;
+//   @ManyToOne(() => TenderReview, (review) => review.comments, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'review_id' })
+//   review!: Relation<TenderReview>;
 
-  @Column({ name: 'author_id', type: 'uuid' })
-  authorId!: string;
+//   @Column({ name: 'author_id', type: 'uuid' })
+//   authorId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'author_id' })
-  author!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'author_id' })
+//   author!: Relation<User>;
 
-  @Column({ name: 'comment_text', type: 'text' })
-  commentText!: string;
+//   @Column({ name: 'comment_text', type: 'text' })
+//   commentText!: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

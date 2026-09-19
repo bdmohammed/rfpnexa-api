@@ -56,7 +56,7 @@ export const EMAIL_VERIFICATION_TOKEN_LENGTH: number = 64;
 export const REFRESH_COOKIE_NAME = 'rfpnexa_refresh_token';
 
 // Access token expires in 15 minutes
-export const ACCESS_TOKEN_EXPIRY = '15m';
+export const ACCESS_TOKEN_EXPIRY = '60m';
 export const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
 
 // Refresh token configuration

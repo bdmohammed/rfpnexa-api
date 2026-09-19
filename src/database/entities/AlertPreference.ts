@@ -1,77 +1,77 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+//   Unique,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { Category } from './Category';
-import { State } from './State';
-import { User } from './User';
+// import { Category } from './Category';
+// import { State } from './State';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { AlertFrequency } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { AlertFrequency } from '@/types/enums';
 
-@Entity('alert_preferences')
-@Index('idx_alert_preferences_user', ['userId'])
-@Index('idx_alert_preferences_category', ['categoryId'])
-@Index('idx_alert_preferences_state', ['stateId'])
-@Index('idx_alert_preferences_frequency', ['frequency'])
-@Index('idx_alert_preferences_user_frequency', ['userId', 'frequency'])
-@Unique(['userId', 'categoryId', 'stateId', 'keyword'])
-export class AlertPreference {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('alert_preferences')
+// @Index('idx_alert_preferences_user', ['userId'])
+// @Index('idx_alert_preferences_category', ['categoryId'])
+// @Index('idx_alert_preferences_state', ['stateId'])
+// @Index('idx_alert_preferences_frequency', ['frequency'])
+// @Index('idx_alert_preferences_user_frequency', ['userId', 'frequency'])
+// @Unique(['userId', 'categoryId', 'stateId', 'keyword'])
+// export class AlertPreference {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  /** Match tenders in this category. Null = any category. */
-  @Column({ type: 'uuid', nullable: true })
-  categoryId!: string | null;
+//   /** Match tenders in this category. Null = any category. */
+//   @Column({ type: 'uuid', nullable: true })
+//   categoryId!: string | null;
 
-  @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
-  category!: Relation<Category | null>;
+//   @ManyToOne(() => Category, { onDelete: 'SET NULL', nullable: true })
+//   category!: Relation<Category | null>;
 
-  /** Match tenders in this state. Null = any state. */
-  @Column({ type: 'smallint', nullable: true })
-  stateId!: number | null;
+//   /** Match tenders in this state. Null = any state. */
+//   @Column({ type: 'smallint', nullable: true })
+//   stateId!: number | null;
 
-  @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
-  state!: Relation<State | null>;
+//   @ManyToOne(() => State, { onDelete: 'SET NULL', nullable: true })
+//   state!: Relation<State | null>;
 
-  /** Optional keyword filter applied to title/description */
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  keyword!: string | null;
+//   /** Optional keyword filter applied to title/description */
+//   @Column({ type: 'varchar', length: 150, nullable: true })
+//   keyword!: string | null;
 
-  @Column({
-    type: 'boolean',
-    name: 'is_active',
-    default: true,
-  })
-  isActive!: boolean;
+//   @Column({
+//     type: 'boolean',
+//     name: 'is_active',
+//     default: true,
+//   })
+//   isActive!: boolean;
 
-  @Column({ type: 'enum', enum: AlertFrequency, default: AlertFrequency.DAILY })
-  frequency!: AlertFrequency;
+//   @Column({ type: 'enum', enum: AlertFrequency, default: AlertFrequency.DAILY })
+//   frequency!: AlertFrequency;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
 
-  @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })
-  lastSentAt!: Date | null;
+//   @Column({ name: 'last_sent_at', type: 'timestamptz', nullable: true })
+//   lastSentAt!: Date | null;
 
-  @Column({ name: 'email_sent_count', type: 'int', default: 0 })
-  emailSentCount!: number;
-}
+//   @Column({ name: 'email_sent_count', type: 'int', default: 0 })
+//   emailSentCount!: number;
+// }

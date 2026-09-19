@@ -21,7 +21,7 @@ export const PermissionModules = {
   NOTIFICATION_TEMPLATE: 'notification_template',
   AUDIT: 'audit',
   SYSTEM: 'system',
-  STATE: 'state',
+  GeoLocation: 'geoLocation',
 } as const;
 
 export type PermissionModuleKey = (typeof PermissionModules)[keyof typeof PermissionModules];

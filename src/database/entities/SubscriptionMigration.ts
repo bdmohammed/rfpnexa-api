@@ -1,57 +1,57 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { PlanVersion } from './PlanVersion';
-import { User } from './User';
+// import { PlanVersion } from './PlanVersion';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { SubscriptionMigrationStatus } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { SubscriptionMigrationStatus } from '@/types/enums';
 
-@Entity('subscription_migrations')
-export class SubscriptionMigration {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('subscription_migrations')
+// export class SubscriptionMigration {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'source_plan_version_id', type: 'uuid' })
-  sourcePlanVersionId!: string;
+//   @Column({ name: 'source_plan_version_id', type: 'uuid' })
+//   sourcePlanVersionId!: string;
 
-  @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'source_plan_version_id' })
-  sourceVersion!: Relation<PlanVersion>;
+//   @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'source_plan_version_id' })
+//   sourceVersion!: Relation<PlanVersion>;
 
-  @Column({ name: 'target_plan_version_id', type: 'uuid' })
-  targetPlanVersionId!: string;
+//   @Column({ name: 'target_plan_version_id', type: 'uuid' })
+//   targetPlanVersionId!: string;
 
-  @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'target_plan_version_id' })
-  targetVersion!: Relation<PlanVersion>;
+//   @ManyToOne(() => PlanVersion, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'target_plan_version_id' })
+//   targetVersion!: Relation<PlanVersion>;
 
-  @Column({
-    type: 'enum',
-    enum: SubscriptionMigrationStatus,
-    default: SubscriptionMigrationStatus.PENDING,
-  })
-  status!: SubscriptionMigrationStatus;
+//   @Column({
+//     type: 'enum',
+//     enum: SubscriptionMigrationStatus,
+//     default: SubscriptionMigrationStatus.PENDING,
+//   })
+//   status!: SubscriptionMigrationStatus;
 
-  @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
-  startedAt!: Date | null;
+//   @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
+//   startedAt!: Date | null;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt!: Date | null;
+//   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
+//   completedAt!: Date | null;
 
-  @Column({ name: 'created_by_id', type: 'uuid' })
-  createdById!: string;
+//   @Column({ name: 'created_by_id', type: 'uuid' })
+//   createdById!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'created_by_id' })
-  createdBy!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'created_by_id' })
+//   createdBy!: Relation<User>;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

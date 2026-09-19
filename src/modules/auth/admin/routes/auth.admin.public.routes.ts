@@ -1,6 +1,10 @@
 import { Router } from 'express';
 
-import { LoginSchema, RegisterSchema, VerifyEmailSchema } from '../../auth.dto';
+import {
+  LoginSchema,
+  RegisterSchema,
+  // VerifyEmailSchema
+} from '../../auth.dto';
 import * as authController from '../controller/auth.admin.public.controller';
 
 import { loginLimiter, registerLimiter } from '@/middleware/rateLimits';
@@ -43,7 +47,12 @@ const router = Router();
  *       429:
  *         $ref: '#/components/responses/RateLimited'
  */
-router.post('/register', registerLimiter, validate(RegisterSchema), authController.registerAdmin);
+router.post(
+  '/register',
+  registerLimiter,
+  validate(RegisterSchema, 'body'),
+  authController.registerAdmin,
+);
 
 /**
  * @swagger
@@ -93,7 +102,7 @@ router.post('/register', registerLimiter, validate(RegisterSchema), authControll
  *       429:
  *         $ref: '#/components/responses/RateLimited'
  */
-router.post('/login', loginLimiter, validate(LoginSchema), authController.loginAdmin);
+router.post('/login', loginLimiter, validate(LoginSchema, 'body'), authController.loginAdmin);
 
 /**
  * @swagger
@@ -132,6 +141,6 @@ router.post('/login', loginLimiter, validate(LoginSchema), authController.loginA
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/verify-email', validate(VerifyEmailSchema), authController.verifyAdminEmail);
+// router.post('/verify-email', validate(VerifyEmailSchema), authController.verifyAdminEmail);
 
 export { router as adminAuthPublicRoutes };

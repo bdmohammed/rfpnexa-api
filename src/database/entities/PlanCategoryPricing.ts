@@ -1,39 +1,39 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { Category } from './Category';
-import { PlanVersion } from './PlanVersion';
+// import { Category } from './Category';
+// import { PlanVersion } from './PlanVersion';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('plan_category_pricing')
-export class PlanCategoryPricing {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('plan_category_pricing')
+// export class PlanCategoryPricing {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'plan_version_id', type: 'uuid' })
-  planVersionId!: string;
+//   @Column({ name: 'plan_version_id', type: 'uuid' })
+//   planVersionId!: string;
 
-  @ManyToOne(() => PlanVersion, (v) => v.categoryPricing, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: Relation<PlanVersion>;
+//   @ManyToOne(() => PlanVersion, (v) => v.categoryPricing, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'plan_version_id' })
+//   planVersion!: Relation<PlanVersion>;
 
-  @Column({ name: 'category_id', type: 'uuid' })
-  categoryId!: string;
+//   @Column({ name: 'category_id', type: 'uuid' })
+//   categoryId!: string;
 
-  @ManyToOne(() => Category, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'category_id' })
-  category!: Relation<Category>;
+//   @ManyToOne(() => Category, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'category_id' })
+//   category!: Relation<Category>;
 
-  @Column({ name: 'price_cents', type: 'int' })
-  priceCents!: number;
+//   @Column({ name: 'price_cents', type: 'int' })
+//   priceCents!: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

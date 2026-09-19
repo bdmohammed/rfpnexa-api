@@ -1,80 +1,80 @@
-import {
-  Check,
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Check,
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { Tender } from './Tender';
-import { User } from './User';
+// import { Tender } from './Tender';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { DownloadSource } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { DownloadSource } from '@/types/enums';
 
-/**
- * Immutable audit log of every PDF download.
- * Never updated, never deleted — append-only.
- */
-@Entity('download_history')
-@Check('"file_size" >= 0')
-@Index('idx_downloads_user_date', ['userId', 'downloadedAt'])
-@Index('idx_downloads_tender_date', ['tenderId', 'downloadedAt'])
-@Index('idx_downloads_date', ['downloadedAt'])
-export class DownloadHistory {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// /**
+//  * Immutable audit log of every PDF download.
+//  * Never updated, never deleted — append-only.
+//  */
+// @Entity('download_history')
+// @Check('"file_size" >= 0')
+// @Index('idx_downloads_user_date', ['userId', 'downloadedAt'])
+// @Index('idx_downloads_tender_date', ['tenderId', 'downloadedAt'])
+// @Index('idx_downloads_date', ['downloadedAt'])
+// export class DownloadHistory {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ type: 'uuid' })
-  userId!: string;
+//   @Column({ type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, {
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, {
+//     onDelete: 'RESTRICT',
+//   })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ type: 'uuid' })
-  tenderId!: string;
+//   @Column({ type: 'uuid' })
+//   tenderId!: string;
 
-  @ManyToOne(() => Tender, {
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'tender_id' })
-  tender!: Relation<Tender>;
+//   @ManyToOne(() => Tender, {
+//     onDelete: 'RESTRICT',
+//   })
+//   @JoinColumn({ name: 'tender_id' })
+//   tender!: Relation<Tender>;
 
-  @Column({ name: 'file_name', type: 'varchar', length: 255 })
-  fileName!: string;
+//   @Column({ name: 'file_name', type: 'varchar', length: 255 })
+//   fileName!: string;
 
-  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
-  storageKey!: string | null;
+//   @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
+//   storageKey!: string | null;
 
-  @Column({ name: 'file_size', type: 'bigint' })
-  fileSize!: number;
+//   @Column({ name: 'file_size', type: 'bigint' })
+//   fileSize!: number;
 
-  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
-  mimeType!: string | null;
+//   @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
+//   mimeType!: string | null;
 
-  @Column({ type: 'inet', nullable: true })
-  ipAddress!: string | null;
+//   @Column({ type: 'inet', nullable: true })
+//   ipAddress!: string | null;
 
-  @Column({
-    name: 'user_agent',
-    type: 'text',
-    nullable: true,
-  })
-  userAgent!: string | null;
+//   @Column({
+//     name: 'user_agent',
+//     type: 'text',
+//     nullable: true,
+//   })
+//   userAgent!: string | null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  downloadedAt!: Date;
+//   @CreateDateColumn({ type: 'timestamptz' })
+//   downloadedAt!: Date;
 
-  @Column({
-    name: 'download_source',
-    type: 'enum',
-    enum: DownloadSource,
-  })
-  source!: DownloadSource;
-}
+//   @Column({
+//     name: 'download_source',
+//     type: 'enum',
+//     enum: DownloadSource,
+//   })
+//   source!: DownloadSource;
+// }

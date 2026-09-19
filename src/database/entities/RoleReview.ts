@@ -1,72 +1,72 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   OneToMany,
+//   PrimaryGeneratedColumn,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { Role } from './Role';
-import { RoleReviewAssignment } from './RoleReviewAssignment';
-import { RoleReviewComment } from './RoleReviewComment';
-import { RoleVersion } from './RoleVersion';
+// import { Role } from './Role';
+// import { RoleReviewAssignment } from './RoleReviewAssignment';
+// import { RoleReviewComment } from './RoleReviewComment';
+// import { RoleVersion } from './RoleVersion';
 
-import type { Relation } from 'typeorm';
-import { ReviewStatus } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { ReviewStatus } from '@/types/enums';
 
-@Entity('role_reviews')
-@Index(['roleVersionId'])
-@Index('ux_role_review_pending', ['roleVersionId'], {
-  unique: true,
-  where: '"status" = \'PENDING\'',
-})
-export class RoleReview {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('role_reviews')
+// @Index(['roleVersionId'])
+// @Index('ux_role_review_pending', ['roleVersionId'], {
+//   unique: true,
+//   where: '"status" = \'PENDING\'',
+// })
+// export class RoleReview {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'role_id', type: 'uuid' })
-  roleId!: string;
+//   @Column({ name: 'role_id', type: 'uuid' })
+//   roleId!: string;
 
-  @ManyToOne(() => Role, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'role_id' })
-  role!: Relation<Role>;
+//   @ManyToOne(() => Role, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'role_id' })
+//   role!: Relation<Role>;
 
-  @Column({ name: 'role_version_id', type: 'uuid' })
-  roleVersionId!: string;
+//   @Column({ name: 'role_version_id', type: 'uuid' })
+//   roleVersionId!: string;
 
-  @ManyToOne(() => RoleVersion, (roleVersion) => roleVersion.reviews, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'role_version_id' })
-  roleVersion!: Relation<RoleVersion>;
+//   @ManyToOne(() => RoleVersion, (roleVersion) => roleVersion.reviews, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'role_version_id' })
+//   roleVersion!: Relation<RoleVersion>;
 
-  @Index('idx_role_reviews_status')
-  @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
-  status!: ReviewStatus;
+//   @Index('idx_role_reviews_status')
+//   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
+//   status!: ReviewStatus;
 
-  @Column({ name: 'submitted_by', type: 'uuid', nullable: true })
-  submittedByUserId!: string | null;
+//   @Column({ name: 'submitted_by', type: 'uuid', nullable: true })
+//   submittedByUserId!: string | null;
 
-  @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true })
-  submittedAt!: Date | null;
+//   @Column({ name: 'submitted_at', type: 'timestamptz', nullable: true })
+//   submittedAt!: Date | null;
 
-  @Column({ name: 'decision_comment', type: 'text', nullable: true })
-  decisionComment!: string | null;
+//   @Column({ name: 'decision_comment', type: 'text', nullable: true })
+//   decisionComment!: string | null;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt!: Date | null;
+//   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
+//   completedAt!: Date | null;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
 
-  @OneToMany(() => RoleReviewAssignment, (roleReviewAssignment) => roleReviewAssignment.review)
-  roleReviewAssignments!: Relation<RoleReviewAssignment[]>;
+//   @OneToMany(() => RoleReviewAssignment, (roleReviewAssignment) => roleReviewAssignment.review)
+//   roleReviewAssignments!: Relation<RoleReviewAssignment[]>;
 
-  @OneToMany(() => RoleReviewComment, (roleReviewComment) => roleReviewComment.roleReview)
-  roleReviewComments!: Relation<RoleReviewComment[]>;
-}
+//   @OneToMany(() => RoleReviewComment, (roleReviewComment) => roleReviewComment.roleReview)
+//   roleReviewComments!: Relation<RoleReviewComment[]>;
+// }

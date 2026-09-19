@@ -1,105 +1,105 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   OneToMany,
+//   PrimaryGeneratedColumn,
+//   Unique,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { Category } from './Category';
-import { CategoryReview } from './CategoryReview';
-import { User } from './User';
+// import { Category } from './Category';
+// import { CategoryReview } from './CategoryReview';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { CategoryVersionStatus } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { CategoryVersionStatus } from '@/types/enums';
 
-@Entity('category_versions')
-@Unique(['categoryId', 'version'])
-@Index('idx_category_versions_category_id', ['categoryId'])
-@Index('idx_category_versions_status', ['status'])
-export class CategoryVersion {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('category_versions')
+// @Unique(['categoryId', 'version'])
+// @Index('idx_category_versions_category_id', ['categoryId'])
+// @Index('idx_category_versions_status', ['status'])
+// export class CategoryVersion {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'category_id', type: 'uuid' })
-  categoryId!: string;
+//   @Column({ name: 'category_id', type: 'uuid' })
+//   categoryId!: string;
 
-  @ManyToOne(() => Category, (cat) => cat.versions, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'category_id' })
-  category!: Relation<Category>;
+//   @ManyToOne(() => Category, (cat) => cat.versions, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'category_id' })
+//   category!: Relation<Category>;
 
-  @Column({ type: 'integer', default: 0 })
-  majorVersion!: number;
+//   @Column({ type: 'integer', default: 0 })
+//   majorVersion!: number;
 
-  @Column({ type: 'integer', default: 1 })
-  minorVersion!: number;
+//   @Column({ type: 'integer', default: 1 })
+//   minorVersion!: number;
 
-  @Column({ type: 'integer', default: 1 })
-  version!: number;
+//   @Column({ type: 'integer', default: 1 })
+//   version!: number;
 
-  @Column({ name: 'version_number', type: 'varchar', length: 20, default: '0.1' })
-  versionNumber!: string;
+//   @Column({ name: 'version_number', type: 'varchar', length: 20, default: '0.1' })
+//   versionNumber!: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: false })
-  name!: string;
+//   @Column({ type: 'varchar', length: 200, nullable: false })
+//   name!: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: false })
-  slug!: string;
+//   @Column({ type: 'varchar', length: 200, nullable: false })
+//   slug!: string;
 
-  @Column({ type: 'text', nullable: true })
-  description!: string | null;
+//   @Column({ type: 'text', nullable: true })
+//   description!: string | null;
 
-  @Column({ name: 'parent_category_id', type: 'uuid', nullable: true })
-  parentCategoryId!: string | null;
+//   @Column({ name: 'parent_category_id', type: 'uuid', nullable: true })
+//   parentCategoryId!: string | null;
 
-  @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'parent_category_id' })
-  parentCategory!: Relation<Category | null>;
+//   @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL' })
+//   @JoinColumn({ name: 'parent_category_id' })
+//   parentCategory!: Relation<Category | null>;
 
-  @Column({ name: 'display_order', type: 'integer', default: 0 })
-  displayOrder!: number;
+//   @Column({ name: 'display_order', type: 'integer', default: 0 })
+//   displayOrder!: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  icon!: string | null;
+//   @Column({ type: 'varchar', length: 50, nullable: true })
+//   icon!: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  color!: string | null;
+//   @Column({ type: 'varchar', length: 50, nullable: true })
+//   color!: string | null;
 
-  @Column({ type: 'enum', enum: CategoryVersionStatus, default: CategoryVersionStatus.DRAFT })
-  status!: CategoryVersionStatus;
+//   @Column({ type: 'enum', enum: CategoryVersionStatus, default: CategoryVersionStatus.DRAFT })
+//   status!: CategoryVersionStatus;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true })
-  createdByUserId!: string | null;
+//   @Column({ name: 'created_by', type: 'uuid', nullable: true })
+//   createdByUserId!: string | null;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'created_by' })
-  createdByUser!: Relation<User | null>;
+//   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+//   @JoinColumn({ name: 'created_by' })
+//   createdByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
-  approvedByUserId!: string | null;
+//   @Column({ name: 'approved_by', type: 'uuid', nullable: true })
+//   approvedByUserId!: string | null;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'approved_by' })
-  approvedByUser!: Relation<User | null>;
+//   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+//   @JoinColumn({ name: 'approved_by' })
+//   approvedByUser!: Relation<User | null>;
 
-  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
-  approvedAt!: Date | null;
+//   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
+//   approvedAt!: Date | null;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
 
-  // ─── Relations ───────────────────────────────────────────────────────────
-  @OneToMany(() => CategoryReview, (review) => review.categoryVersion)
-  reviews!: Relation<CategoryReview[]>;
+//   // ─── Relations ───────────────────────────────────────────────────────────
+//   @OneToMany(() => CategoryReview, (review) => review.categoryVersion)
+//   reviews!: Relation<CategoryReview[]>;
 
-  @OneToMany(() => Category, (cat) => cat.activeVersion)
-  categoriesUsingThisVersion!: Relation<Category[]>;
-}
+//   @OneToMany(() => Category, (cat) => cat.activeVersion)
+//   categoriesUsingThisVersion!: Relation<Category[]>;
+// }

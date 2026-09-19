@@ -1,6 +1,10 @@
 import { Router } from 'express';
 
-import { LoginSchema, RegisterSchema, VerifyEmailSchema } from '../../auth.dto';
+import {
+  LoginSchema,
+  RegisterSchema,
+  // VerifyEmailSchema
+} from '../../auth.dto';
 import * as controller from '../controllers/auth.customer.public.controller';
 
 import { loginLimiter, registerLimiter } from '@/middleware/rateLimits';
@@ -43,46 +47,46 @@ const router = Router();
  *       429:
  *         $ref: '#/components/responses/RateLimited'
  */
-router.post('/register', registerLimiter, validate(RegisterSchema), controller.register);
+router.post('/register', registerLimiter, validate(RegisterSchema, 'body'), controller.register);
 
-/**
- * @swagger
- * /api/v1/auth/verify-email:
- *   post:
- *     summary: Verify email address with a one-time token
- *     description: Verifies the email address using the confirmation token sent via email during registration.
- *     operationId: verifyEmail
- *     tags: [Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token]
- *             properties:
- *               token:
- *                 type: string
- *                 example: "verification-token-123"
- *                 description: Token from the verification email
- *     responses:
- *       200:
- *         description: Email verified successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               success: true
- *               message: "Email verified successfully. You can now log in."
- *               data: null
- *               traceId: "d3b07384-d113-4ec2-a5d6-c73e16723223"
- *       422:
- *         $ref: '#/components/responses/ValidationError'
- */
-router.post('/verify-email', validate(VerifyEmailSchema), controller.verifyEmail);
+// /**
+//  * @swagger
+//  * /api/v1/auth/verify-email:
+//  *   post:
+//  *     summary: Verify email address with a one-time token
+//  *     description: Verifies the email address using the confirmation token sent via email during registration.
+//  *     operationId: verifyEmail
+//  *     tags: [Auth]
+//  *     security:
+//  *       - csrfToken: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required: [token]
+//  *             properties:
+//  *               token:
+//  *                 type: string
+//  *                 example: "verification-token-123"
+//  *                 description: Token from the verification email
+//  *     responses:
+//  *       200:
+//  *         description: Email verified successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               $ref: '#/components/schemas/SuccessResponse'
+//  *             example:
+//  *               success: true
+//  *               message: "Email verified successfully. You can now log in."
+//  *               data: null
+//  *               traceId: "d3b07384-d113-4ec2-a5d6-c73e16723223"
+//  *       422:
+//  *         $ref: '#/components/responses/ValidationError'
+//  */
+// router.post('/verify-email', validate(VerifyEmailSchema), controller.verifyEmail);
 
 /**
  * @swagger
@@ -132,6 +136,6 @@ router.post('/verify-email', validate(VerifyEmailSchema), controller.verifyEmail
  *       429:
  *         $ref: '#/components/responses/RateLimited'
  */
-router.post('/login', loginLimiter, validate(LoginSchema), controller.login);
+router.post('/login', loginLimiter, validate(LoginSchema, 'body'), controller.login);
 
 export { router as customerAuthPublicRoutes };

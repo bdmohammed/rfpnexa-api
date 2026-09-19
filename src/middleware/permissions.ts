@@ -1,15 +1,18 @@
 import slugify from 'slugify';
-import { In } from 'typeorm';
 
+// import { In } from 'typeorm';
 import type { NextFunction, Request, Response } from 'express';
 import { AppDataSource } from '@/config/database';
 import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/AppError';
 import { SUPER_ADMIN } from '@/core/constants';
 import { Permission } from '@/entities/Permission';
-import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+// import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
 import { UserRole } from '@/entities/UserRole';
 import { CacheService } from '@/services/cache.service';
 import { AccountType, RoleStatus } from '@/types/enums';
+
+const userRoleRepo = AppDataSource.getRepository(UserRole);
+// const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
 
 /**
  * Resolves active role slugs and permission keys from PostgreSQL database for an admin user.
@@ -17,20 +20,22 @@ import { AccountType, RoleStatus } from '@/types/enums';
 async function fetchUserRolesAndPermissions(
   userId: string,
 ): Promise<{ roles: string[]; permissions: string[] }> {
-  const userRoleRepo = AppDataSource.getRepository(UserRole);
-
   const userRoles = await userRoleRepo.find({
     where: { userId },
     relations: {
       role: {
-        activeVersion: true,
+        // activeVersion: true,
+        rolePermissions: {
+          permission: true,
+        },
       },
     },
   });
 
   const activeUserRoles = userRoles.filter((ur) => {
     if (ur.role.status !== RoleStatus.ACTIVE) return false;
-    if (ur.expiresAt && ur.expiresAt.getTime() < Date.now()) return false;
+    // if (ur.expiresAt && ur.expiresAt.getTime() < Date.now()) return false;
+    if (ur.status !== RoleStatus.ACTIVE) return false;
     return true;
   });
 
@@ -45,31 +50,38 @@ async function fetchUserRolesAndPermissions(
   const roleSlugs = activeUserRoles
     .map((userRole) => {
       if (userRole.role.isSystemRole) return SUPER_ADMIN;
-      const roleName = userRole.role.activeVersion.name;
+      const roleName = userRole.role.key;
       return roleName ? slugify(roleName, { lower: true, strict: true }) : null;
     })
     .filter((slug): slug is string => Boolean(slug));
 
   const hasSuperAdmin = activeUserRoles.some((ur) => ur.role.isSystemRole);
-  let permissionKeys: string[] = [];
+  let permissionKeys: string[];
 
   if (hasSuperAdmin) {
     const permissionRepo = AppDataSource.getRepository(Permission);
     const allPermissions = await permissionRepo.find({ select: { key: true } });
     permissionKeys = allPermissions.map((p) => p.key);
   } else {
-    const activeVersionIds = activeUserRoles
-      .map((ur) => ur.role.activeVersionId)
-      .filter((id): id is string => Boolean(id));
-
-    if (activeVersionIds.length > 0) {
-      const rvpRepo = AppDataSource.getRepository(RoleVersionPermission);
-      const rvpList = await rvpRepo.find({
-        where: { roleVersionId: In(activeVersionIds) },
-        select: { permissionKey: true },
-      });
-      permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
+    // const activeVersionIds = activeUserRoles
+    //   // .map((ur) => ur.role.activeVersionId)
+    //   .filter((id): id is string => Boolean(id));
+    // if (activeVersionIds.length > 0) {
+    // const rvpList = await rvpRepo.find({
+    //   where: { roleVersionId: In(activeVersionIds) },
+    //   select: { permissionKey: true },
+    // });
+    // permissionKeys = Array.from(new Set(rvpList.map((p) => p.permissionKey)));
+    // }
+    const keys: string[] = [];
+    for (const ur of activeUserRoles) {
+      for (const rp of ur.role.rolePermissions) {
+        if (rp.permission.key) {
+          keys.push(rp.permission.key);
+        }
+      }
     }
+    permissionKeys = Array.from(new Set(keys));
   }
 
   return { roles: roleSlugs, permissions: permissionKeys };

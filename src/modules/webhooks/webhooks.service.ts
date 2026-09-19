@@ -1,239 +1,239 @@
-import { Subscription } from '../../database/entities/Subscription';
-import { Transaction } from '../../database/entities/Transaction';
-import { WebhookEvent } from '../../database/entities/WebhookEvent';
+// import { Subscription } from '../../database/entities/Subscription';
+// import { Transaction } from '../../database/entities/Transaction';
+// import { WebhookEvent } from '../../database/entities/WebhookEvent';
 
-import type { WebhookEventType, WebhookProvider } from '@/types/enums';
-import { AppDataSource } from '@/config/database';
-import { logger } from '@/config/logger';
-import {
-  SubscriptionStatus,
-  TransactionStatus,
-  TransactionType,
-  WebhookEventStatus,
-} from '@/types/enums';
+// import type { WebhookEventType, WebhookProvider } from '@/types/enums';
+// import { AppDataSource } from '@/config/database';
+// import { logger } from '@/config/logger';
+// import {
+//   SubscriptionStatus,
+//   TransactionStatus,
+//   TransactionType,
+//   WebhookEventStatus,
+// } from '@/types/enums';
 
-const webhookEventRepository = AppDataSource.getRepository(WebhookEvent);
-const subscriptionRepository = AppDataSource.getRepository(Subscription);
-const transactionRepository = AppDataSource.getRepository(Transaction);
+// const webhookEventRepository = AppDataSource.getRepository(WebhookEvent);
+// const subscriptionRepository = AppDataSource.getRepository(Subscription);
+// const transactionRepository = AppDataSource.getRepository(Transaction);
 
-interface PayPalWebhookBody {
-  event_type: string;
-  resource: Record<string, unknown>;
-}
+// interface PayPalWebhookBody {
+//   event_type: string;
+//   resource: Record<string, unknown>;
+// }
 
-// ─── Core webhook processing ──────────────────────────────────────────────────
+// // ─── Core webhook processing ──────────────────────────────────────────────────
 
-export async function processWebhookEvent(body: PayPalWebhookBody): Promise<void> {
-  const { event_type: eventType, resource } = body;
-  logger.info({ eventType }, 'Processing PayPal webhook event');
+// export async function processWebhookEvent(body: PayPalWebhookBody): Promise<void> {
+//   const { event_type: eventType, resource } = body;
+//   logger.info({ eventType }, 'Processing PayPal webhook event');
 
-  switch (eventType) {
-    case 'BILLING.SUBSCRIPTION.ACTIVATED':
-      await handleSubscriptionActivated(resource);
-      break;
+//   switch (eventType) {
+//     case 'BILLING.SUBSCRIPTION.ACTIVATED':
+//       await handleSubscriptionActivated(resource);
+//       break;
 
-    case 'BILLING.SUBSCRIPTION.CANCELLED':
-    case 'BILLING.SUBSCRIPTION.EXPIRED':
-      await handleSubscriptionCancelledOrExpired(resource);
-      break;
+//     case 'BILLING.SUBSCRIPTION.CANCELLED':
+//     case 'BILLING.SUBSCRIPTION.EXPIRED':
+//       await handleSubscriptionCancelledOrExpired(resource);
+//       break;
 
-    case 'PAYMENT.SALE.COMPLETED':
-      await handleSaleCompleted(resource);
-      break;
+//     case 'PAYMENT.SALE.COMPLETED':
+//       await handleSaleCompleted(resource);
+//       break;
 
-    case 'PAYMENT.SALE.DENIED':
-      await handleSaleDenied(resource);
-      break;
+//     case 'PAYMENT.SALE.DENIED':
+//       await handleSaleDenied(resource);
+//       break;
 
-    case 'PAYMENT.CAPTURE.COMPLETED':
-      await handleCaptureCompleted(resource);
-      break;
+//     case 'PAYMENT.CAPTURE.COMPLETED':
+//       await handleCaptureCompleted(resource);
+//       break;
 
-    default:
-      // Log as ignored — not an error
-      await webhookEventRepository.update(
-        { eventId: body['id' as keyof typeof body] as string },
-        { status: WebhookEventStatus.IGNORED },
-      );
-      logger.info({ eventType }, 'Unhandled PayPal event type — ignored');
-  }
-}
+//     default:
+//       // Log as ignored — not an error
+//       await webhookEventRepository.update(
+//         { eventId: body['id' as keyof typeof body] as string },
+//         { status: WebhookEventStatus.IGNORED },
+//       );
+//       logger.info({ eventType }, 'Unhandled PayPal event type — ignored');
+//   }
+// }
 
-// ─── Event handlers ───────────────────────────────────────────────────────────
+// // ─── Event handlers ───────────────────────────────────────────────────────────
 
-async function handleSubscriptionActivated(resource: Record<string, unknown>): Promise<void> {
-  const paypalSubscriptionId = resource['id'] as string;
-  if (!paypalSubscriptionId) return;
+// async function handleSubscriptionActivated(resource: Record<string, unknown>): Promise<void> {
+//   const paypalSubscriptionId = resource['id'] as string;
+//   if (!paypalSubscriptionId) return;
 
-  await subscriptionRepository.update(
-    { paypalSubscriptionId },
-    { status: SubscriptionStatus.ACTIVE },
-  );
+//   await subscriptionRepository.update(
+//     { paypalSubscriptionId },
+//     { status: SubscriptionStatus.ACTIVE },
+//   );
 
-  logger.info({ paypalSubscriptionId }, 'Subscription activated');
-}
+//   logger.info({ paypalSubscriptionId }, 'Subscription activated');
+// }
 
-async function handleSubscriptionCancelledOrExpired(
-  resource: Record<string, unknown>,
-): Promise<void> {
-  const paypalSubscriptionId = resource['id'] as string;
-  if (!paypalSubscriptionId) return;
+// async function handleSubscriptionCancelledOrExpired(
+//   resource: Record<string, unknown>,
+// ): Promise<void> {
+//   const paypalSubscriptionId = resource['id'] as string;
+//   if (!paypalSubscriptionId) return;
 
-  const subscription = await subscriptionRepository.findOne({ where: { paypalSubscriptionId } });
-  if (!subscription) {
-    logger.warn({ paypalSubscriptionId }, 'Subscription not found for cancellation event');
-    return;
-  }
+//   const subscription = await subscriptionRepository.findOne({ where: { paypalSubscriptionId } });
+//   if (!subscription) {
+//     logger.warn({ paypalSubscriptionId }, 'Subscription not found for cancellation event');
+//     return;
+//   }
 
-  await subscriptionRepository.update(subscription.id, { status: SubscriptionStatus.CANCELLED });
-  logger.info({ paypalSubscriptionId }, 'Subscription marked cancelled/expired');
-}
+//   await subscriptionRepository.update(subscription.id, { status: SubscriptionStatus.CANCELLED });
+//   logger.info({ paypalSubscriptionId }, 'Subscription marked cancelled/expired');
+// }
 
-async function handleSaleCompleted(resource: Record<string, unknown>): Promise<void> {
-  // PAYMENT.SALE.COMPLETED fires for recurring subscription renewal payments
-  const billingAgreementId = resource['billing_agreement_id'] as string;
-  const saleId = resource['id'] as string;
-  const amount = resource['amount'] as { total: string; currency: string } | undefined;
+// async function handleSaleCompleted(resource: Record<string, unknown>): Promise<void> {
+//   // PAYMENT.SALE.COMPLETED fires for recurring subscription renewal payments
+//   const billingAgreementId = resource['billing_agreement_id'] as string;
+//   const saleId = resource['id'] as string;
+//   const amount = resource['amount'] as { total: string; currency: string } | undefined;
 
-  if (!billingAgreementId) return;
+//   if (!billingAgreementId) return;
 
-  // Find the subscription
-  const subscription = await subscriptionRepository.findOne({
-    where: { paypalSubscriptionId: billingAgreementId },
-    relations: {
-      planVersion: true,
-    },
-  });
+//   // Find the subscription
+//   const subscription = await subscriptionRepository.findOne({
+//     where: { paypalSubscriptionId: billingAgreementId },
+//     relations: {
+//       planVersion: true,
+//     },
+//   });
 
-  if (!subscription) {
-    logger.warn({ billingAgreementId }, 'Subscription not found for PAYMENT.SALE.COMPLETED');
-    return;
-  }
+//   if (!subscription) {
+//     logger.warn({ billingAgreementId }, 'Subscription not found for PAYMENT.SALE.COMPLETED');
+//     return;
+//   }
 
-  // Extend the subscription end date by plan duration
-  const durationDays = subscription.planVersion.durationDays || 30;
-  const newEndDate = new Date(
-    Math.max(subscription.endDate.getTime(), Date.now()) + durationDays * 24 * 60 * 60 * 1000,
-  );
-  await subscriptionRepository.update(subscription.id, {
-    endDate: newEndDate,
-    status: SubscriptionStatus.ACTIVE,
-  });
+//   // Extend the subscription end date by plan duration
+//   const durationDays = subscription.planVersion.durationDays || 30;
+//   const newEndDate = new Date(
+//     Math.max(subscription.endDate.getTime(), Date.now()) + durationDays * 24 * 60 * 60 * 1000,
+//   );
+//   await subscriptionRepository.update(subscription.id, {
+//     endDate: newEndDate,
+//     status: SubscriptionStatus.ACTIVE,
+//   });
 
-  // Record transaction
-  const amountCents = amount ? Math.round(parseFloat(amount.total) * 100) : 0;
-  await transactionRepository.save(
-    transactionRepository.create({
-      userId: subscription.userId,
-      amountCents,
-      currency: amount?.currency.toLowerCase() ?? 'usd',
-      type: TransactionType.SUBSCRIPTION,
-      referenceId: subscription.id,
-      referenceType: 'subscription',
-      provider: 'paypal',
-      providerTransactionId: saleId,
-      providerReferenceId: saleId,
-      status: TransactionStatus.SUCCESS,
-      providerResponse: resource,
-    }),
-  );
+//   // Record transaction
+//   const amountCents = amount ? Math.round(parseFloat(amount.total) * 100) : 0;
+//   await transactionRepository.save(
+//     transactionRepository.create({
+//       userId: subscription.userId,
+//       amountCents,
+//       currency: amount?.currency.toLowerCase() ?? 'usd',
+//       type: TransactionType.SUBSCRIPTION,
+//       referenceId: subscription.id,
+//       referenceType: 'subscription',
+//       provider: 'paypal',
+//       providerTransactionId: saleId,
+//       providerReferenceId: saleId,
+//       status: TransactionStatus.SUCCESS,
+//       providerResponse: resource,
+//     }),
+//   );
 
-  logger.info({ billingAgreementId, saleId }, 'Recurring payment recorded');
-}
+//   logger.info({ billingAgreementId, saleId }, 'Recurring payment recorded');
+// }
 
-async function handleSaleDenied(resource: Record<string, unknown>): Promise<void> {
-  const billingAgreementId = resource['billing_agreement_id'] as string;
-  if (!billingAgreementId) return;
+// async function handleSaleDenied(resource: Record<string, unknown>): Promise<void> {
+//   const billingAgreementId = resource['billing_agreement_id'] as string;
+//   if (!billingAgreementId) return;
 
-  // Mark subscription as expired on payment failure
-  await subscriptionRepository.update(
-    { paypalSubscriptionId: billingAgreementId },
-    { status: SubscriptionStatus.EXPIRED },
-  );
+//   // Mark subscription as expired on payment failure
+//   await subscriptionRepository.update(
+//     { paypalSubscriptionId: billingAgreementId },
+//     { status: SubscriptionStatus.EXPIRED },
+//   );
 
-  logger.warn({ billingAgreementId }, 'Subscription payment denied — marked expired');
-}
+//   logger.warn({ billingAgreementId }, 'Subscription payment denied — marked expired');
+// }
 
-async function handleCaptureCompleted(resource: Record<string, unknown>): Promise<void> {
-  // PAYMENT.CAPTURE.COMPLETED fires for one-time Orders API captures
-  const captureId = resource['id'] as string;
-  // Get the order ID from supplementary_data or capture resource if available
-  const orderId =
-    ((resource['supplementary_data'] as Record<string, unknown>)['related_ids'] as string) ||
-    captureId;
-  // const amount = resource['amount'] as { value: string; currency_code: string } | undefined;
+// async function handleCaptureCompleted(resource: Record<string, unknown>): Promise<void> {
+//   // PAYMENT.CAPTURE.COMPLETED fires for one-time Orders API captures
+//   const captureId = resource['id'] as string;
+//   // Get the order ID from supplementary_data or capture resource if available
+//   const orderId =
+//     ((resource['supplementary_data'] as Record<string, unknown>)['related_ids'] as string) ||
+//     captureId;
+//   // const amount = resource['amount'] as { value: string; currency_code: string } | undefined;
 
-  logger.info({ captureId, orderId }, 'One-time capture completed');
+//   logger.info({ captureId, orderId }, 'One-time capture completed');
 
-  // Update transaction status if it exists
-  const transaction = await transactionRepository.findOne({
-    where: { providerTransactionId: orderId },
-  });
-  if (transaction) {
-    transaction.status = TransactionStatus.SUCCESS;
-    transaction.providerReferenceId = captureId;
-    transaction.providerResponse = resource;
-    await transactionRepository.save(transaction);
-  } else {
-    logger.warn({ orderId }, 'Transaction not found for capture completed');
-  }
+//   // Update transaction status if it exists
+//   const transaction = await transactionRepository.findOne({
+//     where: { providerTransactionId: orderId },
+//   });
+//   if (transaction) {
+//     transaction.status = TransactionStatus.SUCCESS;
+//     transaction.providerReferenceId = captureId;
+//     transaction.providerResponse = resource;
+//     await transactionRepository.save(transaction);
+//   } else {
+//     logger.warn({ orderId }, 'Transaction not found for capture completed');
+//   }
 
-  // Activate corresponding subscription if it exists
-  const subscription = await subscriptionRepository.findOne({ where: { paypalOrderId: orderId } });
-  if (subscription) {
-    await subscriptionRepository.update(subscription.id, { status: SubscriptionStatus.ACTIVE });
-    logger.info({ orderId, subId: subscription.id }, 'Activated subscription from capture');
-  }
-}
+//   // Activate corresponding subscription if it exists
+//   const subscription = await subscriptionRepository.findOne({ where: { paypalOrderId: orderId } });
+//   if (subscription) {
+//     await subscriptionRepository.update(subscription.id, { status: SubscriptionStatus.ACTIVE });
+//     logger.info({ orderId, subId: subscription.id }, 'Activated subscription from capture');
+//   }
+// }
 
-// ─── Log raw event (always first) ────────────────────────────────────────────
+// // ─── Log raw event (always first) ────────────────────────────────────────────
 
-export async function logRawWebhookEvent(
-  provider: WebhookProvider,
-  eventId: string,
-  eventType: WebhookEventType,
-  payload: Record<string, unknown>,
-): Promise<void> {
-  await webhookEventRepository.upsert(
-    {
-      provider,
-      eventId,
-      eventType,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: payload as any,
-      status: WebhookEventStatus.RECEIVED,
-    },
-    { conflictPaths: ['provider', 'eventId'] },
-  );
-}
+// export async function logRawWebhookEvent(
+//   provider: WebhookProvider,
+//   eventId: string,
+//   eventType: WebhookEventType,
+//   payload: Record<string, unknown>,
+// ): Promise<void> {
+//   await webhookEventRepository.upsert(
+//     {
+//       provider,
+//       eventId,
+//       eventType,
+//       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//       payload: payload as any,
+//       status: WebhookEventStatus.RECEIVED,
+//     },
+//     { conflictPaths: ['provider', 'eventId'] },
+//   );
+// }
 
-export async function isAlreadyProcessed(eventId: string): Promise<boolean> {
-  const existing = await webhookEventRepository.findOne({
-    where: { eventId, status: WebhookEventStatus.PROCESSED },
-  });
-  return existing !== null;
-}
+// export async function isAlreadyProcessed(eventId: string): Promise<boolean> {
+//   const existing = await webhookEventRepository.findOne({
+//     where: { eventId, status: WebhookEventStatus.PROCESSED },
+//   });
+//   return existing !== null;
+// }
 
-export async function markProcessing(eventId: string): Promise<void> {
-  await webhookEventRepository.update({ eventId }, { status: WebhookEventStatus.PROCESSING });
-}
+// export async function markProcessing(eventId: string): Promise<void> {
+//   await webhookEventRepository.update({ eventId }, { status: WebhookEventStatus.PROCESSING });
+// }
 
-export async function markProcessed(eventId: string): Promise<void> {
-  await webhookEventRepository.update(
-    { eventId },
-    {
-      status: WebhookEventStatus.PROCESSED,
-      processedAt: new Date(),
-    },
-  );
-}
+// export async function markProcessed(eventId: string): Promise<void> {
+//   await webhookEventRepository.update(
+//     { eventId },
+//     {
+//       status: WebhookEventStatus.PROCESSED,
+//       processedAt: new Date(),
+//     },
+//   );
+// }
 
-export async function markFailed(eventId: string, error: string): Promise<void> {
-  await webhookEventRepository.update(
-    { eventId },
-    {
-      status: WebhookEventStatus.FAILED,
-      error,
-    },
-  );
-}
+// export async function markFailed(eventId: string, error: string): Promise<void> {
+//   await webhookEventRepository.update(
+//     { eventId },
+//     {
+//       status: WebhookEventStatus.FAILED,
+//       error,
+//     },
+//   );
+// }

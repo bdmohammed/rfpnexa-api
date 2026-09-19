@@ -6,90 +6,91 @@ import { TypeOrmPinoLogger } from './databaseLogger';
 import { env } from './env';
 import { SnakeNamingStrategy } from './namingStrategy';
 
-import { CountryVersion } from '@/database/entities/CountryVersion';
-import { StateVersion } from '@/database/entities/StateVersion';
-import { AlertPreference } from '@/entities/AlertPreference';
-import { AnalyticsAlert } from '@/entities/AnalyticsAlert';
-import { AnalyticsEvent } from '@/entities/AnalyticsEvent';
-import { AuditLog } from '@/entities/AuditLog';
-import { AuditRetentionPolicy } from '@/entities/AuditRetentionPolicy';
+import { RolePermission } from '@/database/entities/RolePermission';
+// import { CountryVersion } from '@/database/entities/CountryVersion';
+// import { StateVersion } from '@/database/entities/StateVersion';
+// import { AlertPreference } from '@/entities/AlertPreference';
+// import { AnalyticsAlert } from '@/entities/AnalyticsAlert';
+// import { AnalyticsEvent } from '@/entities/AnalyticsEvent';
+// import { AuditLog } from '@/entities/AuditLog';
+// import { AuditRetentionPolicy } from '@/entities/AuditRetentionPolicy';
 import { Category } from '@/entities/Category';
-import { CategoryActivity } from '@/entities/CategoryActivity';
-import { CategoryReview } from '@/entities/CategoryReview';
-import { CategoryReviewAssignment } from '@/entities/CategoryReviewAssignment';
-import { CategoryReviewComment } from '@/entities/CategoryReviewComment';
-import { CategoryVersion } from '@/entities/CategoryVersion';
+// import { CategoryActivity } from '@/entities/CategoryActivity';
+// import { CategoryReview } from '@/entities/CategoryReview';
+// import { CategoryReviewAssignment } from '@/entities/CategoryReviewAssignment';
+// import { CategoryReviewComment } from '@/entities/CategoryReviewComment';
+// import { CategoryVersion } from '@/entities/CategoryVersion';
 import { Country } from '@/entities/Country';
-import { CountryActivity } from '@/entities/CountryActivity';
-import { CountryChangeRequest } from '@/entities/CountryChangeRequest';
-import { CountryChangeRequestAssignment } from '@/entities/CountryChangeRequestAssignment';
-import { CountryChangeRequestComment } from '@/entities/CountryChangeRequestComment';
-import { Coupon } from '@/entities/Coupon';
-import { DownloadHistory } from '@/entities/DownloadHistory';
-import { EmailToken } from '@/entities/EmailToken';
-import { EvaluationTemplate } from '@/entities/EvaluationTemplate';
-import { ExportJob } from '@/entities/ExportJob';
-import { FeatureCatalog } from '@/entities/FeatureCatalog';
-import { Notification } from '@/entities/Notification';
-import { NotificationAction } from '@/entities/NotificationAction';
-import { NotificationRecipient } from '@/entities/NotificationRecipient';
-import { PasswordHistory } from '@/entities/PasswordHistory';
+// import { CountryActivity } from '@/entities/CountryActivity';
+// import { CountryChangeRequest } from '@/entities/CountryChangeRequest';
+// import { CountryChangeRequestAssignment } from '@/entities/CountryChangeRequestAssignment';
+// import { CountryChangeRequestComment } from '@/entities/CountryChangeRequestComment';
+// import { Coupon } from '@/entities/Coupon';
+// import { DownloadHistory } from '@/entities/DownloadHistory';
+// import { EmailToken } from '@/entities/EmailToken';
+// import { EvaluationTemplate } from '@/entities/EvaluationTemplate';
+// import { ExportJob } from '@/entities/ExportJob';
+// import { FeatureCatalog } from '@/entities/FeatureCatalog';
+// import { Notification } from '@/entities/Notification';
+// import { NotificationAction } from '@/entities/NotificationAction';
+// import { NotificationRecipient } from '@/entities/NotificationRecipient';
+// import { PasswordHistory } from '@/entities/PasswordHistory';
 import { Permission } from '@/entities/Permission';
 import { PermissionModule } from '@/entities/PermissionModule';
 import { Plan } from '@/entities/Plan';
-import { PlanCategoryPricing } from '@/entities/PlanCategoryPricing';
-import { PlanCountryPricing } from '@/entities/PlanCountryPricing';
-import { PlanFeature } from '@/entities/PlanFeature';
-import { PlanReview } from '@/entities/PlanReview';
-import { PlanReviewAssignment } from '@/entities/PlanReviewAssignment';
-import { PlanReviewComment } from '@/entities/PlanReviewComment';
-import { PlanVersion } from '@/entities/PlanVersion';
-import { PurchasedTender } from '@/entities/PurchasedTender';
+// import { PlanCategoryPricing } from '@/entities/PlanCategoryPricing';
+// import { PlanCountryPricing } from '@/entities/PlanCountryPricing';
+// import { PlanFeature } from '@/entities/PlanFeature';
+// import { PlanReview } from '@/entities/PlanReview';
+// import { PlanReviewAssignment } from '@/entities/PlanReviewAssignment';
+// import { PlanReviewComment } from '@/entities/PlanReviewComment';
+// import { PlanVersion } from '@/entities/PlanVersion';
+// import { PurchasedTender } from '@/entities/PurchasedTender';
 import { Role } from '@/entities/Role';
-import { RoleActivity } from '@/entities/RoleActivity';
-import { RoleReview } from '@/entities/RoleReview';
-import { RoleReviewAssignment } from '@/entities/RoleReviewAssignment';
-import { RoleReviewComment } from '@/entities/RoleReviewComment';
-import { RoleVersion } from '@/entities/RoleVersion';
-import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
-import { ScheduledReport } from '@/entities/ScheduledReport';
-import { ScheduledReportRecipient } from '@/entities/ScheduledReportRecipient';
-import { SecurityLog } from '@/entities/SecurityLog';
+// import { RoleActivity } from '@/entities/RoleActivity';
+// import { RoleReview } from '@/entities/RoleReview';
+// import { RoleReviewAssignment } from '@/entities/RoleReviewAssignment';
+// import { RoleReviewComment } from '@/entities/RoleReviewComment';
+// import { RoleVersion } from '@/entities/RoleVersion';
+// import { RoleVersionPermission } from '@/entities/RoleVersionPermission';
+// import { ScheduledReport } from '@/entities/ScheduledReport';
+// import { ScheduledReportRecipient } from '@/entities/ScheduledReportRecipient';
+// import { SecurityLog } from '@/entities/SecurityLog';
 import { SeedHistory } from '@/entities/SeedHistory';
 import { State } from '@/entities/State';
 import { Subscription } from '@/entities/Subscription';
-import { SubscriptionDailyMetrics } from '@/entities/SubscriptionDailyMetrics';
-import { SubscriptionMigration } from '@/entities/SubscriptionMigration';
-import { SupportTicket } from '@/entities/SupportTicket';
-import { SupportTicketAttachment } from '@/entities/SupportTicketAttachment';
-import { SupportTicketMessage } from '@/entities/SupportTicketMessage';
+// import { SubscriptionDailyMetrics } from '@/entities/SubscriptionDailyMetrics';
+// import { SubscriptionMigration } from '@/entities/SubscriptionMigration';
+// import { SupportTicket } from '@/entities/SupportTicket';
+// import { SupportTicketAttachment } from '@/entities/SupportTicketAttachment';
+// import { SupportTicketMessage } from '@/entities/SupportTicketMessage';
 import { Tender } from '@/entities/Tender';
-import { TenderAmendment } from '@/entities/TenderAmendment';
-import { TenderClarification } from '@/entities/TenderClarification';
-import { TenderCommittee } from '@/entities/TenderCommittee';
-import { TenderDailyMetrics } from '@/entities/TenderDailyMetrics';
+// import { TenderAmendment } from '@/entities/TenderAmendment';
+// import { TenderClarification } from '@/entities/TenderClarification';
+// import { TenderCommittee } from '@/entities/TenderCommittee';
+// import { TenderDailyMetrics } from '@/entities/TenderDailyMetrics';
 import { TenderDocument } from '@/entities/TenderDocument';
-import { TenderEvaluation } from '@/entities/TenderEvaluation';
-import { TenderInvitation } from '@/entities/TenderInvitation';
-import { TenderParticipant } from '@/entities/TenderParticipant';
-import { TenderQuestion } from '@/entities/TenderQuestion';
-import { TenderReview } from '@/entities/TenderReview';
-import { TenderReviewAssignment } from '@/entities/TenderReviewAssignment';
-import { TenderReviewComment } from '@/entities/TenderReviewComment';
-import { TenderSubmission } from '@/entities/TenderSubmission';
-import { TenderTemplate } from '@/entities/TenderTemplate';
-import { TenderVersion } from '@/entities/TenderVersion';
-import { TenderWatcher } from '@/entities/TenderWatcher';
-import { TrafficDailyMetrics } from '@/entities/TrafficDailyMetrics';
+// import { TenderEvaluation } from '@/entities/TenderEvaluation';
+// import { TenderInvitation } from '@/entities/TenderInvitation';
+// import { TenderParticipant } from '@/entities/TenderParticipant';
+// import { TenderQuestion } from '@/entities/TenderQuestion';
+// import { TenderReview } from '@/entities/TenderReview';
+// import { TenderReviewAssignment } from '@/entities/TenderReviewAssignment';
+// import { TenderReviewComment } from '@/entities/TenderReviewComment';
+// import { TenderSubmission } from '@/entities/TenderSubmission';
+// import { TenderTemplate } from '@/entities/TenderTemplate';
+// import { TenderVersion } from '@/entities/TenderVersion';
+// import { TenderWatcher } from '@/entities/TenderWatcher';
+// import { TrafficDailyMetrics } from '@/entities/TrafficDailyMetrics';
 import { Transaction } from '@/entities/Transaction';
 import { User } from '@/entities/User';
-import { UserApprovalRequest } from '@/entities/UserApprovalRequest';
-import { UserDailyMetrics } from '@/entities/UserDailyMetrics';
-import { UserDashboardLayout } from '@/entities/UserDashboardLayout';
-import { UserDevice } from '@/entities/UserDevice';
-import { UserNote } from '@/entities/UserNote';
+// import { UserApprovalRequest } from '@/entities/UserApprovalRequest';
+// import { UserDailyMetrics } from '@/entities/UserDailyMetrics';
+// import { UserDashboardLayout } from '@/entities/UserDashboardLayout';
+// import { UserDevice } from '@/entities/UserDevice';
+// import { UserNote } from '@/entities/UserNote';
 import { UserRole } from '@/entities/UserRole';
-import { UserSession } from '@/entities/UserSession';
+// import { UserSession } from '@/entities/UserSession';
 import { WebhookEvent } from '@/entities/WebhookEvent';
 
 /**
@@ -148,90 +149,91 @@ export const AppDataSource = new DataSource({
   maxQueryExecutionTime: env.DATABASE_SLOW_QUERY_THRESHOLD,
 
   entities: [
-    AlertPreference,
-    AuditLog,
+    // AlertPreference,
+    // AuditLog,
     Category,
-    CategoryReviewComment,
-    CategoryActivity,
-    CategoryReview,
-    CategoryReviewAssignment,
-    CategoryVersion,
-    DownloadHistory,
-    EmailToken,
-    Notification,
+    // CategoryReviewComment,
+    // CategoryActivity,
+    // CategoryReview,
+    // CategoryReviewAssignment,
+    // CategoryVersion,
+    // DownloadHistory,
+    // EmailToken,
+    // Notification,
     Plan,
-    PurchasedTender,
+    // PurchasedTender,
     State,
-    StateVersion,
+    // StateVersion,
     Country,
-    CountryVersion,
-    CountryChangeRequest,
-    CountryChangeRequestAssignment,
-    CountryChangeRequestComment,
-    CountryActivity,
+    // CountryVersion,
+    // CountryChangeRequest,
+    // CountryChangeRequestAssignment,
+    // CountryChangeRequestComment,
+    // CountryActivity,
     Subscription,
-    SupportTicket,
-    SupportTicketMessage,
-    SupportTicketAttachment,
+    // SupportTicket,
+    // SupportTicketMessage,
+    // SupportTicketAttachment,
     Tender,
-    TenderVersion,
+    // TenderVersion,
     TenderDocument,
-    TenderReview,
-    TenderReviewAssignment,
-    TenderReviewComment,
-    TenderCommittee,
-    TenderParticipant,
-    TenderEvaluation,
-    TenderWatcher,
-    TenderInvitation,
-    TenderTemplate,
-    TenderQuestion,
-    TenderClarification,
-    TenderAmendment,
-    EvaluationTemplate,
-    TenderSubmission,
-    PlanVersion,
-    FeatureCatalog,
-    PlanFeature,
-    PlanCountryPricing,
-    PlanCategoryPricing,
-    Coupon,
-    PlanReview,
-    PlanReviewAssignment,
-    PlanReviewComment,
-    SubscriptionMigration,
+    // TenderReview,
+    // TenderReviewAssignment,
+    // TenderReviewComment,
+    // TenderCommittee,
+    // TenderParticipant,
+    // TenderEvaluation,
+    // TenderWatcher,
+    // TenderInvitation,
+    // TenderTemplate,
+    // TenderQuestion,
+    // TenderClarification,
+    // TenderAmendment,
+    // EvaluationTemplate,
+    // TenderSubmission,
+    // PlanVersion,
+    // FeatureCatalog,
+    // PlanFeature,
+    // PlanCountryPricing,
+    // PlanCategoryPricing,
+    // Coupon,
+    // PlanReview,
+    // PlanReviewAssignment,
+    // PlanReviewComment,
+    // SubscriptionMigration,
     Transaction,
     User,
-    UserApprovalRequest,
-    UserSession,
+    // UserApprovalRequest,
+    // UserSession,
     WebhookEvent,
-    AuditRetentionPolicy,
+    // AuditRetentionPolicy,
     PermissionModule,
     Permission,
     Role,
     UserRole,
-    RoleVersion,
-    RoleVersionPermission,
-    RoleReview,
-    RoleReviewAssignment,
-    RoleReviewComment,
-    RoleActivity,
-    PasswordHistory,
-    UserDevice,
-    SecurityLog,
-    UserNote,
-    AnalyticsEvent,
-    UserDashboardLayout,
-    ExportJob,
-    AnalyticsAlert,
-    ScheduledReport,
-    ScheduledReportRecipient,
-    TenderDailyMetrics,
-    UserDailyMetrics,
-    SubscriptionDailyMetrics,
-    TrafficDailyMetrics,
-    NotificationRecipient,
-    NotificationAction,
+    RolePermission,
+    // RoleVersion,
+    // RoleVersionPermission,
+    // RoleReview,
+    // RoleReviewAssignment,
+    // RoleReviewComment,
+    // RoleActivity,
+    // PasswordHistory,
+    // UserDevice,
+    // SecurityLog,
+    // UserNote,
+    // AnalyticsEvent,
+    // UserDashboardLayout,
+    // ExportJob,
+    // AnalyticsAlert,
+    // ScheduledReport,
+    // ScheduledReportRecipient,
+    // TenderDailyMetrics,
+    // UserDailyMetrics,
+    // SubscriptionDailyMetrics,
+    // TrafficDailyMetrics,
+    // NotificationRecipient,
+    // NotificationAction,
     SeedHistory,
   ],
 

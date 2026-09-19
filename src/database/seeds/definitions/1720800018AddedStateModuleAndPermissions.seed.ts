@@ -2,11 +2,11 @@ import { type DataSource, In } from 'typeorm';
 
 import type { SeedInterface } from '../seed.interface';
 import type { User } from '@/entities/User';
-import { statePermissionModule, StatePermissions } from '@/constants/permissions';
+import { GeoLocationPermissionModule, GeoLocationPermissions } from '@/constants/permissions';
 import { Permission } from '@/entities/Permission';
 import { PermissionModule } from '@/entities/PermissionModule';
 
-const statePermissions = Object.values(StatePermissions);
+const statePermissions = Object.values(GeoLocationPermissions);
 
 export default class AddedStateModuleAndPermissions1720800018 implements SeedInterface {
   name = 'AddedStateModuleAndPermissions1720800018';
@@ -19,11 +19,11 @@ export default class AddedStateModuleAndPermissions1720800018 implements SeedInt
     const moduleRepo = dataSource.getRepository(PermissionModule);
 
     let module = await moduleRepo.findOne({
-      where: { key: statePermissionModule.key },
+      where: { key: GeoLocationPermissionModule.key },
     });
     module ??= await moduleRepo.save(
       moduleRepo.create({
-        ...statePermissionModule,
+        ...GeoLocationPermissionModule,
         createdById: systemUser.id,
         updatedById: systemUser.id,
       }),

@@ -7,10 +7,9 @@ import { AppDataSource } from './database';
 import { env } from './env';
 import { logger } from './logger';
 
-import { startCronJobs, stopCronJobs } from '@/jobs';
-import { dashboardPublisher } from '@/modules/dashboard/services/publisher.service';
-import { notificationPublisher } from '@/modules/notifications/services/publisher.service';
-
+// import { startCronJobs, stopCronJobs } from '@/jobs';
+// import { dashboardPublisher } from '@/modules/dashboard/services/publisher.service';
+// import { notificationPublisher } from '@/modules/notifications/services/publisher.service';
 import 'reflect-metadata';
 
 const startTime = performance.now();
@@ -135,15 +134,15 @@ async function destroyDatabase(): Promise<void> {
 }
 
 /** Starts background cron jobs on primary PM2 cluster instance */
-function initializeCron(): void {
-  const instanceId = env.NODE_APP_INSTANCE;
-  if (instanceId === '0' || instanceId === undefined) {
-    startCronJobs();
-    logger.info({ instanceId: instanceId ?? 'standalone' }, 'Cron jobs started on this worker');
-  } else {
-    logger.info({ instanceId }, 'Cron skipped — non-primary PM2 cluster worker');
-  }
-}
+// function initializeCron(): void {
+//   const instanceId = env.NODE_APP_INSTANCE;
+//   if (instanceId === '0' || instanceId === undefined) {
+//     // startCronJobs();
+//     logger.info({ instanceId: instanceId ?? 'standalone' }, 'Cron jobs started on this worker');
+//   } else {
+//     logger.info({ instanceId }, 'Cron skipped — non-primary PM2 cluster worker');
+//   }
+// }
 
 // ─── Graceful Shutdown Orchestration ──────────────────────────────────────────
 
@@ -181,7 +180,7 @@ async function shutdown(signal: string, exitCode = 0): Promise<void> {
 
   // Step 2: Stop scheduled cron jobs
   try {
-    stopCronJobs();
+    // stopCronJobs();
     logger.info('Background cron jobs stopped');
   } catch (err) {
     logger.error({ err }, 'Failed to stop cron jobs');
@@ -189,8 +188,8 @@ async function shutdown(signal: string, exitCode = 0): Promise<void> {
 
   // Step 3: Stop notification event listeners and SSE connections
   try {
-    notificationPublisher.shutdown();
-    dashboardPublisher.shutdown();
+    // notificationPublisher.shutdown();
+    // dashboardPublisher.shutdown();
     logger.info('Notification listeners and dashboard SSE publisher stopped');
   } catch (err) {
     logger.error({ err }, 'Failed to stop notification listeners or dashboard publisher');
@@ -247,8 +246,8 @@ async function bootstrap(): Promise<void> {
 
   try {
     await initializeDatabase();
-    notificationPublisher.setupNotificationListeners();
-    initializeCron();
+    // notificationPublisher.setupNotificationListeners();
+    // initializeCron();
     await startHttpServer();
   } catch (err) {
     logger.fatal({ err }, 'Application initialization failed — initiating shutdown');

@@ -4,8 +4,11 @@ import * as path from 'node:path';
 
 import * as bcrypt from 'bcryptjs';
 
-import { COUNTRIES_SEED_DATA } from './data/countries.data';
-import { ensureCountry, finalizeBootstrapCountry } from './helpers/seedCountry';
+// import { COUNTRIES_SEED_DATA } from './data/countries.data';
+import {
+  ensureCountry,
+  // finalizeBootstrapCountry
+} from './helpers/seedCountry';
 
 import type { DataSource, EntityTarget, ObjectLiteral } from 'typeorm';
 import { AppDataSource } from '@/config/database';
@@ -13,7 +16,11 @@ import { env } from '@/config/env';
 import { logger } from '@/config/logger';
 import { SeedHistory } from '@/entities/SeedHistory';
 import { User } from '@/entities/User';
-import { AccountType, SeedStatus, UserStatus } from '@/types/enums';
+import {
+  AccountType,
+  SeedStatus,
+  // UserStatus
+} from '@/types/enums';
 import { hashToken } from '@/utils/crypto';
 
 import 'reflect-metadata';
@@ -180,11 +187,11 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
 
   let systemUser = await userRepo.findOne({ where: { email } });
   if (!systemUser) {
-    const defaultCountryData = COUNTRIES_SEED_DATA.find((c) => c.code === 'US') ?? {
+    const defaultCountryData = {
       code: 'US',
-      name: 'United States of America',
+      name: 'United States',
     };
-    const { country, isNew } = await ensureCountry(dataSource, defaultCountryData, null);
+    const { country } = await ensureCountry(dataSource, defaultCountryData, null);
 
     // Generate high-entropy password hash that nobody knows
     const tempPassword = crypto.randomBytes(32).toString('hex');
@@ -197,18 +204,18 @@ export async function runSeeds(dataSource: DataSource): Promise<void> {
         passwordHash,
         companyName: 'RFPNEXA',
         accountType: AccountType.SYSTEM,
-        emailVerified: true,
-        isBlocked: false,
-        status: UserStatus.ACTIVE,
-        passwordChangedAt: new Date(),
+        // emailVerified: true,
+        // isBlocked: false,
+        // status: UserStatus.ACTIVE,
+        // passwordChangedAt: new Date(),
         countryId: country.id,
       }),
     );
 
     // Back-patch the country row so created_by / updated_by point to the system user
-    if (isNew) {
-      await finalizeBootstrapCountry(dataSource, country, systemUser);
-    }
+    // if (isNew) {
+    //   await finalizeBootstrapCountry(dataSource, country, systemUser);
+    // }
   }
 
   for await (const file of matchedFiles) {

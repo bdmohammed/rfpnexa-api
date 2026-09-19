@@ -4,7 +4,7 @@ import { ZodError } from 'zod';
 import type { NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
 import { env } from '@/config/env';
-import { logger } from '@/config/logger';
+// import { logger } from '@/config/logger';
 import { AppError, AppErrorCode } from '@/core/AppError';
 import { getContext } from '@/core/requestContext';
 import { firstDefined } from '@/utils';
@@ -85,7 +85,7 @@ function getErrorContext(req: Request, res: Response): ErrorContext {
   const ctx = getContext();
 
   return {
-    activeLogger: req.log ?? logger,
+    activeLogger: req.log,
     traceId: firstDefined<string>(ctx?.traceId, req.traceId, 'unknown'),
     requestId: firstDefined<string>(ctx?.requestId, req.requestId, req.id, 'unknown'),
     userId: firstDefined<string>(ctx?.userId, req.user?.userId),

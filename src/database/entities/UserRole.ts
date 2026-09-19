@@ -14,6 +14,7 @@ import { Role } from './Role';
 import { User } from './User';
 
 import type { Relation } from 'typeorm';
+import { RoleStatus } from '@/types/enums';
 
 @Entity('user_roles')
 @Unique(['userId', 'roleId'])
@@ -47,8 +48,8 @@ export class UserRole {
   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
   assignedAt!: Date;
 
-  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
-  expiresAt!: Date | null;
+  // @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
+  // expiresAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -56,24 +57,24 @@ export class UserRole {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @Column({ name: 'status', type: 'varchar', length: 50, default: 'ACTIVE' })
-  status!: string;
+  @Column({ name: 'status', type: 'enum', enum: RoleStatus, default: RoleStatus.ACTIVE })
+  status!: RoleStatus;
 
-  @Column({ name: 'reviewer_id', type: 'uuid', nullable: true })
-  reviewerId?: string | null;
+  // @Column({ name: 'reviewer_id', type: 'uuid', nullable: true })
+  // reviewerId?: string | null;
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'reviewer_id' })
-  reviewer?: Relation<User | null>;
+  // @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  // @JoinColumn({ name: 'reviewer_id' })
+  // reviewer?: Relation<User | null>;
 
-  @Column({ name: 'reason', type: 'text', nullable: true })
-  reason?: string | null;
+  // @Column({ name: 'reason', type: 'text', nullable: true })
+  // reason?: string | null;
 
-  @Column({ name: 'comment', type: 'text', nullable: true })
-  comment?: string | null;
+  // @Column({ name: 'comment', type: 'text', nullable: true })
+  // comment?: string | null;
 
-  @Column({ name: 'effective_at', type: 'timestamptz', nullable: true })
-  effectiveAt?: Date | null;
+  // @Column({ name: 'effective_at', type: 'timestamptz', nullable: true })
+  // effectiveAt?: Date | null;
 
   // ─── Relations ────────────────────────────────────────────────────────────
 }

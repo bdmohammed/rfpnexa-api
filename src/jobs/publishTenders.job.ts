@@ -1,32 +1,32 @@
-import { AppDataSource } from '@/config/database';
-import { logger } from '@/config/logger';
-import { Tender } from '@/entities/Tender';
-import {
-  TenderBiddingStatus,
-  TenderLifecycleStatus,
-  TenderProcessStatus,
-  TenderPublicationStatus,
-} from '@/types/enums';
+// import { AppDataSource } from '@/config/database';
+// import { logger } from '@/config/logger';
+// import { Tender } from '@/entities/Tender';
+// import {
+//   TenderBiddingStatus,
+//   TenderLifecycleStatus,
+//   TenderProcessStatus,
+//   TenderPublicationStatus,
+// } from '@/types/enums';
 
-const tenderRepo = AppDataSource.getRepository(Tender);
+// const tenderRepo = AppDataSource.getRepository(Tender);
 
-export async function publishTendersJob(): Promise<void> {
-  const pendingTenders = await tenderRepo
-    .createQueryBuilder('tender')
-    .leftJoinAndSelect('tender.activeVersion', 'activeVersion')
-    .where('tender.status = :status', { status: TenderLifecycleStatus.ACTIVE })
-    .andWhere('tender.publicationStatus = :pubStatus', {
-      pubStatus: TenderPublicationStatus.SCHEDULED,
-    })
-    .andWhere('activeVersion.openingDate <= :now', { now: new Date() })
-    .getMany();
+// export async function publishTendersJob(): Promise<void> {
+//   const pendingTenders = await tenderRepo
+//     .createQueryBuilder('tender')
+//     .leftJoinAndSelect('tender.activeVersion', 'activeVersion')
+//     .where('tender.status = :status', { status: TenderLifecycleStatus.ACTIVE })
+//     .andWhere('tender.publicationStatus = :pubStatus', {
+//       pubStatus: TenderPublicationStatus.SCHEDULED,
+//     })
+//     .andWhere('activeVersion.openingDate <= :now', { now: new Date() })
+//     .getMany();
 
-  for await (const t of pendingTenders) {
-    t.publicationStatus = TenderPublicationStatus.PUBLISHED;
-    t.biddingStatus = TenderBiddingStatus.OPEN;
-    t.processStatus = TenderProcessStatus.IN_BIDDING;
-    await tenderRepo.save(t);
-  }
+//   for await (const t of pendingTenders) {
+//     t.publicationStatus = TenderPublicationStatus.PUBLISHED;
+//     t.biddingStatus = TenderBiddingStatus.OPEN;
+//     t.processStatus = TenderProcessStatus.IN_BIDDING;
+//     await tenderRepo.save(t);
+//   }
 
-  logger.info({ affected: pendingTenders.length }, 'Publish scheduled tenders job complete');
-}
+//   logger.info({ affected: pendingTenders.length }, 'Publish scheduled tenders job complete');
+// }

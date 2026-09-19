@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
+import type { RouteContract } from '@/core/asyncHandler';
+import type { Country } from '@/database/entities/Country';
+import type { Permission } from '@/database/entities/Permission';
+import type { PermissionModule } from '@/database/entities/PermissionModule';
+import type { Subscription } from '@/database/entities/Subscription';
+import type { Transaction } from '@/database/entities/Transaction';
+import type { UserRole } from '@/database/entities/UserRole';
 import type { SubscriptionStatus, TransactionStatus } from '@/types/enums';
+import type { Relation } from 'typeorm';
 import { AccountType, PlanType, UserStatus } from '@/types/enums';
 
 export const BlockUserSchema = z.object({
@@ -25,10 +33,10 @@ export const ListUsersQuerySchema = z.object({
   country: booleanQueryParam,
   dateFrom: z.string().optional(), // Using optional string for dynamic date parses
   dateTo: z.string().optional(),
-  planId: z.string().uuid().optional(),
-  roleId: z.string().uuid().optional(),
-  verified: booleanQueryParam,
-  approvalStatus: z.enum(UserStatus).optional(),
+  planId: z.uuid().optional(),
+  roleId: z.uuid().optional(),
+  // verified: booleanQueryParam,
+  // approvalStatus: z.enum(UserStatus).optional(),
   permission: z.string().optional(),
 });
 export type ListUsersQueryDto = z.infer<typeof ListUsersQuerySchema>;
@@ -324,3 +332,28 @@ export const IdParamSchema = z.object({
   id: z.string().uuid(),
 });
 export type IdParamDto = z.infer<typeof IdParamSchema>;
+
+export interface listUsersContract extends RouteContract {
+  query: ListUsersQueryDto;
+  response: {
+    id: string;
+    name: string;
+    email: string;
+    countryId: number;
+    country: Relation<Country>;
+    passwordHash: string;
+    accountType: AccountType;
+    companyName: string;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    subscriptions: Relation<Subscription[]>;
+    transactions: Relation<Transaction[]>;
+    assignedRoles: Relation<UserRole[]>;
+    PermissionModulesCreated: Relation<PermissionModule[]>;
+    PermissionModulesUpdated: Relation<PermissionModule[]>;
+    PermissionsCreated: Relation<Permission[]>;
+    PermissionsUpdated: Relation<Permission[]>;
+    userRoles: string;
+  }[];
+}

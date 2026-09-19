@@ -5,25 +5,28 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { PermissionActions } from '../../authorization/registry/types';
-
+// import { PermissionActions } from '../../authorization/registry/types';
 import { PermissionModule } from './PermissionModule';
+import { RolePermission } from './RolePermission';
 import { User } from './User';
+import { UserRole } from './UserRole';
 
 import type { Relation } from 'typeorm';
 
 @Entity('permissions')
+@Index('permissions_key_idx', ['key'])
+@Index('permissions_module_id_idx', ['moduleId'])
 export class Permission {
   @PrimaryGeneratedColumn('increment', {
     type: 'smallint',
   })
   id!: number;
 
-  @Index('permissions_module_id_idx')
   @Column({ name: 'module_id', type: 'smallint' })
   moduleId!: number;
 
@@ -35,12 +38,11 @@ export class Permission {
   name!: string;
 
   // module.key + "." + action
-  @Index('permissions_key_idx')
   @Column({ type: 'varchar', length: 100, unique: true })
   key!: string;
 
-  @Column({ type: 'enum', enum: PermissionActions })
-  action!: string;
+  // @Column({ type: 'enum', enum: PermissionActions })
+  // action!: string;
 
   @Column({ type: 'text', nullable: true })
   description!: string | null;
@@ -92,4 +94,9 @@ export class Permission {
   updatedBy!: Relation<User | null>;
 
   // ─── Relations (no eager: true anywhere) ─────────────────────────────────
+  @OneToMany(() => UserRole, (userRole) => userRole.role)
+  userRoles!: Relation<UserRole[]>;
+
+  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+  rolePermissions!: Relation<RolePermission[]>;
 }

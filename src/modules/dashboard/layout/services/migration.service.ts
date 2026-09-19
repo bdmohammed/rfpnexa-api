@@ -1,30 +1,30 @@
-import { CURRENT_LAYOUT_VERSION } from '../config/layout-version';
+// import { CURRENT_LAYOUT_VERSION } from '../config/layout-version';
 
-import type { DashboardWidget, UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
+// import type { DashboardWidget, UserDashboardLayout } from '@/database/entities/UserDashboardLayout';
 
-type Migration = (widgets: DashboardWidget[]) => DashboardWidget[];
+// type Migration = (widgets: DashboardWidget[]) => DashboardWidget[];
 
-const migrations: Record<number, Migration> = {
-  // 2: migrateToV2,
-  // 3: migrateToV3,
-  // 4: migrateToV4,
-};
+// const migrations: Record<number, Migration> = {
+//   // 2: migrateToV2,
+//   // 3: migrateToV3,
+//   // 4: migrateToV4,
+// };
 
-export function migrateLayout(layout: UserDashboardLayout): UserDashboardLayout {
-  let version = layout.layoutVersion;
+// export function migrateLayout(layout: UserDashboardLayout): UserDashboardLayout {
+//   let version = layout.layoutVersion;
 
-  while (version < CURRENT_LAYOUT_VERSION) {
-    const nextVersion = version + 1;
-    const migration = migrations[nextVersion];
-    if (migration) {
-      layout.widgets = migration(layout.widgets);
-    }
-    version = nextVersion;
-  }
+//   while (version < CURRENT_LAYOUT_VERSION) {
+//     const nextVersion = version + 1;
+//     const migration = migrations[nextVersion];
+//     if (migration) {
+//       layout.widgets = migration(layout.widgets);
+//     }
+//     version = nextVersion;
+//   }
 
-  layout.layoutVersion = CURRENT_LAYOUT_VERSION;
-  return layout;
-}
+//   layout.layoutVersion = CURRENT_LAYOUT_VERSION;
+//   return layout;
+// }
 
 // /**
 //  * V2

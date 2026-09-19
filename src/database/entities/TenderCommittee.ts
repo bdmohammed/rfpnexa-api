@@ -1,39 +1,39 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { Tender } from './Tender';
-import { User } from './User';
+// import { Tender } from './Tender';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_committees')
-export class TenderCommittee {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_committees')
+// export class TenderCommittee {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'tender_id', type: 'uuid' })
-  tenderId!: string;
+//   @Column({ name: 'tender_id', type: 'uuid' })
+//   tenderId!: string;
 
-  @ManyToOne(() => Tender, (tender) => tender.committees, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tender_id' })
-  tender!: Relation<Tender>;
+//   @ManyToOne(() => Tender, (tender) => tender.committees, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'tender_id' })
+//   tender!: Relation<Tender>;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ type: 'varchar', length: 50 })
-  role!: string;
+//   @Column({ type: 'varchar', length: 50 })
+//   role!: string;
 
-  @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
-  assignedAt!: Date;
-}
+//   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
+//   assignedAt!: Date;
+// }

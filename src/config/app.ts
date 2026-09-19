@@ -16,18 +16,18 @@ import { globalLimiter } from '@/middleware/rateLimits';
 import { requestLogger } from '@/middleware/requestLogger';
 import { traceContext } from '@/middleware/traceContext';
 import { adminRouter } from '@/modules/admin/admin.routes';
-import { analyticsRouter } from '@/modules/analytics/analytics.routes';
-import { auditRouter } from '@/modules/audit/audit.routes';
+// import { analyticsRouter } from '@/modules/analytics/analytics.routes';
+// import { auditRouter } from '@/modules/audit/audit.routes';
 import { authRouter } from '@/modules/auth/auth.routes';
 import { categoriesRouter } from '@/modules/categories/categories.routes';
 import { countriesRouter } from '@/modules/countries/countries.routes';
-import { dashboardRouter } from '@/modules/dashboard/dashboard.routes';
-import { notificationsRouter } from '@/modules/notifications/notifications.routes';
-import { profileRouter } from '@/modules/profile/profile.routes';
+// import { dashboardRouter } from '@/modules/dashboard/dashboard.routes';
+// import { notificationsRouter } from '@/modules/notifications/notifications.routes';
+// import { profileRouter } from '@/modules/profile/profile.routes';
 import rbacRouter from '@/modules/rbac/rbac.routes';
-import { plansRouter } from '@/modules/subscriptions/plans.routes';
-import { subscriptionsRouter } from '@/modules/subscriptions/subscriptions.routes';
-import { supportRouter } from '@/modules/support/support.routes';
+// import { plansRouter } from '@/modules/subscriptions/plans.routes';
+// import { subscriptionsRouter } from '@/modules/subscriptions/subscriptions.routes';
+// import { supportRouter } from '@/modules/support/support.routes';
 import { tendersRouter } from '@/modules/tenders/tenders.routes';
 import { webhooksRouter } from '@/modules/webhooks/webhooks.routes';
 
@@ -215,18 +215,18 @@ app.use(csrfProtection);
 // ── Protected API Routes ──────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/tenders', tendersRouter);
-app.use('/api/v1/subscriptions', subscriptionsRouter);
-app.use('/api/v1/plans', plansRouter);
+// app.use('/api/v1/subscriptions', subscriptionsRouter);
+// app.use('/api/v1/plans', plansRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/categories', categoriesRouter);
 app.use('/api/v1/geography', countriesRouter);
-app.use('/api/v1/support', supportRouter);
+// app.use('/api/v1/support', supportRouter);
 app.use('/api/v1/rbac', rbacRouter);
-app.use('/api/v1/profile', profileRouter);
-app.use('/api/v1/analytics', analyticsRouter);
-app.use('/api/v1/audit-logs', auditRouter);
-app.use('/api/v1/dashboard', dashboardRouter);
-app.use('/api/v1/notifications', notificationsRouter);
+// app.use('/api/v1/profile', profileRouter);
+// app.use('/api/v1/analytics', analyticsRouter);
+// app.use('/api/v1/audit-logs', auditRouter);
+// app.use('/api/v1/dashboard', dashboardRouter);
+// app.use('/api/v1/notifications', notificationsRouter);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

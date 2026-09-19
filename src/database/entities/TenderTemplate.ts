@@ -1,43 +1,43 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { User } from './User';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_templates')
-export class TenderTemplate {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_templates')
+// export class TenderTemplate {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ type: 'varchar', name: 'template_scope', length: 50 })
-  templateScope!: string;
+//   @Column({ type: 'varchar', name: 'template_scope', length: 50 })
+//   templateScope!: string;
 
-  @Column({ name: 'department_id', type: 'uuid', nullable: true })
-  departmentId!: string | null;
+//   @Column({ name: 'department_id', type: 'uuid', nullable: true })
+//   departmentId!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'created_by_id' })
-  createdBy!: Relation<User | null>;
+//   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+//   @JoinColumn({ name: 'created_by_id' })
+//   createdBy!: Relation<User | null>;
 
-  @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
-  createdById!: string | null;
+//   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
+//   createdById!: string | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  title!: string;
+//   @Column({ type: 'varchar', length: 255 })
+//   title!: string;
 
-  @Column({ type: 'text', nullable: true })
-  description!: string | null;
+//   @Column({ type: 'text', nullable: true })
+//   description!: string | null;
 
-  @Column({ type: 'jsonb' })
-  payload!: Record<string, unknown>;
+//   @Column({ type: 'jsonb' })
+//   payload!: Record<string, unknown>;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

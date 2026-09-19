@@ -10,8 +10,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { NotificationRecipient } from './NotificationRecipient';
-import { RoleVersion } from './RoleVersion';
+import { RolePermission } from './RolePermission';
+// import { NotificationRecipient } from './NotificationRecipient';
+// import { RoleVersion } from './RoleVersion';
 import { User } from './User';
 import { UserRole } from './UserRole';
 
@@ -20,13 +21,13 @@ import { RoleStatus } from '@/types/enums';
 
 @Entity('roles')
 @Index('idx_roles_status', ['status'])
-@Index('idx_roles_active_version_id', ['activeVersionId'])
+// @Index('idx_roles_active_version_id', ['activeVersionId'])
 @Index('idx_roles_is_system_role', ['isSystemRole'])
-@Index('idx_roles_is_default_role', ['isDefaultRole'])
-@Index('ux_default_role', ['isDefaultRole'], {
-  unique: true,
-  where: '"is_default_role" = true',
-})
+// @Index('idx_roles_is_default_role', ['isDefaultRole'])
+// @Index('ux_default_role', ['isDefaultRole'], {
+//   unique: true,
+//   where: '"is_default_role" = true',
+// })
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -41,35 +42,35 @@ export class Role {
   @Column({ name: 'is_system_role', type: 'boolean', default: false })
   isSystemRole!: boolean;
 
-  @Column({ name: 'is_default_role', type: 'boolean', default: false })
-  isDefaultRole!: boolean;
+  // @Column({ name: 'is_default_role', type: 'boolean', default: false })
+  // isDefaultRole!: boolean;
 
-  @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
-  activeVersionId!: string | null;
+  // @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
+  // activeVersionId!: string | null;
 
-  @Column({
-    name: 'published_version_number',
-    type: 'varchar',
-    length: 20,
-    nullable: true,
-    default: null,
-  })
-  publishedVersionNumber!: string | null;
+  // @Column({
+  //   name: 'published_version_number',
+  //   type: 'varchar',
+  //   length: 20,
+  //   nullable: true,
+  //   default: null,
+  // })
+  // publishedVersionNumber!: string | null;
 
-  @Column({
-    name: 'latest_draft_version_number',
-    type: 'varchar',
-    length: 20,
-    nullable: true,
-    default: null,
-  })
-  latestDraftVersionNumber!: string | null;
+  // @Column({
+  //   name: 'latest_draft_version_number',
+  //   type: 'varchar',
+  //   length: 20,
+  //   nullable: true,
+  //   default: null,
+  // })
+  // latestDraftVersionNumber!: string | null;
 
-  @ManyToOne(() => RoleVersion, {
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'active_version_id' })
-  activeVersion!: Relation<RoleVersion>;
+  // @ManyToOne(() => RoleVersion, {
+  //   onDelete: 'RESTRICT',
+  // })
+  // @JoinColumn({ name: 'active_version_id' })
+  // activeVersion!: Relation<RoleVersion>;
 
   @Column({ name: 'created_by', type: 'uuid' })
   createdBy!: string;
@@ -103,9 +104,12 @@ export class Role {
   @OneToMany(() => UserRole, (userRole) => userRole.role)
   userRoles!: Relation<UserRole[]>;
 
-  @OneToMany(() => RoleVersion, (roleVersion) => roleVersion.role)
-  versions!: Relation<RoleVersion[]>;
+  // @OneToMany(() => RoleVersion, (roleVersion) => roleVersion.role)
+  // versions!: Relation<RoleVersion[]>;
 
-  @OneToMany(() => NotificationRecipient, (recipient) => recipient.role)
-  receivedNotifications!: Relation<NotificationRecipient[]>;
+  // @OneToMany(() => NotificationRecipient, (recipient) => recipient.role)
+  // receivedNotifications!: Relation<NotificationRecipient[]>;
+
+  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+  rolePermissions!: Relation<RolePermission[]>;
 }

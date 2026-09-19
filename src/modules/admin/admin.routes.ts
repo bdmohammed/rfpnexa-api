@@ -2,35 +2,39 @@ import { Router } from 'express';
 
 import * as controller from './admin.controller';
 import {
-  AssignUserRolesBodySchema,
-  BlockUserSchema,
-  CreateAdminSchema,
-  CreateUserNoteSchema,
+  // AssignUserRolesBodySchema,
+  // BlockUserSchema,
+  // CreateAdminSchema,
+  // CreateUserNoteSchema,
   IdParamSchema,
-  ImpersonateUserSchema,
-  ReviewApprovalBodySchema,
-  RoleParamSchema,
-  SessionParamSchema,
-  SubmitApprovalBodySchema,
-  UpdateUserDetailSchema,
+  // ImpersonateUserSchema,
+  ListUsersQuerySchema,
+  // ReviewApprovalBodySchema,
+  // RoleParamSchema,
+  // SessionParamSchema,
+  // SubmitApprovalBodySchema,
+  // UpdateUserDetailSchema,
 } from './admin.dto';
 
 import { UserPermissions } from '@/constants/permissions';
-import { auditLogger } from '@/middleware/auditLogger';
+// import { auditLogger } from '@/middleware/auditLogger';
 import { authenticate } from '@/middleware/authenticate';
-import { requirePermission } from '@/middleware/permissions';
+import {
+  // requireAnyPermission,
+  requirePermission,
+} from '@/middleware/permissions';
 import { requireAccountType } from '@/middleware/requireAccountType';
 import { validate } from '@/middleware/validate';
-import { adminAuthBootstrapRoutes } from '@/modules/auth/admin/routes/auth.admin.bootstrap.routes';
+// import { adminAuthBootstrapRoutes } from '@/modules/auth/admin/routes/auth.admin.bootstrap.routes';
 import { adminAuthPublicRoutes } from '@/modules/auth/admin/routes/auth.admin.public.routes';
 import { AccountType } from '@/types/enums';
-import { PermissionModules } from '@/types/types';
+// import { PermissionModules } from '@/types/types';
 
 const router = Router();
 
 // ─── Public Admin Auth & Bootstrap Endpoints ───────────────────────────────
 router.use('/auth', adminAuthPublicRoutes);
-router.use('/auth', adminAuthBootstrapRoutes);
+// router.use('/auth', adminAuthBootstrapRoutes);
 
 // ─── Protected Admin Endpoints (Require Admin Session) ─────────────────────────
 router.use(authenticate, requireAccountType(AccountType.ADMIN));
@@ -53,7 +57,7 @@ router.use(authenticate, requireAccountType(AccountType.ADMIN));
  *       200:
  *         description: Statistics metrics resolved
  */
-router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controller.getUserStats);
+// router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controller.getUserStats);
 
 /**
  * @swagger
@@ -82,12 +86,12 @@ router.get('/users/stats', requirePermission(UserPermissions.VIEW.key), controll
  *       200:
  *         description: Users list resolved
  */
-// router.get(
-//   '/users',
-//   requireAnyPermission([UserPermissions.VIEW.key, TenderPermissions.MANAGE.key]),
-//   validate(ListUsersQuerySchema, 'query'),
-//   controller.listUsers,
-// );
+router.get(
+  '/users',
+  requirePermission(UserPermissions.VIEW.key),
+  validate(ListUsersQuerySchema, 'query'),
+  controller.listUsers,
+);
 
 /**
  * @swagger
@@ -142,14 +146,14 @@ router.get(
  *       200:
  *         description: User status toggled
  */
-router.patch(
-  '/users/:id/block',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  validate(BlockUserSchema),
-  auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
-  controller.blockUser,
-);
+// router.patch(
+//   '/users/:id/block',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(BlockUserSchema, 'body'),
+//   // auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
+//   controller.blockUser,
+// );
 
 /**
  * @swagger
@@ -175,13 +179,13 @@ router.patch(
  *       201:
  *         description: Admin created
  */
-router.post(
-  '/users/admin',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(CreateAdminSchema),
-  auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
-  controller.createAdmin,
-);
+// router.post(
+//   '/users/admin',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(CreateAdminSchema, 'body'),
+//   // auditLogger(UserPermissions.MANAGE.key, PermissionModules.USER),
+//   controller.createAdmin,
+// );
 
 // Detailed user administration sub-resource endpoints
 
@@ -203,12 +207,12 @@ router.post(
  *       200:
  *         description: Overview details resolved
  */
-router.get(
-  '/users/:id/overview',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserOverview,
-);
+// router.get(
+//   '/users/:id/overview',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserOverview,
+// );
 
 /**
  * @swagger
@@ -228,12 +232,12 @@ router.get(
  *       200:
  *         description: Security summary
  */
-router.get(
-  '/users/:id/security',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserSecurity,
-);
+// router.get(
+//   '/users/:id/security',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserSecurity,
+// );
 
 /**
  * @swagger
@@ -253,12 +257,12 @@ router.get(
  *       200:
  *         description: Sessions list resolved
  */
-router.get(
-  '/users/:id/sessions',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserSessions,
-);
+// router.get(
+//   '/users/:id/sessions',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserSessions,
+// );
 
 /**
  * @swagger
@@ -278,12 +282,12 @@ router.get(
  *       200:
  *         description: Devices list
  */
-router.get(
-  '/users/:id/devices',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserDevices,
-);
+// router.get(
+//   '/users/:id/devices',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserDevices,
+// );
 
 /**
  * @swagger
@@ -329,12 +333,12 @@ router.get(
  *       200:
  *         description: Timeline events resolved
  */
-router.get(
-  '/users/:id/timeline',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserTimeline,
-);
+// router.get(
+//   '/users/:id/timeline',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserTimeline,
+// );
 
 /**
  * @swagger
@@ -380,12 +384,12 @@ router.get(
  *       200:
  *         description: Subscription status details
  */
-router.get(
-  '/users/:id/subscription',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserSubscription,
-);
+// router.get(
+//   '/users/:id/subscription',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserSubscription,
+// );
 
 /**
  * @swagger
@@ -430,19 +434,19 @@ router.get(
  *       201:
  *         description: Note appended successfully
  */
-router.get(
-  '/users/:id/notes',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserNotes,
-);
-router.post(
-  '/users/:id/notes',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(CreateUserNoteSchema),
-  controller.createUserNote,
-);
+// router.get(
+//   '/users/:id/notes',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserNotes,
+// );
+// router.post(
+//   '/users/:id/notes',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(CreateUserNoteSchema, 'body'),
+//   controller.createUserNote,
+// );
 
 /**
  * @swagger
@@ -469,14 +473,14 @@ router.post(
  *       200:
  *         description: User profile edited
  */
-router.patch(
-  '/users/:id/details',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(UpdateUserDetailSchema),
-  auditLogger('user.update', 'user'),
-  controller.updateUserDetail,
-);
+// router.patch(
+//   '/users/:id/details',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(UpdateUserDetailSchema, 'body'),
+//   // auditLogger('user.update', 'user'),
+//   controller.updateUserDetail,
+// );
 
 /**
  * @swagger
@@ -497,13 +501,13 @@ router.patch(
  *       200:
  *         description: Account suspended successfully
  */
-router.post(
-  '/users/:id/suspend',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.suspend', 'user'),
-  controller.suspendUser,
-);
+// router.post(
+//   '/users/:id/suspend',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.suspend', 'user'),
+//   controller.suspendUser,
+// );
 
 /**
  * @swagger
@@ -524,13 +528,13 @@ router.post(
  *       200:
  *         description: Account activated
  */
-router.post(
-  '/users/:id/activate',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.activate', 'user'),
-  controller.activateUser,
-);
+// router.post(
+//   '/users/:id/activate',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.activate', 'user'),
+//   controller.activateUser,
+// );
 
 /**
  * @swagger
@@ -551,13 +555,13 @@ router.post(
  *       200:
  *         description: User archived
  */
-router.post(
-  '/users/:id/archive',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.archive', 'user'),
-  controller.archiveUser,
-);
+// router.post(
+//   '/users/:id/archive',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.archive', 'user'),
+//   controller.archiveUser,
+// );
 
 /**
  * @swagger
@@ -578,13 +582,13 @@ router.post(
  *       200:
  *         description: User restored
  */
-router.post(
-  '/users/:id/unarchive',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.unarchive', 'user'),
-  controller.unarchiveUser,
-);
+// router.post(
+//   '/users/:id/unarchive',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.unarchive', 'user'),
+//   controller.unarchiveUser,
+// );
 
 /**
  * @swagger
@@ -605,13 +609,13 @@ router.post(
  *       200:
  *         description: Reset rule activated
  */
-router.post(
-  '/users/:id/force-password-reset',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.force_password_reset', 'user'),
-  controller.forcePasswordChange,
-);
+// router.post(
+//   '/users/:id/force-password-reset',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.force_password_reset', 'user'),
+//   controller.forcePasswordChange,
+// );
 
 /**
  * @swagger
@@ -632,13 +636,13 @@ router.post(
  *       200:
  *         description: Email dispatched
  */
-router.post(
-  '/users/:id/reset-password',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.reset_password', 'user'),
-  controller.sendResetPasswordEmail,
-);
+// router.post(
+//   '/users/:id/reset-password',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.reset_password', 'user'),
+//   controller.sendResetPasswordEmail,
+// );
 
 /**
  * @swagger
@@ -659,13 +663,13 @@ router.post(
  *       200:
  *         description: Email sent successfully
  */
-router.post(
-  '/users/:id/send-verification',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.send_verification', 'user'),
-  controller.sendUserVerification,
-);
+// router.post(
+//   '/users/:id/send-verification',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.send_verification', 'user'),
+//   controller.sendUserVerification,
+// );
 
 /**
  * @swagger
@@ -696,14 +700,14 @@ router.post(
  *       200:
  *         description: Approval request submitted successfully
  */
-router.post(
-  '/users/:id/submit-approval',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(SubmitApprovalBodySchema),
-  auditLogger('user.submit_approval', 'user'),
-  controller.submitApproval,
-);
+// router.post(
+//   '/users/:id/submit-approval',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(SubmitApprovalBodySchema),
+//   // auditLogger('user.submit_approval', 'user'),
+//   controller.submitApproval,
+// );
 
 /**
  * @swagger
@@ -734,14 +738,14 @@ router.post(
  *       200:
  *         description: Approval request reviewed successfully
  */
-router.post(
-  '/users/:id/review-approval',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(ReviewApprovalBodySchema),
-  auditLogger('user.review_approval', 'user'),
-  controller.reviewApproval,
-);
+// router.post(
+//   '/users/:id/review-approval',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(ReviewApprovalBodySchema, 'body'),
+//   // auditLogger('user.review_approval', 'user'),
+//   controller.reviewApproval,
+// );
 
 /**
  * @swagger
@@ -761,12 +765,12 @@ router.post(
  *       200:
  *         description: Approval request details resolved
  */
-router.get(
-  '/users/:id/approval-request',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  controller.getApprovalRequest,
-);
+// router.get(
+//   '/users/:id/approval-request',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getApprovalRequest,
+// );
 
 /**
  * @swagger
@@ -791,13 +795,13 @@ router.get(
  *       200:
  *         description: Session terminated
  */
-router.delete(
-  '/users/:id/sessions/:sessionId',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(SessionParamSchema, 'params'),
-  auditLogger('user.revoke_session', 'user'),
-  controller.revokeSession,
-);
+// router.delete(
+//   '/users/:id/sessions/:sessionId',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(SessionParamSchema, 'params'),
+//   // auditLogger('user.revoke_session', 'user'),
+//   controller.revokeSession,
+// );
 
 /**
  * @swagger
@@ -818,13 +822,13 @@ router.delete(
  *       200:
  *         description: All active sessions revoked
  */
-router.delete(
-  '/users/:id/sessions',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  auditLogger('user.revoke_all_sessions', 'user'),
-  controller.revokeAllSessions,
-);
+// router.delete(
+//   '/users/:id/sessions',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('user.revoke_all_sessions', 'user'),
+//   controller.revokeAllSessions,
+// );
 
 /**
  * @swagger
@@ -854,14 +858,14 @@ router.delete(
  *       200:
  *         description: Impersonation token returned
  */
-router.post(
-  '/users/:id/impersonate',
-  requirePermission(UserPermissions.VIEW.key),
-  validate(IdParamSchema, 'params'),
-  validate(ImpersonateUserSchema),
-  auditLogger('user.impersonate', 'user'),
-  controller.impersonateUser,
-);
+// router.post(
+//   '/users/:id/impersonate',
+//   requirePermission(UserPermissions.VIEW.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(ImpersonateUserSchema, 'body'),
+//   // auditLogger('user.impersonate', 'user'),
+//   controller.impersonateUser,
+// );
 
 // ─── User Role Assignments & Previews ──────────────────────────────────────────
 
@@ -906,20 +910,20 @@ router.post(
  *       200:
  *         description: Roles saved
  */
-router.get(
-  '/users/:id/roles',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  controller.getUserRoles,
-);
-router.put(
-  '/users/:id/roles',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  validate(AssignUserRolesBodySchema),
-  auditLogger('user.assign_roles', 'user'),
-  controller.assignUserRoles,
-);
+// router.get(
+//   '/users/:id/roles',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.getUserRoles,
+// );
+// router.put(
+//   '/users/:id/roles',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   validate(AssignUserRolesBodySchema),
+//   // auditLogger('user.assign_roles', 'user'),
+//   controller.assignUserRoles,
+// );
 
 /**
  * @swagger
@@ -944,13 +948,13 @@ router.put(
  *       200:
  *         description: Role revoked successfully
  */
-router.delete(
-  '/users/:id/roles/:roleId',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(RoleParamSchema, 'params'),
-  auditLogger('user.revoke_role', 'user'),
-  controller.revokeUserRole,
-);
+// router.delete(
+//   '/users/:id/roles/:roleId',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(RoleParamSchema, 'params'),
+//   // auditLogger('user.revoke_role', 'user'),
+//   controller.revokeUserRole,
+// );
 
 /**
  * @swagger
@@ -970,11 +974,11 @@ router.delete(
  *       200:
  *         description: Flat permissions key list
  */
-router.get(
-  '/users/:id/permissions',
-  requirePermission(UserPermissions.MANAGE.key),
-  validate(IdParamSchema, 'params'),
-  controller.previewUserPermissions,
-);
+// router.get(
+//   '/users/:id/permissions',
+//   requirePermission(UserPermissions.MANAGE.key),
+//   validate(IdParamSchema, 'params'),
+//   controller.previewUserPermissions,
+// );
 
 export { router as adminRouter };

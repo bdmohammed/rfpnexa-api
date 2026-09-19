@@ -2,24 +2,24 @@ import { PermissionActions } from '@/authorization/registry/types';
 import { PermissionModules, type PermissionModuleSeed } from '@/types/types';
 import { definePermission } from '@/utils/permissions';
 
-export const statePermissionModule: PermissionModuleSeed = {
-  name: 'Locations',
-  key: PermissionModules.STATE,
+export const GeoLocationPermissionModule: PermissionModuleSeed = {
+  name: 'GeoLocation',
+  key: PermissionModules.GeoLocation,
   displayOrder: 14,
   description: 'Locations and geography management module.',
   isSystemModule: true,
   isActive: true,
 } as const;
 
-export const StatePermissions = {
-  VIEW: definePermission(PermissionModules.STATE, PermissionActions.VIEW, {
+export const GeoLocationPermissions = {
+  VIEW: definePermission(PermissionModules.GeoLocation, PermissionActions.VIEW, {
     name: 'View Locations',
     description: 'View countries, states, and geography hierarchy.',
     displayOrder: 1,
     isActive: true,
   }),
 
-  MANAGE: definePermission(PermissionModules.STATE, PermissionActions.MANAGE, {
+  MANAGE: definePermission(PermissionModules.GeoLocation, PermissionActions.MANAGE, {
     name: 'Manage Locations',
     description: 'Full administrative control over locations and geography.',
     displayOrder: 2,

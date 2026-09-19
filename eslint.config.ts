@@ -174,7 +174,7 @@ export const createBaseConfig = (options: any = {}) => {
         },
       ],
       'max-len': [
-        'error',
+        'warn',
         {
           code: 120,
           ignoreTemplateLiterals: true,

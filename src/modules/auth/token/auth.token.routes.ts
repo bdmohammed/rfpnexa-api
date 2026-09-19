@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import * as controller from './auth.token.controller';
-
 import { csrfLimiter, refreshLimiter } from '@/middleware/rateLimits';
 
 const router = Router();
@@ -46,7 +45,7 @@ router.get('/csrf-token', csrfLimiter, controller.getCsrfToken);
  * /api/v1/auth/refresh:
  *   post:
  *     summary: Rotate session tokens
- *     description: Rotates the refresh token and issues a new access token via HttpOnly cookies.
+ *     description: Validates the HttpOnly refresh token cookie and issues a new access + refresh token pair. Stateless — no database lookup required.
  *     operationId: refreshTokens
  *     tags: [Auth]
  *     security:

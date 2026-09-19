@@ -1,35 +1,35 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { User } from './User';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('password_histories')
-@Index('idx_password_histories_user_created', ['userId', 'createdAt'])
-export class PasswordHistory {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('password_histories')
+// @Index('idx_password_histories_user_created', ['userId', 'createdAt'])
+// export class PasswordHistory {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, {
+//     onDelete: 'CASCADE',
+//   })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
-  passwordHash!: string;
+//   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
+//   passwordHash!: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

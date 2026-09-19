@@ -1,57 +1,57 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   OneToMany,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { Tender } from './Tender';
-import { TenderEvaluation } from './TenderEvaluation';
-import { TenderSubmission } from './TenderSubmission';
-import { User } from './User';
+// import { Tender } from './Tender';
+// import { TenderEvaluation } from './TenderEvaluation';
+// import { TenderSubmission } from './TenderSubmission';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_participants')
-export class TenderParticipant {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_participants')
+// export class TenderParticipant {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'tender_id', type: 'uuid' })
-  tenderId!: string;
+//   @Column({ name: 'tender_id', type: 'uuid' })
+//   tenderId!: string;
 
-  @ManyToOne(() => Tender, (tender) => tender.participants, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tender_id' })
-  tender!: Relation<Tender>;
+//   @ManyToOne(() => Tender, (tender) => tender.participants, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'tender_id' })
+//   tender!: Relation<Tender>;
 
-  @Column({ name: 'vendor_id', type: 'uuid' })
-  vendorId!: string;
+//   @Column({ name: 'vendor_id', type: 'uuid' })
+//   vendorId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'vendor_id' })
-  vendor!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'vendor_id' })
+//   vendor!: Relation<User>;
 
-  @Column({ type: 'varchar', length: 50 })
-  status!: string;
+//   @Column({ type: 'varchar', length: 50 })
+//   status!: string;
 
-  @Column({ name: 'submission_version', type: 'int', nullable: true })
-  submissionVersion!: number | null;
+//   @Column({ name: 'submission_version', type: 'int', nullable: true })
+//   submissionVersion!: number | null;
 
-  @Column({ name: 'withdrawn_at', type: 'timestamptz', nullable: true })
-  withdrawnAt!: Date | null;
+//   @Column({ name: 'withdrawn_at', type: 'timestamptz', nullable: true })
+//   withdrawnAt!: Date | null;
 
-  @Column({ type: 'boolean', name: 'evaluation_completed', default: false })
-  evaluationCompleted!: boolean;
+//   @Column({ type: 'boolean', name: 'evaluation_completed', default: false })
+//   evaluationCompleted!: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @OneToMany(() => TenderEvaluation, (evalRow) => evalRow.participant)
-  evaluations!: Relation<TenderEvaluation[]>;
+//   @OneToMany(() => TenderEvaluation, (evalRow) => evalRow.participant)
+//   evaluations!: Relation<TenderEvaluation[]>;
 
-  @OneToMany(() => TenderSubmission, (submission) => submission.participant)
-  submissions!: Relation<TenderSubmission[]>;
-}
+//   @OneToMany(() => TenderSubmission, (submission) => submission.participant)
+//   submissions!: Relation<TenderSubmission[]>;
+// }

@@ -1,7 +1,7 @@
-import slugify from 'slugify';
+// import slugify from 'slugify';
 import {
-  BeforeInsert,
-  BeforeUpdate,
+  // BeforeInsert,
+  // BeforeUpdate,
   Check,
   Column,
   CreateDateColumn,
@@ -14,20 +14,21 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { AlertPreference } from './AlertPreference';
+// import { AlertPreference } from './AlertPreference';
 import { Country } from './Country';
-import { StateVersion } from './StateVersion';
-import { TenderVersion } from './TenderVersion';
-import { User } from './User';
+import { Tender } from './Tender';
 
 import type { Relation } from 'typeorm';
-import { StateType } from '@/types/enums';
+// import { StateVersion } from './StateVersion';
+// import { TenderVersion } from './TenderVersion';
+// import { User } from './User';
+// import { StateType } from '@/types/enums';
 
 @Entity('states')
 @Check('"code" = UPPER("code")')
-@Index('uq_state_country_slug', ['countryId', 'slug'], {
-  unique: true,
-})
+// @Index('uq_state_country_slug', ['countryId', 'slug'], {
+//   unique: true,
+// })
 @Index('uq_state_country_code', ['countryId', 'code'], {
   unique: true,
 })
@@ -44,12 +45,12 @@ export class State {
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  slug!: string;
+  // @Column({ type: 'varchar', length: 100 })
+  // slug!: string;
 
-  /** 'state' | 'territory' | 'federal' */
-  @Column({ type: 'enum', enum: StateType })
-  type!: StateType;
+  // /** 'state' | 'territory' | 'federal' */
+  // @Column({ type: 'enum', enum: StateType })
+  // type!: StateType;
 
   @Column({
     name: 'country_id',
@@ -64,32 +65,32 @@ export class State {
   @JoinColumn({ name: 'country_id' })
   country!: Relation<Country>;
 
-  @Column({
-    name: 'created_by',
-    type: 'uuid',
-  })
-  createdById!: string;
+  // @Column({
+  //   name: 'created_by',
+  //   type: 'uuid',
+  // })
+  // createdById!: string;
 
-  @ManyToOne(() => User, {
-    nullable: false,
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'created_by' })
-  createdBy!: Relation<User>;
+  // @ManyToOne(() => User, {
+  //   nullable: false,
+  //   onDelete: 'RESTRICT',
+  // })
+  // @JoinColumn({ name: 'created_by' })
+  // createdBy!: Relation<User>;
 
-  @Column({
-    name: 'updated_by',
-    type: 'uuid',
-    nullable: true,
-  })
-  updatedById!: string | null;
+  // @Column({
+  //   name: 'updated_by',
+  //   type: 'uuid',
+  //   nullable: true,
+  // })
+  // updatedById!: string | null;
 
-  @ManyToOne(() => User, {
-    nullable: true,
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'updated_by' })
-  updatedBy!: Relation<User | null>;
+  // @ManyToOne(() => User, {
+  //   nullable: true,
+  //   onDelete: 'RESTRICT',
+  // })
+  // @JoinColumn({ name: 'updated_by' })
+  // updatedBy!: Relation<User | null>;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
@@ -101,31 +102,34 @@ export class State {
   updatedAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
-  @OneToMany(() => TenderVersion, (t) => t.state)
-  tenders!: Relation<TenderVersion[]>;
+  // @OneToMany(() => TenderVersion, (t) => t.state)
+  // tenders!: Relation<TenderVersion[]>;
 
-  @OneToMany(() => AlertPreference, (a) => a.state)
-  alertPreferences!: Relation<AlertPreference[]>;
+  // @OneToMany(() => AlertPreference, (a) => a.state)
+  // alertPreferences!: Relation<AlertPreference[]>;
 
-  @OneToMany(() => StateVersion, (version) => version.state)
-  versions!: Relation<StateVersion[]>;
+  // @OneToMany(() => StateVersion, (version) => version.state)
+  // versions!: Relation<StateVersion[]>;
+
+  @OneToMany(() => Tender, (tender) => tender.state)
+  tender!: Relation<Tender[]>;
 
   // ─── Hooks ────────────────────────────────────────────────────────────
-  @BeforeInsert()
-  @BeforeUpdate()
-  normalize() {
-    this.code = this.code.trim().toUpperCase();
+  // @BeforeInsert()
+  // @BeforeUpdate()
+  // normalize() {
+  //   this.code = this.code.trim().toUpperCase();
 
-    if (!/^[A-Z0-9-]+$/.test(this.code)) {
-      throw new Error('State code must contain only uppercase alphanumeric characters or hyphens.');
-    }
+  //   if (!/^[A-Z0-9-]+$/.test(this.code)) {
+  //     throw new Error('State code must contain only uppercase alphanumeric characters or hyphens.');
+  //   }
 
-    this.name = this.name.trim();
+  //   this.name = this.name.trim();
 
-    this.slug = slugify(this.name, {
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-  }
+  //   this.slug = slugify(this.name, {
+  //     lower: true,
+  //     strict: true,
+  //     trim: true,
+  //   });
+  // }
 }

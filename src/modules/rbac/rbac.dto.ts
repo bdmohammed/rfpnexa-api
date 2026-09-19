@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-import { type RoleStatus, type RoleVersionStatus, UserStatus } from '@/types/enums';
+import type { RouteContract } from '@/core/asyncHandler';
+import type { UserRole } from '@/database/entities/UserRole';
+import { RoleStatus, type RoleVersionStatus, UserStatus } from '@/types/enums';
 
 export const ListRolesQuerySchema = z.object({
   deleted: z.boolean().optional().default(false),
@@ -19,15 +21,20 @@ export type RoleIdParamDto = z.infer<typeof RoleIdParamSchema>;
 
 export const CreateRoleSchema = z.object({
   name: z.string().min(1, 'Role name is required').max(100),
-  description: z.string().nullable().optional().default(null),
+  // description: z.string().nullable().optional().default(null),
+  status: z.enum(RoleStatus).optional().default(RoleStatus.ACTIVE),
   permissionKeys: z.array(z.string()).optional().default([]),
 });
 export type CreateRoleDto = z.infer<typeof CreateRoleSchema>;
 
 export const UpdateRoleSchema = z.object({
-  name: z.string().min(1, 'Role name is required').max(100),
-  description: z.string().nullable().optional().default(null),
-  permissionKeys: z.array(z.string()).optional().default([]),
+  // name: z.string().min(1, 'Role name is required').max(100),
+  // description: z.string().nullable().optional().default(null),
+  // permissionKeys: z.array(z.string()).optional().default([]),
+  name: z.string().min(1, 'Role name is required').max(100).optional(),
+  // description: z.string().nullable().optional(),
+  status: z.enum(RoleStatus),
+  permissionKeys: z.array(z.string()),
 });
 export type UpdateRoleDto = z.infer<typeof UpdateRoleSchema>;
 
@@ -37,14 +44,14 @@ export const DuplicateRoleBodySchema = z.object({
 export type DuplicateRoleBodyDto = z.infer<typeof DuplicateRoleBodySchema>;
 
 export const AssignRoleSchema = z.object({
-  userId: z.string().uuid('Invalid user ID'),
-  roleId: z.string().uuid('Invalid role ID'),
-  effectiveAt: z.string().nullable().optional().default(null),
-  expiresAt: z.string().nullable().optional().default(null),
-  reason: z.string().optional(),
-  comment: z.string().optional(),
-  reviewerId: z.string().uuid().optional(),
-  status: z.string().optional().default('ACTIVE'),
+  userId: z.uuid('Invalid user ID'),
+  roleId: z.uuid('Invalid role ID'),
+  // effectiveAt: z.string().nullable().optional().default(null),
+  // expiresAt: z.string().nullable().optional().default(null),
+  // reason: z.string().optional(),
+  // comment: z.string().optional(),
+  // reviewerId: z.string().uuid().optional(),
+  status: z.enum(RoleStatus).optional().default(RoleStatus.ACTIVE),
 });
 export type AssignRoleDto = z.infer<typeof AssignRoleSchema>;
 
@@ -178,4 +185,89 @@ export interface GroupedPermissionModule {
     action: string;
     description: string | null;
   }[];
+}
+
+export interface GetRoleByIdContract extends RouteContract {
+  params: IdParamDto;
+  response: {
+    id: string;
+    key: string;
+    name: string;
+    slug: string;
+    status: RoleStatus;
+    isSystemRole: boolean;
+    permissions: string[];
+    permissionKeys: string[];
+    userCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+    createdByUser: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface GetRoleByIdContract extends RouteContract {
+  body: CreateRoleDto;
+  response: {
+    id: string;
+    key: string;
+    name: string;
+    slug: string;
+    status: RoleStatus;
+    isSystemRole: boolean;
+    permissions: string[];
+    permissionKeys: string[];
+    userCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+    createdByUser: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface UpdateRoleContract extends RouteContract {
+  params: IdParamDto;
+  body: UpdateRoleDto;
+  response: {
+    id: string;
+    key: string;
+    name: string;
+    slug: string;
+    status: RoleStatus;
+    isSystemRole: boolean;
+    permissions: string[];
+    permissionKeys: string[];
+    userCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+    createdByUser: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface DeleteRoleContract extends RouteContract {
+  params: IdParamDto;
+  response: null;
+}
+
+export interface AssignRoleContract extends RouteContract {
+  body: AssignRoleDto;
+  response: UserRole;
+}
+
+export interface RevokeAssignmentContract extends RouteContract {
+  params: IdParamDto;
+  response: null;
 }

@@ -1,42 +1,42 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { TenderReview } from './TenderReview';
-import { User } from './User';
+// import { TenderReview } from './TenderReview';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_review_assignments')
-export class TenderReviewAssignment {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_review_assignments')
+// export class TenderReviewAssignment {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'review_id', type: 'uuid' })
-  reviewId!: string;
+//   @Column({ name: 'review_id', type: 'uuid' })
+//   reviewId!: string;
 
-  @ManyToOne(() => TenderReview, (review) => review.assignments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'review_id' })
-  review!: Relation<TenderReview>;
+//   @ManyToOne(() => TenderReview, (review) => review.assignments, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'review_id' })
+//   review!: Relation<TenderReview>;
 
-  @Column({ name: 'reviewer_id', type: 'uuid' })
-  reviewerId!: string;
+//   @Column({ name: 'reviewer_id', type: 'uuid' })
+//   reviewerId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'reviewer_id' })
+//   reviewer!: Relation<User>;
 
-  @Column({ type: 'varchar', length: 50, default: 'PENDING' })
-  decision!: string;
+//   @Column({ type: 'varchar', length: 50, default: 'PENDING' })
+//   decision!: string;
 
-  @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
-  assignedAt!: Date;
+//   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
+//   assignedAt!: Date;
 
-  @Column({ type: 'timestamptz', name: 'completed_at', nullable: true })
-  completedAt!: Date | null;
-}
+//   @Column({ type: 'timestamptz', name: 'completed_at', nullable: true })
+//   completedAt!: Date | null;
+// }

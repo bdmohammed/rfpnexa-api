@@ -46,7 +46,8 @@ export interface AccessTokenPayload {
    * Legacy claim retained only if existing tokens contain it.
    * Prefer removing it from newly issued tokens.
    */
-  email?: string;
+  email: string;
+  userId?: string;
 }
 
 /**
@@ -76,7 +77,7 @@ export interface AuthenticatedUser {
   adminRole: unknown | null;
 
   /** Current database session/token version */
-  tokenVersion: number;
+  // tokenVersion: number;
 }
 
 /**

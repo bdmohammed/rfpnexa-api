@@ -1,40 +1,40 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-} from 'typeorm';
+// import {
+//   Column,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+//   Unique,
+// } from 'typeorm';
 
-import { RoleVersion } from './RoleVersion';
+// import { RoleVersion } from './RoleVersion';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('role_version_permissions')
-@Unique(['roleVersionId', 'permissionKey'])
-@Index(['roleVersionId'])
-export class RoleVersionPermission {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('role_version_permissions')
+// @Unique(['roleVersionId', 'permissionKey'])
+// @Index(['roleVersionId'])
+// export class RoleVersionPermission {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'role_version_id', type: 'uuid' })
-  roleVersionId!: string;
+//   @Column({ name: 'role_version_id', type: 'uuid' })
+//   roleVersionId!: string;
 
-  @ManyToOne(() => RoleVersion, (rv) => rv.roleVersionPermissions, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'role_version_id' })
-  roleVersion!: Relation<RoleVersion>;
+//   @ManyToOne(() => RoleVersion, (rv) => rv.roleVersionPermissions, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'role_version_id' })
+//   roleVersion!: Relation<RoleVersion>;
 
-  @Column({ name: 'permission_key', type: 'varchar', length: 100 })
-  permissionKey!: string;
+//   @Column({ name: 'permission_key', type: 'varchar', length: 100 })
+//   permissionKey!: string;
 
-  @Column({ name: 'permission_name', type: 'varchar', length: 100 })
-  permissionName!: string;
+//   @Column({ name: 'permission_name', type: 'varchar', length: 100 })
+//   permissionName!: string;
 
-  @Column({ name: 'module_slug', type: 'varchar', length: 100 })
-  moduleSlug!: string;
+//   @Column({ name: 'module_slug', type: 'varchar', length: 100 })
+//   moduleSlug!: string;
 
-  @Column({ name: 'module_name', type: 'varchar', length: 100 })
-  moduleName!: string;
-}
+//   @Column({ name: 'module_name', type: 'varchar', length: 100 })
+//   moduleName!: string;
+// }

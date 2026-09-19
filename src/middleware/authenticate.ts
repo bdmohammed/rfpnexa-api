@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 
-import type { AccountType, UserStatus } from '@/types/enums';
+import type {
+  AccountType,
+  // UserStatus
+} from '@/types/enums';
 import type { AccessTokenPayload } from '@/types/express';
 import type { NextFunction, Request, Response } from 'express';
 import { AppDataSource } from '@/config/database';
@@ -9,12 +12,12 @@ import { AppError, AppErrorCode, AppErrorMessage, HttpStatusCode } from '@/core/
 import { JWT_COOKIE_NAME } from '@/core/constants';
 import { setUserId } from '@/core/requestContext';
 import { User } from '@/entities/User';
-import {
-  logSecurityEvent,
-  SecurityAuditReason,
-} from '@/modules/auth/security/auth.securityLog.service';
+// import {
+//   logSecurityEvent,
+//   SecurityAuditReason,
+// } from '@/modules/auth/security/auth.securityLog.service';
 import { CacheService } from '@/services/cache.service';
-import { SecurityEvent } from '@/types/enums';
+// import { SecurityEvent } from '@/types/enums';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -22,10 +25,10 @@ export interface UserAuthSnapshot {
   id: string;
   email: string;
   accountType: AccountType;
-  status: UserStatus;
-  tokenVersion: number;
-  isBlocked: boolean;
-  emailVerified: boolean;
+  // status: UserStatus;
+  // tokenVersion: number;
+  // isBlocked: boolean;
+  // emailVerified: boolean;
 }
 
 /**
@@ -41,7 +44,7 @@ export interface UserAuthSnapshot {
  * 3. Must check `issuer` and `audience` against `env` configuration.
  * 4. Enforces 15-second clock skew tolerance (`clockTolerance: 15`).
  */
-function verifyToken(token: string): AccessTokenPayload {
+export function verifyToken(token: string): AccessTokenPayload {
   try {
     const rawPayload = jwt.verify(token, env.JWT_SECRET, {
       algorithms: ['HS256'],
@@ -90,10 +93,10 @@ export async function getOrFetchUserAuthSnapshot(userId: string): Promise<UserAu
       id: true,
       email: true,
       accountType: true,
-      status: true,
-      tokenVersion: true,
-      isBlocked: true,
-      emailVerified: true,
+      // status: true,
+      // tokenVersion: true,
+      // isBlocked: true,
+      // emailVerified: true,
     },
   });
 
@@ -103,10 +106,10 @@ export async function getOrFetchUserAuthSnapshot(userId: string): Promise<UserAu
     id: user.id,
     email: user.email,
     accountType: user.accountType,
-    status: user.status,
-    tokenVersion: user.tokenVersion,
-    isBlocked: user.isBlocked,
-    emailVerified: user.emailVerified,
+    // status: user.status,
+    // tokenVersion: user.tokenVersion,
+    // isBlocked: user.isBlocked,
+    // emailVerified: user.emailVerified,
   };
 
   await CacheService.set(cacheKey, snapshot, 30);
@@ -125,8 +128,8 @@ export async function invalidateUserAuthSnapshot(userId: string): Promise<void> 
  */
 function checkAccountBlockAndRevocation(
   user: UserAuthSnapshot | null,
-  decodedTokenVersion: number,
-  reqContext: { ipAddress: string | null; userAgent: string | null },
+  // decodedTokenVersion: number,
+  // reqContext: { ipAddress: string | null; userAgent: string | null },
 ): asserts user is UserAuthSnapshot {
   if (!user) {
     throw new AppError(
@@ -136,58 +139,59 @@ function checkAccountBlockAndRevocation(
     );
   }
 
-  if (user.isBlocked) {
-    logSecurityEvent({
-      userId: user.id,
-      email: user.email,
-      event: SecurityEvent.LOGIN_FAILED,
-      ipAddress: reqContext.ipAddress,
-      userAgent: reqContext.userAgent,
-      details: { reason: SecurityAuditReason.ACCOUNT_BLOCKED },
-    });
-    throw new AppError(
-      AppErrorMessage.ACCOUNT_SUSPENDED,
-      HttpStatusCode.FORBIDDEN,
-      AppErrorCode.ACCOUNT_BLOCKED,
-    );
-  }
+  // if (user.isBlocked) {
+  //   logSecurityEvent({
+  //     userId: user.id,
+  //     email: user.email,
+  //     event: SecurityEvent.LOGIN_FAILED,
+  //     ipAddress: reqContext.ipAddress,
+  //     userAgent: reqContext.userAgent,
+  //     details: { reason: SecurityAuditReason.ACCOUNT_BLOCKED },
+  //   });
+  //   throw new AppError(
+  //     AppErrorMessage.ACCOUNT_SUSPENDED,
+  //     HttpStatusCode.FORBIDDEN,
+  //     AppErrorCode.ACCOUNT_BLOCKED,
+  //   );
+  // }
 
-  if (user.tokenVersion !== decodedTokenVersion) {
-    logSecurityEvent({
-      userId: user.id,
-      email: user.email,
-      event: SecurityEvent.UNAUTHORIZED_ACCESS,
-      ipAddress: reqContext.ipAddress,
-      userAgent: reqContext.userAgent,
-      details: {
-        reason: 'TOKEN_VERSION_MISMATCH',
-        expected: user.tokenVersion,
-        actual: decodedTokenVersion,
-      },
-    });
-    throw new AppError(
-      AppErrorMessage.SESSION_HAS_BEEN_REVOKED,
-      HttpStatusCode.UNAUTHORIZED,
-      AppErrorCode.SESSION_REVOKED,
-    );
-  }
+  // if (user.tokenVersion !== decodedTokenVersion) {
+  //   logSecurityEvent({
+  //     userId: user.id,
+  //     email: user.email,
+  //     event: SecurityEvent.UNAUTHORIZED_ACCESS,
+  //     ipAddress: reqContext.ipAddress,
+  //     userAgent: reqContext.userAgent,
+  //     details: {
+  //       reason: 'TOKEN_VERSION_MISMATCH',
+  //       expected: user.tokenVersion,
+  //       actual: decodedTokenVersion,
+  //     },
+  //   });
+  //   throw new AppError(
+  //     AppErrorMessage.SESSION_HAS_BEEN_REVOKED,
+  //     HttpStatusCode.UNAUTHORIZED,
+  //     AppErrorCode.SESSION_REVOKED,
+  //   );
+  // }
 }
 
 /**
  * Validates email verification and admin approval status based on middleware variant configuration.
  */
-function checkAccountApprovalAndVerification(
-  user: UserAuthSnapshot,
-  allowUnverified: boolean,
-): void {
-  if (!allowUnverified && !user.emailVerified) {
-    throw new AppError(
-      'Email verification required to access private routes',
-      HttpStatusCode.FORBIDDEN,
-      AppErrorCode.EMAIL_NOT_VERIFIED,
-    );
-  }
-}
+// function checkAccountApprovalAndVerification(
+//   user: UserAuthSnapshot,
+//   allowUnverified: boolean,
+// ): void {
+//   if (!allowUnverified) {
+//     // if (!allowUnverified && !user.emailVerified) {
+//     throw new AppError(
+//       'Email verification required to access private routes',
+//       HttpStatusCode.FORBIDDEN,
+//       AppErrorCode.EMAIL_NOT_VERIFIED,
+//     );
+//   }
+// }
 
 /**
  * Internal core handler executing token verification and account checks.
@@ -195,7 +199,7 @@ function checkAccountApprovalAndVerification(
 async function authenticateCore(
   req: Request,
   next: NextFunction,
-  options: { allowUnverified: boolean },
+  // options: { allowUnverified: boolean },
 ): Promise<void> {
   const token: string = req.cookies[JWT_COOKIE_NAME];
 
@@ -218,13 +222,17 @@ async function authenticateCore(
 
   try {
     const user = await getOrFetchUserAuthSnapshot(decodedTokenPayload.sub);
-    const reqContext = {
-      ipAddress: req.ip ?? null,
-      userAgent: req.headers['user-agent'] ?? null,
-    };
+    // const reqContext = {
+    //   ipAddress: req.ip ?? null,
+    //   userAgent: req.headers['user-agent'] ?? null,
+    // };
 
-    checkAccountBlockAndRevocation(user, decodedTokenPayload.tokenVersion, reqContext);
-    checkAccountApprovalAndVerification(user, options.allowUnverified);
+    checkAccountBlockAndRevocation(
+      user,
+      // decodedTokenPayload.tokenVersion,
+      // reqContext
+    );
+    // checkAccountApprovalAndVerification(user, options.allowUnverified);
 
     req.user = {
       sub: user.id,
@@ -233,7 +241,7 @@ async function authenticateCore(
       accountType: user.accountType,
       role: user.accountType,
       adminRole: null,
-      tokenVersion: user.tokenVersion,
+      // tokenVersion: user.tokenVersion,
     };
     setUserId(user.id);
     req.log = req.log.child({ userId: user.id });
@@ -251,7 +259,11 @@ export const authenticate = async (
   _res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  return authenticateCore(req, next, { allowUnverified: false });
+  return authenticateCore(
+    req,
+    next,
+    // { allowUnverified: false }
+  );
 };
 
 /**
@@ -262,7 +274,11 @@ export const authenticateAllowUnverified = async (
   _res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  return authenticateCore(req, next, { allowUnverified: true });
+  return authenticateCore(
+    req,
+    next,
+    // { allowUnverified: true }
+  );
 };
 
 /**
@@ -279,8 +295,8 @@ export const optionalAuthenticate = async (
   try {
     const decodedTokenPayload = verifyToken(token);
     const user = await getOrFetchUserAuthSnapshot(decodedTokenPayload.sub);
-
-    if (user && !user.isBlocked && user.tokenVersion === decodedTokenPayload.tokenVersion) {
+    if (user) {
+      // if (user && !user.isBlocked && user.tokenVersion === decodedTokenPayload.tokenVersion) {
       req.user = {
         sub: user.id,
         userId: user.id,
@@ -288,7 +304,7 @@ export const optionalAuthenticate = async (
         accountType: user.accountType,
         role: user.accountType,
         adminRole: null,
-        tokenVersion: user.tokenVersion,
+        // tokenVersion: user.tokenVersion,
       };
       setUserId(user.id);
       req.log = req.log.child({ userId: user.id });

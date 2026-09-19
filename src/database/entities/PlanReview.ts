@@ -1,63 +1,63 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   OneToMany,
+//   PrimaryGeneratedColumn,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { Plan } from './Plan';
-import { PlanReviewAssignment } from './PlanReviewAssignment';
-import { PlanReviewComment } from './PlanReviewComment';
-import { PlanVersion } from './PlanVersion';
+// import { Plan } from './Plan';
+// import { PlanReviewAssignment } from './PlanReviewAssignment';
+// import { PlanReviewComment } from './PlanReviewComment';
+// import { PlanVersion } from './PlanVersion';
 
-import type { Relation } from 'typeorm';
-import { ReviewStatus } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { ReviewStatus } from '@/types/enums';
 
-@Entity('plan_reviews')
-@Index(['planVersionId'])
-@Index('ux_plan_review_pending', ['planVersionId'], {
-  unique: true,
-  where: '"status" = \'PENDING\'',
-})
-export class PlanReview {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('plan_reviews')
+// @Index(['planVersionId'])
+// @Index('ux_plan_review_pending', ['planVersionId'], {
+//   unique: true,
+//   where: '"status" = \'PENDING\'',
+// })
+// export class PlanReview {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'plan_id', type: 'uuid' })
-  planId!: string;
+//   @Column({ name: 'plan_id', type: 'uuid' })
+//   planId!: string;
 
-  @ManyToOne(() => Plan, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'plan_id' })
-  plan!: Relation<Plan>;
+//   @ManyToOne(() => Plan, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'plan_id' })
+//   plan!: Relation<Plan>;
 
-  @Column({ name: 'plan_version_id', type: 'uuid' })
-  planVersionId!: string;
+//   @Column({ name: 'plan_version_id', type: 'uuid' })
+//   planVersionId!: string;
 
-  @ManyToOne(() => PlanVersion, (planVersion) => planVersion.reviews, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'plan_version_id' })
-  planVersion!: Relation<PlanVersion>;
+//   @ManyToOne(() => PlanVersion, (planVersion) => planVersion.reviews, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'plan_version_id' })
+//   planVersion!: Relation<PlanVersion>;
 
-  @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
-  status!: ReviewStatus;
+//   @Column({ type: 'enum', enum: ReviewStatus, default: ReviewStatus.PENDING })
+//   status!: ReviewStatus;
 
-  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt!: Date | null;
+//   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
+//   completedAt!: Date | null;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
 
-  // ─── Relations ────────────────────────────────────────────────────────────
-  @OneToMany(() => PlanReviewAssignment, (pra) => pra.review)
-  planReviewAssignments!: Relation<PlanReviewAssignment[]>;
+//   // ─── Relations ────────────────────────────────────────────────────────────
+//   @OneToMany(() => PlanReviewAssignment, (pra) => pra.review)
+//   planReviewAssignments!: Relation<PlanReviewAssignment[]>;
 
-  @OneToMany(() => PlanReviewComment, (c) => c.planReview)
-  comments!: Relation<PlanReviewComment[]>;
-}
+//   @OneToMany(() => PlanReviewComment, (c) => c.planReview)
+//   comments!: Relation<PlanReviewComment[]>;
+// }

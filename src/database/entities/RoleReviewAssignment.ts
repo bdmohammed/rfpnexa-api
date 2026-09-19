@@ -1,55 +1,55 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+//   Unique,
+// } from 'typeorm';
 
-import { RoleReview } from './RoleReview';
-import { User } from './User';
+// import { RoleReview } from './RoleReview';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { ReviewAssignmentStatus } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { ReviewAssignmentStatus } from '@/types/enums';
 
-@Entity('role_review_assignments')
-@Unique(['reviewId', 'reviewerId'])
-@Index(['reviewerId'])
-@Index('idx_role_review_assignment_review_status', ['reviewId', 'status'])
-export class RoleReviewAssignment {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('role_review_assignments')
+// @Unique(['reviewId', 'reviewerId'])
+// @Index(['reviewerId'])
+// @Index('idx_role_review_assignment_review_status', ['reviewId', 'status'])
+// export class RoleReviewAssignment {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'review_id', type: 'uuid' })
-  reviewId!: string;
+//   @Column({ name: 'review_id', type: 'uuid' })
+//   reviewId!: string;
 
-  @ManyToOne(() => RoleReview, (r) => r.roleReviewAssignments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'review_id' })
-  review!: Relation<RoleReview>;
+//   @ManyToOne(() => RoleReview, (r) => r.roleReviewAssignments, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'review_id' })
+//   review!: Relation<RoleReview>;
 
-  @Column({ name: 'reviewer_id', type: 'uuid' })
-  reviewerId!: string;
+//   @Column({ name: 'reviewer_id', type: 'uuid' })
+//   reviewerId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'reviewer_id' })
-  reviewer!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+//   @JoinColumn({ name: 'reviewer_id' })
+//   reviewer!: Relation<User>;
 
-  @Column({ name: 'assigned_by', type: 'uuid', nullable: true })
-  assignedByUserId!: string | null;
+//   @Column({ name: 'assigned_by', type: 'uuid', nullable: true })
+//   assignedByUserId!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'assigned_by' })
-  assignedByUser!: Relation<User | null>;
+//   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+//   @JoinColumn({ name: 'assigned_by' })
+//   assignedByUser!: Relation<User | null>;
 
-  @Column({ type: 'enum', enum: ReviewAssignmentStatus, default: ReviewAssignmentStatus.PENDING })
-  status!: ReviewAssignmentStatus;
+//   @Column({ type: 'enum', enum: ReviewAssignmentStatus, default: ReviewAssignmentStatus.PENDING })
+//   status!: ReviewAssignmentStatus;
 
-  @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
-  assignedAt!: Date;
+//   @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
+//   assignedAt!: Date;
 
-  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
-  reviewedAt!: Date | null;
-}
+//   @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
+//   reviewedAt!: Date | null;
+// }

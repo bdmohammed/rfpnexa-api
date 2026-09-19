@@ -1,20 +1,20 @@
 import z from 'zod';
 
-import { CategoryStatus } from '@/types/enums';
+import type { RouteContract } from '@/core/asyncHandler';
+import type { Category } from '@/database/entities/Category';
+
+// import { CategoryStatus } from '@/types/enums';
 
 export const CreateCategorySchema = z.object({
-  code: z
-    .string()
-    .regex(/^\d{3}$/, 'Category code must be exactly 3 digits')
-    .optional(),
+  code: z.string().regex(/^\d{3}$/, 'Category code must be exactly 3 digits'),
   name: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).optional(),
-  description: z.string().max(1000).nullable().optional(),
-  parentCategoryId: z.string().uuid().nullable().optional(),
-  displayOrder: z.number().int().min(0).optional(),
-  icon: z.string().max(50).nullable().optional(),
-  color: z.string().max(50).nullable().optional(),
-  isActive: z.boolean().optional(),
+  // slug: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).nullable().default(null),
+  // parentCategoryId: z.string().uuid().nullable().optional(),
+  // displayOrder: z.number().int().min(0).optional(),
+  // icon: z.string().max(50).nullable().optional(),
+  // color: z.string().max(50).nullable().optional(),
+  isActive: z.boolean().default(false),
 });
 export type CreateCategoryDto = z.infer<typeof CreateCategorySchema>;
 
@@ -82,26 +82,10 @@ export const CategoryQuerySchema = z.object({
   search: z.string().optional(),
   code: z.string().optional(),
   slug: z.string().optional(),
-  status: z
-    .nativeEnum(CategoryStatus)
-    .or(z.enum(['ALL', 'ACTIVE', 'INACTIVE']))
-    .optional(),
-  createdBy: z.string().uuid().optional(),
-  dateFrom: z.string().date().optional(),
-  dateTo: z.string().date().optional(),
-  unusedOnly: z
-    .preprocess((val) => {
-      if (val === true || val === 'true' || val === '1') {
-        return true;
-      }
-
-      if (val === false || val === 'false' || val === '0') {
-        return false;
-      }
-
-      return val;
-    }, z.boolean())
-    .optional(),
+  isActive: z.boolean().optional(),
+  createdBy: z.uuid().optional(),
+  dateFrom: z.date().optional(),
+  dateTo: z.date().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -124,4 +108,24 @@ export interface BatchCategoriesResultDto {
   created: number;
   updated: number;
   deleted: number;
+}
+
+export interface ListDistinctCategoriesContract extends RouteContract {
+  response: Category[];
+}
+
+export interface ListCategoriesContract extends RouteContract {
+  query: CategoryQueryDto;
+  response: Category[];
+}
+
+export interface CreateCategoryContract extends RouteContract {
+  body: CreateCategoryDto;
+  response: Category;
+}
+
+export interface UpdateCategoryContract extends RouteContract {
+  params: IdParamDto;
+  body: CreateCategoryDto;
+  response: Category;
 }

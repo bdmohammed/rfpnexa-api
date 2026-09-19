@@ -8,6 +8,8 @@ import { sendOk } from '@/core/response';
 import { generateToken } from '@/middleware/csrf';
 
 /**
+ * GET /api/v1/auth/csrf-token
+ *
  * Issues a fresh CSRF token to the client for authenticating subsequent state-changing HTTP requests.
  *
  * Business Rules:
@@ -36,7 +38,9 @@ export const getCsrfToken = (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/auth/refresh
- * Rotates the refresh token and issues a new access token.
+ *
+ * Rotates the refresh token and issues a new access + refresh token pair via HttpOnly cookies.
+ * Stateless — no database lookup required.
  */
 export const refresh = asyncHandler<{}, ApiResponse<null>>(async (req, res) => {
   const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;

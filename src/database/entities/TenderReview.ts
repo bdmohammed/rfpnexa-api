@@ -1,40 +1,40 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   OneToMany,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { TenderReviewAssignment } from './TenderReviewAssignment';
-import { TenderReviewComment } from './TenderReviewComment';
-import { TenderVersion } from './TenderVersion';
+// import { TenderReviewAssignment } from './TenderReviewAssignment';
+// import { TenderReviewComment } from './TenderReviewComment';
+// import { TenderVersion } from './TenderVersion';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_reviews')
-export class TenderReview {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_reviews')
+// export class TenderReview {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'tender_version_id', type: 'uuid' })
-  tenderVersionId!: string;
+//   @Column({ name: 'tender_version_id', type: 'uuid' })
+//   tenderVersionId!: string;
 
-  @ManyToOne(() => TenderVersion, (version) => version.reviews, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion!: Relation<TenderVersion>;
+//   @ManyToOne(() => TenderVersion, (version) => version.reviews, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'tender_version_id' })
+//   tenderVersion!: Relation<TenderVersion>;
 
-  @Column({ type: 'varchar', length: 50, default: 'assigned' })
-  status!: string;
+//   @Column({ type: 'varchar', length: 50, default: 'assigned' })
+//   status!: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @OneToMany(() => TenderReviewAssignment, (assign) => assign.review)
-  assignments!: Relation<TenderReviewAssignment[]>;
+//   @OneToMany(() => TenderReviewAssignment, (assign) => assign.review)
+//   assignments!: Relation<TenderReviewAssignment[]>;
 
-  @OneToMany(() => TenderReviewComment, (comment) => comment.review)
-  comments!: Relation<TenderReviewComment[]>;
-}
+//   @OneToMany(() => TenderReviewComment, (comment) => comment.review)
+//   comments!: Relation<TenderReviewComment[]>;
+// }

@@ -1,27 +1,29 @@
-import express, { Router } from 'express';
+import { Router } from 'express';
 
 import * as controller from './categories.controll';
 import {
-  AssignCategoryReviewerSchema,
-  CategoryDecisionSchema,
+  // AssignCategoryReviewerSchema,
+  // CategoryDecisionSchema,
+  CategoryQuerySchema,
   CreateCategorySchema,
   IdParamSchema,
-  SubmitCategoryReviewSchema,
-  UpdateCategorySchema,
+  // SubmitCategoryReviewSchema,
+  // UpdateCategorySchema,
 } from './categories.dto';
 
-import type { RequestHandler } from 'express';
-import { auditLogger } from '@/middleware/auditLogger';
+// import type { RequestHandler } from 'express';
+// import { auditLogger } from '@/middleware/auditLogger';
 import { authenticate } from '@/middleware/authenticate';
-import { requirePermission } from '@/middleware/permissions';
-import { requireAccountType } from '@/middleware/requireAccountType';
+// import { requirePermission } from '@/middleware/permissions';
+// import { requireAccountType } from '@/middleware/requireAccountType';
 import { validate } from '@/middleware/validate';
-import { AccountType, PermissionKey } from '@/types/enums';
+// import { AccountType, PermissionKey } from '@/types/enums';
 
 const router = Router();
+router.get('/', validate(CategoryQuerySchema, 'query'), controller.listCategories);
 
-const adminAuth = [authenticate, requireAccountType(AccountType.ADMIN)];
-
+router.use(authenticate);
+router.get('/categories', controller.listDistinctCategories);
 /**
  * @swagger
  * components:
@@ -78,7 +80,6 @@ const adminAuth = [authenticate, requireAccountType(AccountType.ADMIN)];
  */
 
 // ─── Categories Management ───────────────────────────────────────────────────
-
 /**
  * @swagger
  * /api/v1/categories:
@@ -150,7 +151,14 @@ const adminAuth = [authenticate, requireAccountType(AccountType.ADMIN)];
  *                 currentPage: 1
  *               traceId: "uuid"
  */
-// router.get('/', validate(CategoryQuerySchema, 'query'), controller.listCategories);
+
+router.post('/', validate(CreateCategorySchema, 'body'), controller.createCategory);
+router.patch(
+  '/:id',
+  validate(IdParamSchema, 'params'),
+  validate(CreateCategorySchema, 'body'),
+  controller.updateCategory,
+);
 
 /**
  * @swagger
@@ -162,7 +170,7 @@ const adminAuth = [authenticate, requireAccountType(AccountType.ADMIN)];
  *       200:
  *         description: Category statistics overview
  */
-router.get('/analytics', controller.getCategoryStats);
+// router.get('/analytics', controller.getCategoryStats);
 
 /**
  * @swagger
@@ -226,14 +234,14 @@ router.get('/analytics', controller.getCategoryStats);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post(
-  '/',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(CreateCategorySchema),
-  auditLogger('category.create', 'category'),
-  controller.createCategory,
-);
+// router.post(
+//   '/',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(CreateCategorySchema, 'body'),
+//   // auditLogger('category.create', 'category'),
+//   controller.createCategory,
+// );
 
 /**
  * @swagger
@@ -313,14 +321,14 @@ router.post(
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.post(
-  '/batch',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  express.text({ type: ['text/csv', 'text/plain'], limit: '1mb' }) as RequestHandler,
-  express.json({ limit: '1mb' }) as RequestHandler,
-  controller.batchCategories,
-);
+// router.post(
+//   '/batch',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   express.text({ type: ['text/csv', 'text/plain'], limit: '1mb' }) as RequestHandler,
+//   express.json({ limit: '1mb' }) as RequestHandler,
+//   controller.batchCategories,
+// );
 
 /**
  * @swagger
@@ -427,23 +435,23 @@ router.post(
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.patch(
-  '/:id',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  validate(UpdateCategorySchema),
-  auditLogger('category.edit', 'category'),
-  controller.updateCategory,
-);
-router.delete(
-  '/:id',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  auditLogger('category.delete', 'category'),
-  controller.deleteCategory,
-);
+// router.patch(
+//   '/:id',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   validate(UpdateCategorySchema, 'body'),
+//   // auditLogger('category.edit', 'category'),
+//   controller.updateCategory,
+// );
+// router.delete(
+//   '/:id',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   // auditLogger('category.delete', 'category'),
+//   controller.deleteCategory,
+// );
 
 /**
  * @swagger
@@ -480,13 +488,13 @@ router.delete(
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.get(
-  '/:id/history',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.getCategoryHistory,
-);
+// router.get(
+//   '/:id/history',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.getCategoryHistory,
+// );
 
 /**
  * @swagger
@@ -506,21 +514,21 @@ router.get(
  *       200:
  *         description: Governance information resolved successfully
  */
-router.get(
-  '/:id/governance',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.getCategoryGovernance,
-);
+// router.get(
+//   '/:id/governance',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.getCategoryGovernance,
+// );
 
-router.post(
-  '/:id/comments',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.addCategoryComment,
-);
+// router.post(
+//   '/:id/comments',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.addCategoryComment,
+// );
 
 /**
  * @swagger
@@ -553,14 +561,14 @@ router.post(
  *       200:
  *         description: Category submitted for review successfully
  */
-router.post(
-  '/:id/submit',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  validate(SubmitCategoryReviewSchema),
-  controller.submitCategoryReview,
-);
+// router.post(
+//   '/:id/submit',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   validate(SubmitCategoryReviewSchema, 'body'),
+//   controller.submitCategoryReview,
+// );
 
 /**
  * @swagger
@@ -593,15 +601,15 @@ router.post(
  *     responses:
  *       200:
  *         description: Reviewers assigned successfully
- */
-router.post(
-  '/:id/assign-reviewer',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  validate(AssignCategoryReviewerSchema),
-  controller.assignCategoryReviewer,
-);
+//  */
+// router.post(
+//   '/:id/assign-reviewer',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   validate(AssignCategoryReviewerSchema, 'body'),
+//   controller.assignCategoryReviewer,
+// );
 
 /**
  * @swagger
@@ -633,14 +641,14 @@ router.post(
  *       200:
  *         description: Decision logged successfully
  */
-router.post(
-  '/:id/review',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  validate(CategoryDecisionSchema),
-  controller.reviewCategoryDecision,
-);
+// router.post(
+//   '/:id/review',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   validate(CategoryDecisionSchema, 'body'),
+//   controller.reviewCategoryDecision,
+// );
 
 /**
  * @swagger
@@ -661,13 +669,13 @@ router.post(
  *       200:
  *         description: Draft version created successfully
  */
-router.post(
-  '/:id/draft',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.createCategoryDraftVersion,
-);
+// router.post(
+//   '/:id/draft',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.createCategoryDraftVersion,
+// );
 
 /**
  * @swagger
@@ -688,13 +696,13 @@ router.post(
  *       200:
  *         description: Category archived successfully
  */
-router.post(
-  '/:id/archive',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.archiveCategory,
-);
+// router.post(
+//   '/:id/archive',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.archiveCategory,
+// );
 
 /**
  * @swagger
@@ -715,13 +723,13 @@ router.post(
  *       200:
  *         description: Category restored successfully
  */
-router.post(
-  '/:id/restore',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.restoreCategory,
-);
+// router.post(
+//   '/:id/restore',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.restoreCategory,
+// );
 
 /**
  * @swagger
@@ -741,12 +749,12 @@ router.post(
  *       200:
  *         description: Usage counts resolved successfully
  */
-router.get(
-  '/:id/usage',
-  adminAuth,
-  requirePermission(PermissionKey.MANAGE_CATEGORIES),
-  validate(IdParamSchema, 'params'),
-  controller.getCategoryUsage,
-);
+// router.get(
+//   '/:id/usage',
+//   adminAuth,
+//   requirePermission(PermissionKey.MANAGE_CATEGORIES),
+//   validate(IdParamSchema, 'params'),
+//   controller.getCategoryUsage,
+// );
 
 export { router as categoriesRouter };

@@ -28,7 +28,7 @@ WORKDIR /app
 # the lockfile actually changes.
 COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm \
-  npm ci
+  npm ci --legacy-peer-deps
 
 # ── Copy TypeScript configuration ─────────────────────────────────────────────
 # tsconfig.json is required by ts-node at runtime for path alias resolution

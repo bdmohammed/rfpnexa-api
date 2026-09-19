@@ -6,6 +6,12 @@ import type { User } from '@/entities/User';
 export function sanitizeUser(
   user: User,
 ): Omit<User, 'passwordHash' | 'tokenVersion' | 'failedLoginAttempts' | 'lockoutUntil'> {
-  const { passwordHash, tokenVersion, failedLoginAttempts, lockoutUntil, ...safe } = user;
+  const {
+    passwordHash,
+    // tokenVersion,
+    // failedLoginAttempts,
+    // lockoutUntil,
+    ...safe
+  } = user;
   return safe;
 }

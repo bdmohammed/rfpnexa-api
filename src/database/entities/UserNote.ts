@@ -1,45 +1,45 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { User } from './User';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('user_notes')
-export class UserNote {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('user_notes')
+// export class UserNote {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  @Index()
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   @Index()
+//   userId!: string;
 
-  @Column({ name: 'admin_id', type: 'uuid', nullable: true })
-  @Index()
-  adminId!: string | null;
+//   @Column({ name: 'admin_id', type: 'uuid', nullable: true })
+//   @Index()
+//   adminId!: string | null;
 
-  @Column({ type: 'text' })
-  note!: string;
+//   @Column({ type: 'text' })
+//   note!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt!: Date;
+//   @UpdateDateColumn({ type: 'timestamptz' })
+//   updatedAt!: Date;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'admin_id' })
-  admin!: Relation<User | null>;
-}
+//   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+//   @JoinColumn({ name: 'admin_id' })
+//   admin!: Relation<User | null>;
+// }

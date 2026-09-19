@@ -1,107 +1,107 @@
-import {
-  Check,
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Check,
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { User } from './User';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { ExportFormat, ExportJobStatus, ExportJobType } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { ExportFormat, ExportJobStatus, ExportJobType } from '@/types/enums';
 
-@Entity('export_jobs')
-@Check('"progress" BETWEEN 0 AND 100')
-@Index('idx_export_jobs_status', ['status'])
-@Index('idx_export_jobs_user_id', ['userId'])
-@Index('idx_export_jobs_created_at', ['createdAt'])
-@Index('idx_export_jobs_expires_at', ['expiresAt'])
-@Index('idx_export_jobs_status_created', ['status', 'createdAt'])
-export class ExportJob {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('export_jobs')
+// @Check('"progress" BETWEEN 0 AND 100')
+// @Index('idx_export_jobs_status', ['status'])
+// @Index('idx_export_jobs_user_id', ['userId'])
+// @Index('idx_export_jobs_created_at', ['createdAt'])
+// @Index('idx_export_jobs_expires_at', ['expiresAt'])
+// @Index('idx_export_jobs_status_created', ['status', 'createdAt'])
+// export class ExportJob {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, {
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, {
+//     onDelete: 'RESTRICT',
+//   })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ type: 'enum', enum: ExportJobStatus })
-  status!: ExportJobStatus;
+//   @Column({ type: 'enum', enum: ExportJobStatus })
+//   status!: ExportJobStatus;
 
-  @Column({ type: 'integer', default: 0 })
-  progress!: number;
+//   @Column({ type: 'integer', default: 0 })
+//   progress!: number;
 
-  @Column({ name: 'export_type', type: 'enum', enum: ExportJobType })
-  exportType!: ExportJobType;
+//   @Column({ name: 'export_type', type: 'enum', enum: ExportJobType })
+//   exportType!: ExportJobType;
 
-  @Column({ type: 'enum', enum: ExportFormat })
-  format!: ExportFormat;
+//   @Column({ type: 'enum', enum: ExportFormat })
+//   format!: ExportFormat;
 
-  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
-  filters!: Record<string, unknown>;
+//   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+//   filters!: Record<string, unknown>;
 
-  @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
-  storageKey!: string | null;
+//   @Column({ name: 'storage_key', type: 'varchar', length: 255, nullable: true })
+//   storageKey!: string | null;
 
-  @Column({ name: 'expires_at', type: 'timestamptz' })
-  expiresAt!: Date;
+//   @Column({ name: 'expires_at', type: 'timestamptz' })
+//   expiresAt!: Date;
 
-  @Column({ name: 'expired_at', type: 'timestamptz', nullable: true })
-  expiredAt!: Date | null;
+//   @Column({ name: 'expired_at', type: 'timestamptz', nullable: true })
+//   expiredAt!: Date | null;
 
-  @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
-  startedAt!: Date | null;
+//   @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
+//   startedAt!: Date | null;
 
-  @Column({ name: 'finished_at', type: 'timestamptz', nullable: true })
-  finishedAt!: Date | null;
+//   @Column({ name: 'finished_at', type: 'timestamptz', nullable: true })
+//   finishedAt!: Date | null;
 
-  @Column({ name: 'download_count', type: 'integer', default: 0 })
-  downloadCount!: number;
+//   @Column({ name: 'download_count', type: 'integer', default: 0 })
+//   downloadCount!: number;
 
-  @Column({ name: 'last_downloaded_at', type: 'timestamptz', nullable: true })
-  lastDownloadedAt!: Date | null;
+//   @Column({ name: 'last_downloaded_at', type: 'timestamptz', nullable: true })
+//   lastDownloadedAt!: Date | null;
 
-  @Column({ name: 'file_name', type: 'varchar', length: 255, nullable: true })
-  fileName!: string | null;
+//   @Column({ name: 'file_name', type: 'varchar', length: 255, nullable: true })
+//   fileName!: string | null;
 
-  @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true })
-  fileSizeBytes!: number | null;
+//   @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true })
+//   fileSizeBytes!: number | null;
 
-  @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
-  mimeType!: string | null;
+//   @Column({ name: 'mime_type', type: 'varchar', length: 100, nullable: true })
+//   mimeType!: string | null;
 
-  @Column({ name: 'queue_name', type: 'varchar', length: 100, nullable: true })
-  queueName!: string | null;
+//   @Column({ name: 'queue_name', type: 'varchar', length: 100, nullable: true })
+//   queueName!: string | null;
 
-  @Column({ name: 'job_id', type: 'varchar', length: 100, nullable: true })
-  jobId!: string | null;
+//   @Column({ name: 'job_id', type: 'varchar', length: 100, nullable: true })
+//   jobId!: string | null;
 
-  @Column({ name: 'retry_count', type: 'integer', default: 0 })
-  retryCount!: number;
+//   @Column({ name: 'retry_count', type: 'integer', default: 0 })
+//   retryCount!: number;
 
-  @Column({ name: 'error_message', type: 'text', nullable: true })
-  errorMessage!: string | null;
+//   @Column({ name: 'error_message', type: 'text', nullable: true })
+//   errorMessage!: string | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true })
-  createdByUserId!: string | null;
+//   @Column({ name: 'created_by', type: 'uuid', nullable: true })
+//   createdByUserId!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
-  @JoinColumn({ name: 'created_by' })
-  createdByUser!: Relation<User | null>;
+//   @ManyToOne(() => User, { onDelete: 'RESTRICT', nullable: true })
+//   @JoinColumn({ name: 'created_by' })
+//   createdByUser!: Relation<User | null>;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
-}
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
+// }

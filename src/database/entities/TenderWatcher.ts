@@ -1,39 +1,39 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { Tender } from './Tender';
-import { User } from './User';
+// import { Tender } from './Tender';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_watchers')
-export class TenderWatcher {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_watchers')
+// export class TenderWatcher {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'tender_id', type: 'uuid' })
-  tenderId!: string;
+//   @Column({ name: 'tender_id', type: 'uuid' })
+//   tenderId!: string;
 
-  @ManyToOne(() => Tender, (tender) => tender.watchers, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tender_id' })
-  tender!: Relation<Tender>;
+//   @ManyToOne(() => Tender, (tender) => tender.watchers, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'tender_id' })
+//   tender!: Relation<Tender>;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ name: 'channels', type: 'jsonb', default: '["EMAIL", "IN_APP"]' })
-  channels!: string[];
+//   @Column({ name: 'channels', type: 'jsonb', default: '["EMAIL", "IN_APP"]' })
+//   channels!: string[];
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
-}
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
+// }

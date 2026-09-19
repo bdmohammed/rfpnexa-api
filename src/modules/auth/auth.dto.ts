@@ -50,7 +50,7 @@ export const RegisterSchema = z.object({
   email: EmailSchema,
   password: PasswordSchema,
   companyName: z.string().max(160).trim().optional(),
-  countryId: z.string().min(1, 'Invalid country ID'),
+  countryId: z.string().regex(/^\d+$/, 'Invalid Country ID'),
 });
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 
@@ -64,6 +64,7 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 
 export const ForgotPasswordSchema = z.object({
   email: EmailSchema,
+  password: PasswordSchema,
 });
 export type ForgotPasswordDto = z.infer<typeof ForgotPasswordSchema>;
 

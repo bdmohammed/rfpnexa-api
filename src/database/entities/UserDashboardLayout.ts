@@ -1,66 +1,66 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   Index,
+//   JoinColumn,
+//   OneToOne,
+//   PrimaryGeneratedColumn,
+//   UpdateDateColumn,
+// } from 'typeorm';
 
-import { User } from './User';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
-import { DashboardTheme } from '@/types/enums';
+// import type { Relation } from 'typeorm';
+// import { DashboardTheme } from '@/types/enums';
 
-export interface WidgetLayout {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
+// export interface WidgetLayout {
+//   x: number;
+//   y: number;
+//   w: number;
+//   h: number;
+// }
 
-export interface DashboardWidget extends WidgetLayout {
-  readonly id: string;
-  collapsed: boolean;
-  hidden: boolean;
-}
+// export interface DashboardWidget extends WidgetLayout {
+//   readonly id: string;
+//   collapsed: boolean;
+//   hidden: boolean;
+// }
 
-@Entity('user_dashboard_layouts')
-@Index('ux_user_dashboard_layouts_user_id', ['userId'], { unique: true })
-export class UserDashboardLayout {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('user_dashboard_layouts')
+// @Index('ux_user_dashboard_layouts_user_id', ['userId'], { unique: true })
+// export class UserDashboardLayout {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId!: string;
+//   @Column({ name: 'user_id', type: 'uuid' })
+//   userId!: string;
 
-  @OneToOne(() => User, (user) => user.userDashboardLayout, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user!: Relation<User>;
+//   @OneToOne(() => User, (user) => user.userDashboardLayout, {
+//     onDelete: 'CASCADE',
+//   })
+//   @JoinColumn({ name: 'user_id' })
+//   user!: Relation<User>;
 
-  @Column({ name: 'widgets', type: 'jsonb', default: () => "'[]'::jsonb" })
-  widgets!: DashboardWidget[];
+//   @Column({ name: 'widgets', type: 'jsonb', default: () => "'[]'::jsonb" })
+//   widgets!: DashboardWidget[];
 
-  @Column({ name: 'filters', type: 'jsonb', default: () => "'{}'::jsonb" })
-  filters!: Record<string, unknown>;
+//   @Column({ name: 'filters', type: 'jsonb', default: () => "'{}'::jsonb" })
+//   filters!: Record<string, unknown>;
 
-  @Column({
-    type: 'enum',
-    enum: DashboardTheme,
-    default: DashboardTheme.DEFAULT,
-  })
-  theme!: DashboardTheme;
+//   @Column({
+//     type: 'enum',
+//     enum: DashboardTheme,
+//     default: DashboardTheme.DEFAULT,
+//   })
+//   theme!: DashboardTheme;
 
-  @Column({ name: 'layout_version', type: 'integer', default: 1 })
-  layoutVersion!: number;
+//   @Column({ name: 'layout_version', type: 'integer', default: 1 })
+//   layoutVersion!: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt!: Date;
+//   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+//   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt!: Date;
-}
+//   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+//   updatedAt!: Date;
+// }

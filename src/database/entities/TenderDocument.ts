@@ -1,28 +1,43 @@
 import {
   Column,
-  CreateDateColumn,
+  // CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  // JoinColumn,
+  // ManyToOne,
   PrimaryGeneratedColumn,
+  type Relation,
 } from 'typeorm';
 
-import { TenderVersion } from './TenderVersion';
-import { User } from './User';
+import { Tender } from './Tender';
 
-import type { Relation } from 'typeorm';
+// import { TenderVersion } from './TenderVersion';
+// import { User } from './User';
+
+// import type { Relation } from 'typeorm';
 
 @Entity('tender_documents')
 export class TenderDocument {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'tender_version_id', type: 'uuid' })
-  tenderVersionId!: string;
+  // @Column({ name: 'tender_version_id', type: 'uuid' })
+  // tenderVersionId!: string;
 
-  @ManyToOne(() => TenderVersion, (version) => version.documents, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tender_version_id' })
-  tenderVersion!: Relation<TenderVersion>;
+  // @ManyToOne(() => TenderVersion, (version) => version.documents, { onDelete: 'CASCADE' })
+  // @JoinColumn({ name: 'tender_version_id' })
+  // tenderVersion!: Relation<TenderVersion>;
+
+  @Column({ name: 'tender_id', type: 'uuid' })
+  tenderId!: string;
+
+  @ManyToOne(() => Tender, (tender) => tender.documents, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'tender_id' })
+  tender!: Relation<Tender>;
 
   @Column({ type: 'varchar', name: 'document_type', length: 50 })
   documentType!: string;
@@ -42,28 +57,28 @@ export class TenderDocument {
   @Column({ name: 'file_size', type: 'int', nullable: true })
   fileSize!: number | null;
 
-  @Column({ type: 'int', default: 1 })
-  version!: number;
+  // @Column({ type: 'int', default: 1 })
+  // version!: number;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
-  checksum!: string | null;
+  // @Column({ type: 'varchar', length: 64, nullable: true })
+  // checksum!: string | null;
 
-  @Column({ type: 'varchar', name: 'virus_scan_status', length: 50, default: 'Pending' })
-  virusScanStatus!: string;
+  // @Column({ type: 'varchar', name: 'virus_scan_status', length: 50, default: 'Pending' })
+  // virusScanStatus!: string;
 
-  @Column({ type: 'boolean', name: 'is_public', default: true })
-  isPublic!: boolean;
+  // @Column({ type: 'boolean', name: 'is_public', default: true })
+  // isPublic!: boolean;
 
-  @Column({ name: 'download_count', type: 'int', default: 0 })
-  downloadCount!: number;
+  // @Column({ name: 'download_count', type: 'int', default: 0 })
+  // downloadCount!: number;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'uploaded_by_id' })
-  uploadedBy!: Relation<User | null>;
+  // @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  // @JoinColumn({ name: 'uploaded_by_id' })
+  // uploadedBy!: Relation<User | null>;
 
-  @Column({ name: 'uploaded_by_id', type: 'uuid', nullable: true })
-  uploadedById!: string | null;
+  // @Column({ name: 'uploaded_by_id', type: 'uuid', nullable: true })
+  // uploadedById!: string | null;
 
-  @CreateDateColumn({ name: 'uploaded_at', type: 'timestamptz' })
-  uploadedAt!: Date;
+  // @CreateDateColumn({ name: 'uploaded_at', type: 'timestamptz' })
+  // uploadedAt!: Date;
 }

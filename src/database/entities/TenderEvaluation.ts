@@ -1,94 +1,94 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+// import {
+//   Column,
+//   CreateDateColumn,
+//   Entity,
+//   JoinColumn,
+//   ManyToOne,
+//   PrimaryGeneratedColumn,
+// } from 'typeorm';
 
-import { EvaluationTemplate } from './EvaluationTemplate';
-import { TenderParticipant } from './TenderParticipant';
-import { TenderSubmission } from './TenderSubmission';
-import { User } from './User';
+// import { EvaluationTemplate } from './EvaluationTemplate';
+// import { TenderParticipant } from './TenderParticipant';
+// import { TenderSubmission } from './TenderSubmission';
+// import { User } from './User';
 
-import type { Relation } from 'typeorm';
+// import type { Relation } from 'typeorm';
 
-@Entity('tender_evaluations')
-export class TenderEvaluation {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+// @Entity('tender_evaluations')
+// export class TenderEvaluation {
+//   @PrimaryGeneratedColumn('uuid')
+//   id!: string;
 
-  @Column({ name: 'participant_id', type: 'uuid' })
-  participantId!: string;
+//   @Column({ name: 'participant_id', type: 'uuid' })
+//   participantId!: string;
 
-  @ManyToOne(() => TenderParticipant, (part) => part.evaluations, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'participant_id' })
-  participant!: Relation<TenderParticipant>;
+//   @ManyToOne(() => TenderParticipant, (part) => part.evaluations, { onDelete: 'CASCADE' })
+//   @JoinColumn({ name: 'participant_id' })
+//   participant!: Relation<TenderParticipant>;
 
-  @Column({ name: 'submission_id', type: 'uuid', nullable: true })
-  submissionId!: string | null;
+//   @Column({ name: 'submission_id', type: 'uuid', nullable: true })
+//   submissionId!: string | null;
 
-  @ManyToOne(() => TenderSubmission, (sub) => sub.evaluations, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'submission_id' })
-  submission!: Relation<TenderSubmission | null>;
+//   @ManyToOne(() => TenderSubmission, (sub) => sub.evaluations, {
+//     onDelete: 'CASCADE',
+//     nullable: true,
+//   })
+//   @JoinColumn({ name: 'submission_id' })
+//   submission!: Relation<TenderSubmission | null>;
 
-  @Column({ type: 'varchar', name: 'evaluation_type', length: 50 })
-  evaluationType!: string;
+//   @Column({ type: 'varchar', name: 'evaluation_type', length: 50 })
+//   evaluationType!: string;
 
-  @Column({ type: 'varchar', name: 'evaluation_template_id', nullable: true })
-  evaluationTemplateId!: string | null;
+//   @Column({ type: 'varchar', name: 'evaluation_template_id', nullable: true })
+//   evaluationTemplateId!: string | null;
 
-  @ManyToOne(() => EvaluationTemplate, (template) => template.evaluations, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'evaluation_template_id' })
-  evaluationTemplate!: Relation<EvaluationTemplate | null>;
+//   @ManyToOne(() => EvaluationTemplate, (template) => template.evaluations, {
+//     onDelete: 'SET NULL',
+//     nullable: true,
+//   })
+//   @JoinColumn({ name: 'evaluation_template_id' })
+//   evaluationTemplate!: Relation<EvaluationTemplate | null>;
 
-  @Column({
-    type: 'numeric',
-    precision: 5,
-    scale: 2,
-    default: 0.0,
-    transformer: {
-      to: (val: number) => val,
-      from: (val: string) => parseFloat(val),
-    },
-  })
-  weight!: number;
+//   @Column({
+//     type: 'numeric',
+//     precision: 5,
+//     scale: 2,
+//     default: 0.0,
+//     transformer: {
+//       to: (val: number) => val,
+//       from: (val: string) => parseFloat(val),
+//     },
+//   })
+//   weight!: number;
 
-  @Column({
-    type: 'numeric',
-    precision: 5,
-    scale: 2,
-    default: 0.0,
-    transformer: {
-      to: (val: number) => val,
-      from: (val: string) => parseFloat(val),
-    },
-  })
-  score!: number;
+//   @Column({
+//     type: 'numeric',
+//     precision: 5,
+//     scale: 2,
+//     default: 0.0,
+//     transformer: {
+//       to: (val: number) => val,
+//       from: (val: string) => parseFloat(val),
+//     },
+//   })
+//   score!: number;
 
-  @Column({ name: 'max_score', type: 'int', default: 100 })
-  maxScore!: number;
+//   @Column({ name: 'max_score', type: 'int', default: 100 })
+//   maxScore!: number;
 
-  @Column({ type: 'boolean', default: true })
-  passed!: boolean;
+//   @Column({ type: 'boolean', default: true })
+//   passed!: boolean;
 
-  @Column({ type: 'text', nullable: true })
-  remarks!: string | null;
+//   @Column({ type: 'text', nullable: true })
+//   remarks!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'evaluated_by_id' })
-  evaluatedBy!: Relation<User | null>;
+//   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+//   @JoinColumn({ name: 'evaluated_by_id' })
+//   evaluatedBy!: Relation<User | null>;
 
-  @Column({ name: 'evaluated_by_id', type: 'uuid', nullable: true })
-  evaluatedById!: string | null;
+//   @Column({ name: 'evaluated_by_id', type: 'uuid', nullable: true })
+//   evaluatedById!: string | null;
 
-  @CreateDateColumn({ name: 'evaluated_at', type: 'timestamptz' })
-  evaluatedAt!: Date;
-}
+//   @CreateDateColumn({ name: 'evaluated_at', type: 'timestamptz' })
+//   evaluatedAt!: Date;
+// }

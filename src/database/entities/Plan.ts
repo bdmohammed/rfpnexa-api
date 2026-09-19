@@ -2,16 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
+  // JoinColumn,
+  // ManyToOne,
+  // OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { PlanVersion } from './PlanVersion';
-import { SubscriptionDailyMetrics } from './SubscriptionDailyMetrics';
-
-import type { Relation } from 'typeorm';
+// import { PlanVersion } from './PlanVersion';
+// import { SubscriptionDailyMetrics } from './SubscriptionDailyMetrics';
+// import type { Relation } from 'typeorm';
 import { PlanStatus } from '@/types/enums';
 
 @Entity('plans')
@@ -22,8 +21,8 @@ export class Plan {
   @Column({ name: 'reference_no', type: 'varchar', length: 100, unique: true })
   referenceNo!: string;
 
-  @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
-  activeVersionId!: string | null;
+  // @Column({ name: 'active_version_id', type: 'uuid', nullable: true })
+  // activeVersionId!: string | null;
 
   @Column({ type: 'enum', enum: PlanStatus, default: PlanStatus.ACTIVE })
   status!: PlanStatus;
@@ -32,13 +31,13 @@ export class Plan {
   createdAt!: Date;
 
   // ─── Relations ────────────────────────────────────────────────────────────
-  @OneToMany(() => PlanVersion, (v) => v.plan)
-  versions!: Relation<PlanVersion[]>;
+  // @OneToMany(() => PlanVersion, (v) => v.plan)
+  // versions!: Relation<PlanVersion[]>;
 
-  @ManyToOne(() => PlanVersion, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'active_version_id' })
-  activeVersion!: Relation<PlanVersion | null>;
+  // @ManyToOne(() => PlanVersion, { onDelete: 'SET NULL', nullable: true })
+  // @JoinColumn({ name: 'active_version_id' })
+  // activeVersion!: Relation<PlanVersion | null>;
 
-  @OneToMany(() => SubscriptionDailyMetrics, (metrics) => metrics.plan)
-  subscriptionMetrics!: Relation<SubscriptionDailyMetrics[]>;
+  // @OneToMany(() => SubscriptionDailyMetrics, (metrics) => metrics.plan)
+  // subscriptionMetrics!: Relation<SubscriptionDailyMetrics[]>;
 }
