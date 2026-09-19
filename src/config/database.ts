@@ -103,9 +103,7 @@ const getSslConfig = () => {
 
   return {
     rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED,
-    ...(env.DATABASE_CA_CERT
-      ? { ca: env.DATABASE_CA_CERT }
-      : {}),
+    ...(env.DATABASE_CA_CERT ? { ca: env.DATABASE_CA_CERT } : {}),
   };
 };
 

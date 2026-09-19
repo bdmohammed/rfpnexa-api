@@ -33,7 +33,7 @@ COPY src ./src
 
 # Compile TypeScript and rewrite @/* aliases to relative paths
 RUN npm run build
-
+COPY src/database/seeds/data/countries-states.json ./dist/database/seeds/data/countries-states.json
 
 # ── Stage 2: runner (final production image) ──────────────────────────────────
 FROM node:24-alpine AS runner
