@@ -12,12 +12,12 @@ export const billingPermissionModule: PermissionModuleSeed = {
 } as const;
 
 export const BillingPermissions = {
-  VIEW: definePermission(PermissionModules.BILLING, PermissionActions.VIEW, {
-    name: 'View Subscriptions',
-    description: 'View subscriptions, plans and customer subscription details.',
-    displayOrder: 1,
-    isActive: true,
-  }),
+  // VIEW: definePermission(PermissionModules.BILLING, PermissionActions.VIEW, {
+  //   name: 'View Subscriptions',
+  //   description: 'View subscriptions, plans and customer subscription details.',
+  //   displayOrder: 1,
+  //   isActive: true,
+  // }),
 
   MANAGE: definePermission(PermissionModules.BILLING, PermissionActions.MANAGE, {
     name: 'Manage Subscriptions',

@@ -12,12 +12,12 @@ export const rolePermissionModule: PermissionModuleSeed = {
 } as const;
 
 export const RolePermissions = {
-  VIEW: definePermission(PermissionModules.ROLE, PermissionActions.VIEW, {
-    name: 'View Roles',
-    description: 'View roles, versions, and configurations.',
-    displayOrder: 1,
-    isActive: true,
-  }),
+  // VIEW: definePermission(PermissionModules.ROLE, PermissionActions.VIEW, {
+  //   name: 'View Roles',
+  //   description: 'View roles, versions, and configurations.',
+  //   displayOrder: 1,
+  //   isActive: true,
+  // }),
 
   MANAGE: definePermission(PermissionModules.ROLE, PermissionActions.MANAGE, {
     name: 'Manage Roles',

@@ -223,7 +223,7 @@ router.get(
  */
 router.get(
   '/hierarchy',
-  requirePermission(GeoLocationPermissions.VIEW.key),
+  requirePermission(GeoLocationPermissions.MANAGE.key),
   controller.getCountriesHierarchy,
 );
 
@@ -233,7 +233,7 @@ router.get(
  */
 router.put(
   '/countries/:id/status',
-  requirePermission(GeoLocationPermissions.VIEW.key),
+  requirePermission(GeoLocationPermissions.MANAGE.key),
   validate(UpdateCountryParamsSchema, 'params'),
   validate(UpdateCountryBodySchema, 'body'),
   controller.updateCountryStatus,
@@ -245,7 +245,7 @@ router.put(
  */
 router.put(
   '/states/:id/status',
-  requirePermission(GeoLocationPermissions.VIEW.key),
+  requirePermission(GeoLocationPermissions.MANAGE.key),
   validate(UpdateStateParamsSchema, 'params'),
   validate(UpdateStateBodySchema, 'body'),
   controller.updateStateStatus,
@@ -316,7 +316,7 @@ router.put(
 //  */
 // router.get(
 //   '/stats',
-//   requirePermission(GeoLocationPermissions.VIEW.key),
+//   requirePermission(GeoLocationPermissions.MANAGE.key),
 //   controller.getOperationalStats,
 // );
 
@@ -758,7 +758,7 @@ router.put(
 //  */
 // router.get(
 //   '/dependency-matrix',
-//   requirePermission(GeoLocationPermissions.VIEW.key),
+//   requirePermission(GeoLocationPermissions.MANAGE.key),
 //   validate(DependencyMatrixQuerySchema, 'query'),
 //   controller.getDependencyMatrix,
 // );
@@ -898,7 +898,7 @@ router.put(
 //  */
 // router.get(
 //   '/change-requests',
-//   requirePermission(GeoLocationPermissions.VIEW.key),
+//   requirePermission(GeoLocationPermissions.MANAGE.key),
 //   validate(ChangeRequestQuerySchema, 'query'),
 //   controller.getReviewsQueue,
 // );
@@ -946,7 +946,7 @@ router.put(
 //  */
 // router.get(
 //   '/change-requests/:id',
-//   requirePermission(GeoLocationPermissions.VIEW.key),
+//   requirePermission(GeoLocationPermissions.MANAGE.key),
 //   validate(IdParamSchema, 'params'),
 //   controller.getChangeRequestDetails,
 // );
@@ -1108,7 +1108,7 @@ router.put(
 //  */
 // router.post(
 //   '/change-requests/:id/comments',
-//   requirePermission(GeoLocationPermissions.VIEW.key),
+//   requirePermission(GeoLocationPermissions.MANAGE.key),
 //   validate(IdParamSchema, 'params'),
 //   validate(AddCommentSchema, 'body'),
 //   controller.addComment,

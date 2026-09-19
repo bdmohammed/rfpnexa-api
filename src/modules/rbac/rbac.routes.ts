@@ -20,14 +20,14 @@ router.use(requireAccountType(AccountType.ADMIN));
 
 router.get(
   '/roles',
-  requirePermission(RolePermissions.VIEW.key),
+  requirePermission(RolePermissions.MANAGE.key),
   // validate(ListRolesQuerySchema, 'query'),
   RbacRoleController.getRoles,
 );
 
 router.get(
   '/roles/:id',
-  requirePermission(RolePermissions.VIEW.key),
+  requirePermission(RolePermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   RbacRoleController.getRoleById,
 );
@@ -58,13 +58,13 @@ router.delete(
 
 router.get(
   '/permissions',
-  requirePermission(RolePermissions.VIEW.key),
+  requirePermission(RolePermissions.MANAGE.key),
   RbacRoleController.getPermissions,
 );
 
 router.get(
   '/assignments',
-  requirePermission(RolePermissions.VIEW.key),
+  requirePermission(RolePermissions.MANAGE.key),
   RbacRoleController.getAssignments,
 );
 
@@ -241,7 +241,7 @@ router.delete(
 //  */
 // // router.get(
 // //   '/roles',
-// //   requirePermission(RolePermissions.VIEW.key),
+// //   requirePermission(RolePermissions.MANAGE.key),
 // //   validate(ListRolesQuerySchema, 'query'),
 // //   RbacRoleController.getRoles,
 // // );
@@ -279,7 +279,7 @@ router.delete(
 //  */
 // router.get(
 //   '/roles/categorized',
-//   requirePermission(RolePermissions.VIEW.key),
+//   requirePermission(RolePermissions.MANAGE.key),
 //   RbacRoleController.getCategorizedRoles,
 // );
 
@@ -318,7 +318,7 @@ router.delete(
 //  */
 // router.get(
 //   '/roles/:id',
-//   requirePermission(RolePermissions.VIEW.key),
+//   requirePermission(RolePermissions.MANAGE.key),
 //   validate(IdParamSchema, 'params'),
 //   RbacRoleController.getRoleById,
 // );
@@ -724,7 +724,7 @@ router.delete(
 //  */
 // router.get(
 //   '/permissions',
-//   requirePermission(RolePermissions.VIEW.key),
+//   requirePermission(RolePermissions.MANAGE.key),
 //   RbacRoleController.getPermissions,
 // );
 
@@ -755,7 +755,7 @@ router.delete(
 //  *                       items:
 //  *                         $ref: '#/components/schemas/RbacModule'
 //  */
-// router.get('/modules', requirePermission(RolePermissions.VIEW.key), RbacRoleController.getModules);
+// router.get('/modules', requirePermission(RolePermissions.MANAGE.key), RbacRoleController.getModules);
 
 // // ─── Versions & Compare ──────────────────────────────────────────────────────
 
@@ -796,7 +796,7 @@ router.delete(
 //  */
 // router.get(
 //   '/roles/:roleId/versions',
-//   requirePermission(RolePermissions.VIEW.key),
+//   requirePermission(RolePermissions.MANAGE.key),
 //   validate(RoleIdParamSchema, 'params'),
 //   RbacVersionController.getRoleVersions,
 // );
@@ -1093,7 +1093,7 @@ router.delete(
 //  */
 // router.get(
 //   '/statistics',
-//   requirePermission(RolePermissions.VIEW.key),
+//   requirePermission(RolePermissions.MANAGE.key),
 //   RbacStatsController.getStats,
 // );
 

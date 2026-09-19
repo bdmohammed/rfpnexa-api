@@ -6,7 +6,7 @@ export * from './category';
 // export * from './dashboard';
 export * from './geoLocation';
 // export * from './notification';
-export * from './permission';
+// export * from './permission';
 export * from './role';
 // export * from './support';
 // export * from './system';

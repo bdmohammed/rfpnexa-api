@@ -12,12 +12,12 @@ export const categoryPermissionModule: PermissionModuleSeed = {
 } as const;
 
 export const CategoryPermissions = {
-  VIEW: definePermission(PermissionModules.CATEGORY, PermissionActions.VIEW, {
-    name: 'View Categories',
-    description: 'View category hierarchy.',
-    displayOrder: 1,
-    isActive: true,
-  }),
+  // VIEW: definePermission(PermissionModules.CATEGORY, PermissionActions.VIEW, {
+  //   name: 'View Categories',
+  //   description: 'View category hierarchy.',
+  //   displayOrder: 1,
+  //   isActive: true,
+  // }),
 
   MANAGE: definePermission(PermissionModules.CATEGORY, PermissionActions.MANAGE, {
     name: 'Manage Categories',

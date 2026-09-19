@@ -12,12 +12,12 @@ export const tenderPermissionModule: PermissionModuleSeed = {
 } as const;
 
 export const TenderPermissions = {
-  VIEW: definePermission(PermissionModules.TENDER, PermissionActions.VIEW, {
-    name: 'View Tenders',
-    description: 'View tenders and tender details.',
-    displayOrder: 1,
-    isActive: true,
-  }),
+  // VIEW: definePermission(PermissionModules.TENDER, PermissionActions.VIEW, {
+  //   name: 'View Tenders',
+  //   description: 'View tenders and tender details.',
+  //   displayOrder: 1,
+  //   isActive: true,
+  // }),
 
   MANAGE: definePermission(PermissionModules.TENDER, PermissionActions.MANAGE, {
     name: 'Manage Tenders',

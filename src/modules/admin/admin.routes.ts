@@ -88,7 +88,7 @@ router.use(authenticate, requireAccountType(AccountType.ADMIN));
  */
 router.get(
   '/users',
-  requirePermission(UserPermissions.VIEW.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(ListUsersQuerySchema, 'query'),
   controller.listUsers,
 );
@@ -113,7 +113,7 @@ router.get(
  */
 router.get(
   '/users/:id',
-  requirePermission(UserPermissions.VIEW.key),
+  requirePermission(UserPermissions.MANAGE.key),
   validate(IdParamSchema, 'params'),
   controller.getUserById,
 );

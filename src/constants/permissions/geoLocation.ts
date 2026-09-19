@@ -12,12 +12,12 @@ export const GeoLocationPermissionModule: PermissionModuleSeed = {
 } as const;
 
 export const GeoLocationPermissions = {
-  VIEW: definePermission(PermissionModules.GeoLocation, PermissionActions.VIEW, {
-    name: 'View Locations',
-    description: 'View countries, states, and geography hierarchy.',
-    displayOrder: 1,
-    isActive: true,
-  }),
+  // VIEW: definePermission(PermissionModules.GeoLocation, PermissionActions.VIEW, {
+  //   name: 'View Locations',
+  //   description: 'View countries, states, and geography hierarchy.',
+  //   displayOrder: 1,
+  //   isActive: true,
+  // }),
 
   MANAGE: definePermission(PermissionModules.GeoLocation, PermissionActions.MANAGE, {
     name: 'Manage Locations',
